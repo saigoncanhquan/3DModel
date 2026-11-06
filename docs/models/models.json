@@ -1,0 +1,14 @@
+[
+  {
+    "id": "sh-2",
+    "title": "Mô hình 3D sh-2 (CAD Component)",
+    "description": "Chi tiết linh kiện 3D CAD kỹ thuật phục vụ cảnh quan & công trình. Tối ưu hiển thị WebGL PBR mượt mà.",
+    "thumbnail": "models/sh-2/thumb.png",
+    "modelPath": "models/sh-2/model.glb",
+    "pageUrl": "models/sh-2/index.html",
+    "category": "CAD Components",
+    "format": "GLB / 3D",
+    "date": "2026-11-06",
+    "author": "Saigon Cảnh Quan"
+  }
+]

@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <!-- ==========================================
+       KHAI BÁO THÔNG TIN MÔ HÌNH (METADATA)
+       ========================================== -->
+  <title>Mô hình 3D sh-2 · Saigon Cảnh Quan</title>
+  <meta name="model:id" content="sh-2" />
+  <meta name="model:title" content="Mô hình 3D sh-2" />
+  <meta name="model:thumbnail" content="thumb.png" />
+  <meta name="model:src" content="model.glb" />
+  <meta name="model:description" content="Mô hình 3D CAD sh-2 phục vụ thiết kế kỹ thuật và phối cảnh kiến trúc Saigon Cảnh Quan." />
+  <meta name="model:category" content="CAD Components" />
+  <meta name="model:author" content="Saigon Cảnh Quan" />
+  <meta name="model:date" content="2026-11-06" />
+
+  <!-- OpenGraph / Social Media -->
+  <meta property="og:title" content="Mô hình 3D sh-2 - Saigon Cảnh Quan" />
+  <meta property="og:description" content="Khám phá và tương tác 360 độ với mô hình 3D sh-2 trực tiếp trên nền tảng WebGL/AR." />
+  <meta property="og:image" content="thumb.png" />
+  <meta property="og:type" content="website" />
+
+  <!-- Schema.org 3DModel Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "3DModel",
+    "name": "Mô hình 3D sh-2",
+    "description": "Mô hình 3D CAD sh-2 phục vụ thiết kế kỹ thuật và phối cảnh kiến trúc Saigon Cảnh Quan.",
+    "image": "thumb.png",
+    "encoding": [
+      {
+        "@type": "MediaObject",
+        "contentUrl": "model.glb",
+        "encodingFormat": "model/gltf-binary"
+      }
+    ],
+    "creator": {
+      "@type": "Organization",
+      "name": "Saigon Cảnh Quan"
+    }
+  }
+  </script>
+
+  <!-- Google <model-viewer> Library -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --card-bg: rgba(15, 23, 42, 0.88);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --primary: #38bdf8;
+      --primary-hover: #0ea5e9;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #10b981;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.06) 0px, transparent 50%);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Navigation */
+    .top-navbar {
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: rgba(15, 23, 42, 0.95);
+      border-bottom: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    .btn-back:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--primary);
+      color: var(--primary);
+      transform: translateX(-2px);
+    }
+
+    .model-header-title {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .format-badge {
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 3px 8px;
+      border-radius: 12px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-link {
+      color: var(--text-muted);
+      font-size: 12px;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .brand-link:hover { color: var(--primary); }
+
+    /* Main Container */
+    .main-content {
+      flex: 1;
+      max-width: 1360px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* 3D Viewport Card */
+    .viewer-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    .viewport-box {
+      position: relative;
+      width: 100%;
+      height: 640px;
+      background: radial-gradient(circle at 50% 50%, #172033 0%, #0a0e17 90%);
+      overflow: hidden;
+    }
+
+    @media (max-width: 768px) {
+      .viewport-box {
+        height: 440px;
+      }
+    }
+
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      --poster-color: transparent;
+      outline: none;
+    }
+
+    /* Model Viewer Loading Progress */
+    .progress-bar {
+      display: block;
+      width: 33%;
+      height: 4px;
+      max-height: 2%;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate3d(-50%, -50%, 0);
+      border-radius: 20px;
+      box-shadow: 0px 3px 10px 3px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      background-color: rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+    }
+    .progress-bar.hide { display: none; }
+    .update-bar {
+      background-color: var(--primary);
+      width: 0%;
+      height: 100%;
+      border-radius: 20px;
+      transition: width 0.3s;
+    }
+
+    /* Floating Overlay Controls */
+    .overlay-hud {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .hud-chip {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(8px);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .overlay-actions {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .ctrl-btn {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      backdrop-filter: blur(8px);
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .ctrl-btn:hover {
+      background: var(--primary);
+      color: #040810;
+      border-color: var(--primary);
+    }
+    .ctrl-btn.active {
+      background: var(--primary);
+      color: #040810;
+      font-weight: 600;
+    }
+
+    /* Bottom Status bar inside viewer */
+    .viewer-foot {
+      padding: 14px 20px;
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: rgba(11, 17, 32, 0.9);
+    }
+
+    .hint-text {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Metadata Sidebar */
+    .sidebar-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    .section-heading {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--primary);
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 8px;
+    }
+
+    .info-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .info-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .info-value {
+      font-size: 14px;
+      color: var(--text-main);
+      font-weight: 500;
+      line-height: 1.5;
+    }
+
+    .badge-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .tag-badge {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Drag & Drop File Replacer */
+    .dropzone-box {
+      border: 2px dashed rgba(56, 189, 248, 0.35);
+      background: rgba(56, 189, 248, 0.03);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .dropzone-box:hover {
+      border-color: var(--primary);
+      background: rgba(56, 189, 248, 0.08);
+    }
+    .dropzone-text {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--card-border);
+      padding: 20px 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="top-navbar">
+    <div class="nav-left">
+      <a href="../../index.html" class="btn-back" title="Quay lại danh mục mô hình">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Thư viện 3D
+      </a>
+      <div class="model-header-title">
+        <span>sh-2</span>
+        <span class="format-badge">GLB / PBR 3D</span>
+      </div>
+    </div>
+    <div class="nav-right">
+      <a href="https://github.com/saigoncanhquan/3DModel" target="_blank" class="brand-link">
+        GitHub Repository
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Showcase Container -->
+  <main class="main-content">
+    
+    <!-- Left Column: 3D Model Viewer -->
+    <section class="viewer-card">
+      <div class="viewport-box" id="viewportContainer">
+        
+        <!-- Google Model Viewer -->
+        <model-viewer
+          id="modelViewer"
+          src="./model.glb"
+          poster="./thumb.png"
+          alt="Mô hình 3D sh-2"
+          shadow-intensity="1"
+          exposure="1.0"
+          camera-controls
+          auto-rotate
+          rotation-per-second="25deg"
+          touch-action="pan-y"
+          ar
+          ar-modes="webxr scene-viewer quick-look"
+          interaction-prompt="auto">
+          
+          <!-- Custom Loading Progress -->
+          <div class="progress-bar" slot="progress-bar">
+            <div class="update-bar"></div>
+          </div>
+        </model-viewer>
+
+        <!-- Top Left Status HUD -->
+        <div class="overlay-hud">
+          <div class="hud-chip" id="camReadout">Góc nhìn: Tự do 360°</div>
+        </div>
+
+        <!-- Floating Action Controls -->
+        <div class="overlay-actions">
+          <button class="ctrl-btn active" id="btnAutoRotate" title="Bật/Tắt tự động xoay 360 độ">
+            🔄 Tự xoay
+          </button>
+          <button class="ctrl-btn" id="btnResetView" title="Khôi phục góc nhìn mặc định">
+            🎯 Đặt lại
+          </button>
+          <button class="ctrl-btn" id="btnSnapshot" title="Chụp ảnh mô hình (PNG)">
+            📸 Chụp ảnh
+          </button>
+          <button class="ctrl-btn" id="btnBgToggle" title="Đổi màu nền">
+            🌗 Đổi nền
+          </button>
+          <button class="ctrl-btn" id="btnFullscreen" title="Xem toàn màn hình">
+            ⛶ Toàn màn hình
+          </button>
+        </div>
+      </div>
+
+      <!-- Bottom Viewer Info Footer -->
+      <div class="viewer-foot">
+        <div class="hint-text">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          Chuột trái/1 ngón: Xoay 360° · Chuột phải/2 ngón: Di chuyển (Pan) · Cuộn: Phóng to / Thu nhỏ
+        </div>
+        <div id="fileStatusText">Nguồn file: model.glb</div>
+      </div>
+    </section>
+
+    <!-- Right Column: Metadata & Controls Sidebar -->
+    <aside class="sidebar-card">
+      <div class="section-heading">Thông tin mô hình</div>
+
+      <div class="info-group">
+        <span class="info-label">Mã định danh (ID)</span>
+        <span class="info-value" style="font-family: monospace; color: var(--primary);">sh-2</span>
+      </div>
+
+      <div class="info-group">
+        <span class="info-label">Tên hiển thị</span>
+        <span class="info-value">Mô hình 3D sh-2</span>
+      </div>
+
+      <div class="info-group">
+        <span class="info-label">Mô tả</span>
+        <span class="info-value">Chi tiết linh kiện 3D CAD kỹ thuật phục vụ cảnh quan & công trình. Tối ưu hiển thị WebGL PBR mượt mà.</span>
+      </div>
+
+      <div class="info-group">
+        <span class="info-label">Phân loại & Công nghệ</span>
+        <div class="badge-list">
+          <span class="tag-badge">CAD Component</span>
+          <span class="tag-badge">glTF 2.0 Binary (.glb)</span>
+          <span class="tag-badge">Google Model-Viewer</span>
+          <span class="tag-badge">PBR Material</span>
+          <span class="tag-badge">WebXR / AR Ready</span>
+        </div>
+      </div>
+
+      <div class="info-group">
+        <span class="info-label">Đơn vị phát triển</span>
+        <span class="info-value">Saigon Cảnh Quan</span>
+      </div>
+
+      <!-- Quick Upload / Replace Model for Testing -->
+      <div class="section-heading" style="margin-top: 10px;">Thử nghiệm tải file mô hình khác</div>
+      <div class="dropzone-box" id="dropzoneBox" onclick="document.getElementById('fileInput').click()">
+        <input type="file" id="fileInput" accept=".glb,.gltf" style="display:none;" />
+        <div class="dropzone-text">
+          <strong>Kéo & Thả</strong> hoặc <span style="color:var(--primary); text-decoration: underline;">chọn file</span> .glb/.gltf để xem thử ngay trên trang này
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- Page Footer -->
+  <footer>
+    Dự án Thư viện 3D Model trực tuyến · Được xây dựng cho GitHub Pages · © Saigon Cảnh Quan
+  </footer>
+
+  <!-- Interactive Controls Logic -->
+  <script>
+    const viewer = document.getElementById('modelViewer');
+    const btnAutoRotate = document.getElementById('btnAutoRotate');
+    const btnResetView = document.getElementById('btnResetView');
+    const btnSnapshot = document.getElementById('btnSnapshot');
+    const btnBgToggle = document.getElementById('btnBgToggle');
+    const btnFullscreen = document.getElementById('btnFullscreen');
+    const viewportBox = document.getElementById('viewportContainer');
+    const fileStatusText = document.getElementById('fileStatusText');
+    const fileInput = document.getElementById('fileInput');
+
+    // Auto rotate toggle
+    let isAutoRotate = true;
+    btnAutoRotate.addEventListener('click', () => {
+      isAutoRotate = !isAutoRotate;
+      viewer.autoRotate = isAutoRotate;
+      btnAutoRotate.classList.toggle('active', isAutoRotate);
+    });
+
+    // Reset Camera
+    btnResetView.addEventListener('click', () => {
+      viewer.cameraOrbit = '0deg 75deg 105%';
+      viewer.cameraTarget = 'auto auto auto';
+      viewer.fieldOfView = 'auto';
+    });
+
+    // Snapshot
+    btnSnapshot.addEventListener('click', async () => {
+      const dataUrl = viewer.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = 'sh-2_snapshot.png';
+      a.click();
+    });
+
+    // Background toggle
+    const backgrounds = [
+      'radial-gradient(circle at 50% 50%, #172033 0%, #0a0e17 90%)',
+      'radial-gradient(circle at 50% 50%, #2a3447 0%, #111827 90%)',
+      '#050811',
+      '#f1f5f9'
+    ];
+    let bgIndex = 0;
+    btnBgToggle.addEventListener('click', () => {
+      bgIndex = (bgIndex + 1) % backgrounds.length;
+      viewportBox.style.background = backgrounds[bgIndex];
+    });
+
+    // Fullscreen toggle
+    btnFullscreen.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        viewportBox.requestFullscreen().catch(err => {
+          alert('Không thể kích hoạt toàn màn hình: ' + err.message);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    // Local file testing via input or drag-drop
+    function loadLocalModel(file) {
+      if (!file) return;
+      const objectUrl = URL.createObjectURL(file);
+      viewer.src = objectUrl;
+      fileStatusText.textContent = `Đang xem file cục bộ: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+    }
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        loadLocalModel(e.target.files[0]);
+      }
+    });
+
+    const dropzone = document.getElementById('dropzoneBox');
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.style.borderColor = 'var(--primary)';
+    });
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.style.borderColor = 'rgba(56, 189, 248, 0.35)';
+    });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.style.borderColor = 'rgba(56, 189, 248, 0.35)';
+      if (e.dataTransfer.files.length > 0) {
+        loadLocalModel(e.dataTransfer.files[0]);
+      }
+    });
+  </script>
+</body>
+</html>

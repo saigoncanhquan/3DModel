@@ -1,0 +1,11 @@
+# GitHub Pages Configuration
+title: "Saigon Cảnh Quan - 3D Models"
+description: "Thư viện mô hình 3D tương tác trực tuyến - Saigon Cảnh Quan"
+url: "https://saigoncanhquan.github.io"
+baseurl: "/3DModel"
+permalink: pretty
+include:
+  - ".well-known"
+  - "models"
+markdown: kramdown
+theme: null
