@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Script tự động đồng bộ và đẩy mã nguồn 3D Model lên GitHub cho Saigon Cảnh Quan.
 .PARAMETER Message
@@ -67,3 +67,4 @@ if ($LASTEXITCODE -eq 0) {
 Write-Host ""
 Write-Host "Cửa sổ sẽ tự động đóng sau 3 giây..." -ForegroundColor Gray
 Start-Sleep -Seconds 3
+

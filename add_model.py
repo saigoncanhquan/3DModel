@@ -138,3 +138,4 @@ if __name__ == "__main__":
     title = args.title or f"Mô hình 3D {args.id}"
     desc = args.desc or f"Chi tiết linh kiện 3D CAD kỹ thuật phục vụ cảnh quan & công trình."
     create_model_page(args.id, title, desc, args.cat, args.author)
+
