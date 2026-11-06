@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>sh22 · Untube 3D CAD Inspection</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0b0f19;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+    .figure-card {
+      width: 100%;
+      max-width: 1120px;
+      background: rgba(15, 23, 42, 0.90);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 24px 50px rgba(0,0,0,0.45);
+      backdrop-filter: blur(14px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 13px;
+    }
+    .fig-badge {
+      font-family: monospace;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .title { font-weight: 600; font-size: 14.5px; }
+    .readout { font-family: monospace; font-size: 12px; color: #94a3b8; }
+    .viewport-container {
+      position: relative;
+      width: 100%;
+      height: 620px;
+      background: radial-gradient(circle at 50% 40%, #1e293b 0%, #080c14 85%);
+      cursor: grab;
+      user-select: none;
+    }
+    .viewport-container:active { cursor: grabbing; }
+    #canvas3d { width: 100%; height: 100%; display: block; touch-action: none; }
+    .overlay-hint {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #cbd5e1;
+      background: rgba(15, 23, 42, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 5px 10px;
+      border-radius: 5px;
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+    }
+    .overlay-controls {
+      position: absolute;
+      bottom: 14px;
+      right: 16px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      max-width: 85%;
+    }
+    .icon-btn {
+      background: rgba(15, 23, 42, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #f8fafc;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+      transition: all 0.2s ease;
+    }
+    .icon-btn:hover { background: #38bdf8; color: #000; font-weight: 600; }
+    .icon-btn.active { background: #38bdf8; color: #000; font-weight: 600; }
+    .card-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 280px;
+    }
+    .slider-label { font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .explode-slider { flex: 1; height: 6px; accent-color: #38bdf8; cursor: pointer; }
+    .mode-toggles { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .toggle-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .toggle-btn:hover { border-color: #38bdf8; color: #38bdf8; }
+    .toggle-btn.active {
+      background: #38bdf8;
+      color: #0b0f19;
+      font-weight: 600;
+      border-color: #38bdf8;
+    }
+    .scale-select {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+    .scale-select option {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 6px 10px;
+    }
+    .parts-toolbar { display: flex; gap: 6px; flex-wrap: wrap; max-height: 95px; overflow-y: auto; }
+    .part-pill {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .part-pill:hover { border-color: #38bdf8; color: #38bdf8; }
+    .part-pill.active {
+      background: #38bdf8;
+      color: #0b0f19;
+      font-weight: 600;
+      border-color: #38bdf8;
+    }
+    .caption-box {
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: #94a3b8;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.12);
+    }
+    .loading-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0b0f19;
+      z-index: 10;
+      transition: opacity 0.4s ease;
+    }
+    .spinner {
+      width: 34px;
+      height: 34px;
+      border: 3px solid rgba(56, 189, 248, 0.2);
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 640px) {
+      body { padding: 6px; }
+      .viewport-container { height: 400px; }
+      .parts-toolbar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .part-pill { flex-shrink: 0; }
+    }
+  </style>
+  <script>
+    window.addEventListener('error', function(e) {
+      var s = document.getElementById('loadStatus');
+      if (s) {
+        s.style.color = '#ef4444';
+        s.textContent = 'Lỗi nạp WebGL / Three.js: ' + (e.message || 'Không thể kết nối thư viện 3D');
+      }
+    });
+  </script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <div class="figure-card">
+    <div class="card-header">
+      <span class="fig-badge">Untube · 3D Inspection</span>
+      <span class="title">sh22</span>
+      <span class="readout" id="readoutEl">Assembled · 188 linh kiện</span>
+    </div>
+
+    <div class="viewport-container" id="container">
+      <div class="loading-screen" id="loadingEl">
+        <div class="spinner"></div>
+        <div style="font-size: 12px; color: #94a3b8;" id="loadStatus">Đang khởi tạo WebGL 3D...</div>
+      </div>
+      <canvas id="canvas3d"></canvas>
+      <div class="overlay-hint">Chuột trái/1 ngón: Xoay 360° · Chuột phải/2 ngón: Pan · Cuộn/Chụm: Zoom</div>
+      <div class="overlay-controls">
+        <button class="icon-btn" id="btnReset" title="Đặt lại góc nhìn và chiều quay ban đầu">Mặc định</button>
+        <button class="icon-btn active" id="btnAutoSpin" title="Bật/Tắt tự xoay 360°">Tự xoay</button>
+        <button class="icon-btn" id="btnRotateYZ" title="Xoay dựng đứng 90° (Đổi Y-Z)">🔄 Đứng (Y-Z)</button>
+        <button class="icon-btn" id="btnRotateXZ" title="Xoay 90° quanh trục đứng (Đổi X-Z)">🔄 Xoay (X-Z)</button>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <div class="control-row">
+        <div class="slider-container">
+          <span class="slider-label">Tách cụm (Explode):</span>
+          <input type="range" class="explode-slider" id="explodeSlider" min="0" max="100" value="0" />
+          <span style="font-family: monospace; font-size: 12px; width: 45px; text-align: right;" id="explodeVal">0%</span>
+        </div>
+
+        <div class="mode-toggles">
+          <button class="toggle-btn active" id="btnMode3D">3D (X+Y+Z)</button>
+          <button class="toggle-btn" id="btnModeX">Trục ngang (X)</button>
+          <button class="toggle-btn" id="btnModeY">Trục dọc (Y)</button>
+          <button class="toggle-btn" id="btnModeZ">Trục đứng (Z)</button>
+          <label style="font-size: 11px; color: #94a3b8; margin-left: 4px;">Cự ly:</label>
+          <select class="scale-select" id="spreadScale">
+            <option value="1">1x (Chuẩn)</option>
+            <option value="1.5">1.5x (Rộng)</option>
+            <option value="2">2x (Cực rộng)</option>
+            <option value="3">3x (Toàn cảnh)</option>
+          </select>
+          <button class="toggle-btn active" id="btnEdgesToggle">Viền nét CAD</button>
+        </div>
+      </div>
+
+      <div class="parts-toolbar" id="toolbar">
+        <button class="part-pill active" data-group="all">Tất cả (188)</button>
+        <button class="part-pill" data-group="group_0">#01 Shell_000</button>
+        <button class="part-pill" data-group="group_1">#02 Shell_001</button>
+        <button class="part-pill" data-group="group_2">#03 Shell_002</button>
+        <button class="part-pill" data-group="group_3">#04 Shell_003</button>
+        <button class="part-pill" data-group="group_4">#05 Shell_004</button>
+        <button class="part-pill" data-group="group_5">#06 Shell_005</button>
+        <button class="part-pill" data-group="group_6">#07 Shell_006</button>
+        <button class="part-pill" data-group="group_7">#08 Shell_007</button>
+        <button class="part-pill" data-group="group_8">#09 Shell_008</button>
+        <button class="part-pill" data-group="group_9">#10 Shell_009</button>
+        <button class="part-pill" data-group="group_10">#11 Shell_010</button>
+        <button class="part-pill" data-group="group_11">#12 Shell_011</button>
+        <button class="part-pill" data-group="group_12">#13 Shell_012</button>
+        <button class="part-pill" data-group="group_13">#14 Shell_013</button>
+        <button class="part-pill" data-group="group_14">#15 Shell_014</button>
+        <button class="part-pill" data-group="group_15">#16 Shell_015</button>
+        <button class="part-pill" data-group="group_16">#17 Shell_016</button>
+        <button class="part-pill" data-group="group_17">#18 Shell_017</button>
+        <button class="part-pill" data-group="group_18">#19 Shell_018</button>
+        <button class="part-pill" data-group="group_19">#20 Shell_019</button>
+        <button class="part-pill" data-group="group_20">#21 Shell_020</button>
+        <button class="part-pill" data-group="group_21">#22 Shell_021</button>
+        <button class="part-pill" data-group="group_22">#23 Shell_022</button>
+        <button class="part-pill" data-group="group_23">#24 Shell_023</button>
+        <button class="part-pill" data-group="group_24">#25 Shell_024</button>
+        <button class="part-pill" data-group="group_25">#26 Shell_025</button>
+        <button class="part-pill" data-group="group_26">#27 Shell_026</button>
+        <button class="part-pill" data-group="group_27">#28 Shell_027</button>
+        <button class="part-pill" data-group="group_28">#29 Shell_028</button>
+        <button class="part-pill" data-group="group_29">#30 Shell_029</button>
+        <button class="part-pill" data-group="group_30">#31 Shell_030</button>
+        <button class="part-pill" data-group="group_31">#32 Shell_031</button>
+        <button class="part-pill" data-group="group_32">#33 Shell_032</button>
+        <button class="part-pill" data-group="group_33">#34 Shell_033</button>
+        <button class="part-pill" data-group="group_34">#35 Shell_034</button>
+        <button class="part-pill" data-group="group_35">#36 Shell_035</button>
+        <button class="part-pill" data-group="group_36">#37 Shell_036</button>
+        <button class="part-pill" data-group="group_37">#38 Shell_037</button>
+        <button class="part-pill" data-group="group_38">#39 Shell_038</button>
+        <button class="part-pill" data-group="group_39">#40 Shell_039</button>
+        <button class="part-pill" data-group="group_40">#41 Shell_040</button>
+        <button class="part-pill" data-group="group_41">#42 Shell_041</button>
+        <button class="part-pill" data-group="group_42">#43 Shell_042</button>
+        <button class="part-pill" data-group="group_43">#44 Shell_043</button>
+        <button class="part-pill" data-group="group_44">#45 Shell_044</button>
+        <button class="part-pill" data-group="group_45">#46 Shell_045</button>
+        <button class="part-pill" data-group="group_46">#47 Shell_046</button>
+        <button class="part-pill" data-group="group_47">#48 Shell_047</button>
+        <button class="part-pill" data-group="group_48">#49 Shell_048</button>
+        <button class="part-pill" data-group="group_49">#50 Shell_049</button>
+        <button class="part-pill" data-group="group_50">#51 Shell_050</button>
+        <button class="part-pill" data-group="group_51">#52 Shell_051</button>
+        <button class="part-pill" data-group="group_52">#53 Shell_052</button>
+        <button class="part-pill" data-group="group_53">#54 Shell_053</button>
+        <button class="part-pill" data-group="group_54">#55 Shell_054</button>
+        <button class="part-pill" data-group="group_55">#56 Shell_055</button>
+        <button class="part-pill" data-group="group_56">#57 Shell_056</button>
+        <button class="part-pill" data-group="group_57">#58 Shell_057</button>
+        <button class="part-pill" data-group="group_58">#59 Shell_058</button>
+        <button class="part-pill" data-group="group_59">#60 Shell_059</button>
+        <button class="part-pill" data-group="group_60">#61 Shell_060</button>
+        <button class="part-pill" data-group="group_61">#62 Shell_061</button>
+        <button class="part-pill" data-group="group_62">#63 Shell_062</button>
+        <button class="part-pill" data-group="group_63">#64 Shell_063</button>
+        <button class="part-pill" data-group="group_64">#65 Shell_064</button>
+        <button class="part-pill" data-group="group_65">#66 Shell_065</button>
+        <button class="part-pill" data-group="group_66">#67 Shell_066</button>
+        <button class="part-pill" data-group="group_67">#68 Shell_067</button>
+        <button class="part-pill" data-group="group_68">#69 Shell_068</button>
+        <button class="part-pill" data-group="group_69">#70 Shell_069</button>
+        <button class="part-pill" data-group="group_70">#71 Shell_070</button>
+        <button class="part-pill" data-group="group_71">#72 Shell_071</button>
+        <button class="part-pill" data-group="group_72">#73 Shell_072</button>
+        <button class="part-pill" data-group="group_73">#74 Shell_073</button>
+        <button class="part-pill" data-group="group_74">#75 Shell_074</button>
+        <button class="part-pill" data-group="group_75">#76 Shell_075</button>
+        <button class="part-pill" data-group="group_76">#77 Shell_076</button>
+        <button class="part-pill" data-group="group_77">#78 Shell_077</button>
+        <button class="part-pill" data-group="group_78">#79 Shell_078</button>
+        <button class="part-pill" data-group="group_79">#80 Shell_079</button>
+        <button class="part-pill" data-group="group_80">#81 Shell_080</button>
+        <button class="part-pill" data-group="group_81">#82 Shell_081</button>
+        <button class="part-pill" data-group="group_82">#83 Shell_082</button>
+        <button class="part-pill" data-group="group_83">#84 Shell_083</button>
+        <button class="part-pill" data-group="group_84">#85 Shell_084</button>
+        <button class="part-pill" data-group="group_85">#86 Shell_085</button>
+        <button class="part-pill" data-group="group_86">#87 Shell_086</button>
+        <button class="part-pill" data-group="group_87">#88 Shell_087</button>
+        <button class="part-pill" data-group="group_88">#89 Shell_088</button>
+        <button class="part-pill" data-group="group_89">#90 Shell_089</button>
+        <button class="part-pill" data-group="group_90">#91 Shell_090</button>
+        <button class="part-pill" data-group="group_91">#92 Shell_091</button>
+        <button class="part-pill" data-group="group_92">#93 Shell_092</button>
+        <button class="part-pill" data-group="group_93">#94 Shell_093</button>
+        <button class="part-pill" data-group="group_94">#95 Shell_094</button>
+        <button class="part-pill" data-group="group_95">#96 Shell_095</button>
+        <button class="part-pill" data-group="group_96">#97 Shell_096</button>
+        <button class="part-pill" data-group="group_97">#98 Shell_097</button>
+        <button class="part-pill" data-group="group_98">#99 Shell_098</button>
+        <button class="part-pill" data-group="group_99">#100 Shell_099</button>
+        <button class="part-pill" data-group="group_100">#101 Shell_100</button>
+        <button class="part-pill" data-group="group_101">#102 Shell_101</button>
+        <button class="part-pill" data-group="group_102">#103 Shell_102</button>
+        <button class="part-pill" data-group="group_103">#104 Shell_103</button>
+        <button class="part-pill" data-group="group_104">#105 Shell_104</button>
+        <button class="part-pill" data-group="group_105">#106 Shell_105</button>
+        <button class="part-pill" data-group="group_106">#107 Shell_106</button>
+        <button class="part-pill" data-group="group_107">#108 Shell_107</button>
+        <button class="part-pill" data-group="group_108">#109 Shell_108</button>
+        <button class="part-pill" data-group="group_109">#110 Shell_109</button>
+        <button class="part-pill" data-group="group_110">#111 Shell_110</button>
+        <button class="part-pill" data-group="group_111">#112 Shell_111</button>
+        <button class="part-pill" data-group="group_112">#113 Shell_112</button>
+        <button class="part-pill" data-group="group_113">#114 Shell_113</button>
+        <button class="part-pill" data-group="group_114">#115 Shell_114</button>
+        <button class="part-pill" data-group="group_115">#116 Shell_115</button>
+        <button class="part-pill" data-group="group_116">#117 Shell_116</button>
+        <button class="part-pill" data-group="group_117">#118 Shell_117</button>
+        <button class="part-pill" data-group="group_118">#119 Shell_118</button>
+        <button class="part-pill" data-group="group_119">#120 Shell_119</button>
+        <button class="part-pill" data-group="group_120">#121 Shell_120</button>
+        <button class="part-pill" data-group="group_121">#122 Shell_121</button>
+        <button class="part-pill" data-group="group_122">#123 Shell_122</button>
+        <button class="part-pill" data-group="group_123">#124 Shell_123</button>
+        <button class="part-pill" data-group="group_124">#125 Shell_124</button>
+        <button class="part-pill" data-group="group_125">#126 Shell_125</button>
+        <button class="part-pill" data-group="group_126">#127 Shell_126</button>
+        <button class="part-pill" data-group="group_127">#128 Shell_127</button>
+        <button class="part-pill" data-group="group_128">#129 Shell_128</button>
+        <button class="part-pill" data-group="group_129">#130 Shell_129</button>
+        <button class="part-pill" data-group="group_130">#131 Shell_130</button>
+        <button class="part-pill" data-group="group_131">#132 Shell_131</button>
+        <button class="part-pill" data-group="group_132">#133 Shell_132</button>
+        <button class="part-pill" data-group="group_133">#134 Shell_133</button>
+        <button class="part-pill" data-group="group_134">#135 Shell_134</button>
+        <button class="part-pill" data-group="group_135">#136 Shell_135</button>
+        <button class="part-pill" data-group="group_136">#137 Shell_136</button>
+        <button class="part-pill" data-group="group_137">#138 Shell_137</button>
+        <button class="part-pill" data-group="group_138">#139 Shell_138</button>
+        <button class="part-pill" data-group="group_139">#140 Shell_139</button>
+        <button class="part-pill" data-group="group_140">#141 Shell_140</button>
+        <button class="part-pill" data-group="group_141">#142 Shell_141</button>
+        <button class="part-pill" data-group="group_142">#143 Shell_142</button>
+        <button class="part-pill" data-group="group_143">#144 Shell_143</button>
+        <button class="part-pill" data-group="group_144">#145 Shell_144</button>
+        <button class="part-pill" data-group="group_145">#146 Shell_145</button>
+        <button class="part-pill" data-group="group_146">#147 Shell_146</button>
+        <button class="part-pill" data-group="group_147">#148 Shell_147</button>
+        <button class="part-pill" data-group="group_148">#149 Shell_148</button>
+        <button class="part-pill" data-group="group_149">#150 Shell_149</button>
+        <button class="part-pill" data-group="group_150">#151 Shell_150</button>
+        <button class="part-pill" data-group="group_151">#152 Shell_151</button>
+        <button class="part-pill" data-group="group_152">#153 Shell_152</button>
+        <button class="part-pill" data-group="group_153">#154 Shell_153</button>
+        <button class="part-pill" data-group="group_154">#155 Shell_154</button>
+        <button class="part-pill" data-group="group_155">#156 Shell_155</button>
+        <button class="part-pill" data-group="group_156">#157 Shell_156</button>
+        <button class="part-pill" data-group="group_157">#158 Shell_157</button>
+        <button class="part-pill" data-group="group_158">#159 Shell_158</button>
+        <button class="part-pill" data-group="group_159">#160 Shell_159</button>
+        <button class="part-pill" data-group="group_160">#161 Shell_160</button>
+        <button class="part-pill" data-group="group_161">#162 Shell_161</button>
+        <button class="part-pill" data-group="group_162">#163 Shell_162</button>
+        <button class="part-pill" data-group="group_163">#164 Shell_163</button>
+        <button class="part-pill" data-group="group_164">#165 Shell_164</button>
+        <button class="part-pill" data-group="group_165">#166 Shell_165</button>
+        <button class="part-pill" data-group="group_166">#167 Shell_166</button>
+        <button class="part-pill" data-group="group_167">#168 Shell_167</button>
+        <button class="part-pill" data-group="group_168">#169 Shell_168</button>
+        <button class="part-pill" data-group="group_169">#170 Shell_169</button>
+        <button class="part-pill" data-group="group_170">#171 Shell_170</button>
+        <button class="part-pill" data-group="group_171">#172 Shell_171</button>
+        <button class="part-pill" data-group="group_172">#173 Shell_172</button>
+        <button class="part-pill" data-group="group_173">#174 Shell_173</button>
+        <button class="part-pill" data-group="group_174">#175 Shell_174</button>
+        <button class="part-pill" data-group="group_175">#176 Shell_175</button>
+        <button class="part-pill" data-group="group_176">#177 Shell_176</button>
+        <button class="part-pill" data-group="group_177">#178 Shell_177</button>
+        <button class="part-pill" data-group="group_178">#179 Shell_178</button>
+        <button class="part-pill" data-group="group_179">#180 Shell_179</button>
+        <button class="part-pill" data-group="group_180">#181 Shell_180</button>
+        <button class="part-pill" data-group="group_181">#182 Shell_181</button>
+        <button class="part-pill" data-group="group_182">#183 Shell_182</button>
+        <button class="part-pill" data-group="group_183">#184 Shell_183</button>
+        <button class="part-pill" data-group="group_184">#185 Shell_184</button>
+        <button class="part-pill" data-group="group_185">#186 Shell_185</button>
+        <button class="part-pill" data-group="group_186">#187 Shell_186</button>
+        <button class="part-pill" data-group="group_187">#188 Shell_187</button>
+        
+      </div>
+
+      <div class="caption-box">
+        Mô hình 3D bóc tách gồm 188 linh kiện CAD. Kích thước tổng thể: 817.1 × 1295.5 × 299.8 (Đơn vị CAD). Hỗ trợ tách rã linh hoạt đa trục X, Y, Z và 3D không gian kèm đường chỉ dẫn 3D Leader Lines.
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const rawParts = [{"name":"Shell_000","group":"group_0","group_name":"Chi tiết 01 (Shell_000)","color":"#cad1ee","byte_offset":0,"byte_length":936756,"triangles":26021,"bounds_min":[233.0,-647.7339,86.9445],"bounds_max":[420.7073,-66.2363,143.5438],"center":[326.85364,-356.9851,115.24415],"move_3d":[-91.64,-299.87,234.17],"move_x":[-146.63,0.0,0.0],"move_y":[0.0,-399.82,0.0],"move_z":[0.0,0.0,267.63]},{"name":"Shell_001","group":"group_1","group_name":"Chi tiết 02 (Shell_001)","color":"#cad1ee","byte_offset":936756,"byte_length":161208,"triangles":4478,"bounds_min":[758.9553,-181.9755,48.3868],"bounds_max":[796.6566,-9.5234,54.907],"center":[777.80597,-95.74945,51.6469],"move_3d":[408.81,-80.43,-35.1],"move_x":[654.09,0.0,0.0],"move_y":[0.0,-107.24,0.0],"move_z":[0.0,0.0,-40.11]},{"name":"Shell_002","group":"group_2","group_name":"Chi tiết 03 (Shell_002)","color":"#cad1ee","byte_offset":1097964,"byte_length":192168,"triangles":5338,"bounds_min":[701.6641,-9.0,41.6525],"bounds_max":[706.5455,9.0,54.0683],"center":[704.1048,0.0,47.860397],"move_3d":[327.02,0.0,-51.13],"move_x":[523.23,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-58.43]},{"name":"Shell_003","group":"group_3","group_name":"Chi tiết 04 (Shell_003)","color":"#cad1ee","byte_offset":1290132,"byte_length":193176,"triangles":5366,"bounds_min":[748.8867,-9.0,41.6525],"bounds_max":[753.7693,9.0,51.2717],"center":[751.328,0.0,46.4621],"move_3d":[379.42,0.0,-57.05],"move_x":[607.08,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-65.2]},{"name":"Shell_004","group":"group_4","group_name":"Chi tiết 05 (Shell_004)","color":"#cad1ee","byte_offset":1483308,"byte_length":161136,"triangles":4476,"bounds_min":[758.9553,9.5234,48.3868],"bounds_max":[796.6566,181.9755,54.9071],"center":[777.80597,95.74945,51.64695],"move_3d":[408.81,80.43,-35.1],"move_x":[654.09,0.0,0.0],"move_y":[0.0,107.24,0.0],"move_z":[0.0,0.0,-40.11]},{"name":"Shell_005","group":"group_5","group_name":"Chi tiết 06 (Shell_005)","color":"#cad1ee","byte_offset":1644444,"byte_length":946116,"triangles":26281,"bounds_min":[233.0,66.2363,86.9445],"bounds_max":[420.7073,647.7339,143.4974],"center":[326.85364,356.9851,115.220955],"move_3d":[-91.64,299.87,234.08],"move_x":[-146.63,0.0,0.0],"move_y":[0.0,399.82,0.0],"move_z":[0.0,0.0,267.51]},{"name":"Shell_006","group":"group_6","group_name":"Chi tiết 07 (Shell_006)","color":"#cad1ee","byte_offset":2590560,"byte_length":272520,"triangles":7570,"bounds_min":[372.9959,-542.8924,92.409],"bounds_max":[425.7548,-236.9044,119.8189],"center":[399.37537,-389.8984,106.11395],"move_3d":[-11.16,-327.51,195.52],"move_x":[-17.86,0.0,0.0],"move_y":[0.0,-436.69,0.0],"move_z":[0.0,0.0,223.45]},{"name":"Shell_007","group":"group_7","group_name":"Chi tiết 08 (Shell_007)","color":"#cad1ee","byte_offset":2863080,"byte_length":276732,"triangles":7687,"bounds_min":[372.9959,236.9044,92.409],"bounds_max":[425.7556,542.8924,119.8222],"center":[399.37576,389.8984,106.1156],"move_3d":[-11.16,327.51,195.52],"move_x":[-17.86,0.0,0.0],"move_y":[0.0,436.69,0.0],"move_z":[0.0,0.0,223.46]},{"name":"Shell_008","group":"group_8","group_name":"Chi tiết 09 (Shell_008)","color":"#e5eaed","byte_offset":3139812,"byte_length":2984904,"triangles":82914,"bounds_min":[249.6842,-55.2089,15.5192],"bounds_max":[284.6917,55.2089,48.1728],"center":[267.18796,0.0,31.845999],"move_3d":[-157.86,0.0,-118.94],"move_x":[-252.58,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-135.93]},{"name":"Shell_009","group":"group_9","group_name":"Chi tiết 10 (Shell_009)","color":"#cad1ee","byte_offset":6124716,"byte_length":29088,"triangles":808,"bounds_min":[255.3841,-52.0666,16.3202],"bounds_max":[415.974,52.0666,26.1787],"center":[335.67905,0.0,21.24945],"move_3d":[-81.85,0.0,-163.8],"move_x":[-130.96,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-187.2]},{"name":"Shell_010","group":"group_10","group_name":"Chi tiết 11 (Shell_010)","color":"#c2662e","byte_offset":6153804,"byte_length":165276,"triangles":4591,"bounds_min":[249.9042,-54.8147,16.0332],"bounds_max":[284.5367,54.8147,47.9687],"center":[267.22046,0.0,32.00095],"move_3d":[-157.82,0.0,-118.28],"move_x":[-252.52,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-135.18]},{"name":"Shell_011","group":"group_11","group_name":"Chi tiết 12 (Shell_011)","color":"#e5e5e5","byte_offset":6319080,"byte_length":147672,"triangles":4102,"bounds_min":[0.8677,-17.8318,-12.5463],"bounds_max":[21.6898,17.8229,-1.8108],"center":[11.27875,-0.0044498444,-7.17855],"move_3d":[-441.86,-0.0,-284.17],"move_x":[-706.98,0.0,0.0],"move_y":[0.0,-0.0,0.0],"move_z":[0.0,0.0,-324.76]},{"name":"Shell_012","group":"group_12","group_name":"Chi tiết 13 (Shell_012)","color":"#cad1ee","byte_offset":6466752,"byte_length":4248,"triangles":118,"bounds_min":[196.4761,-2.8143,118.539],"bounds_max":[239.2274,2.8135,128.5711],"center":[217.85175,-0.00040006638,123.55505],"move_3d":[-212.61,-0.0,269.36],"move_x":[-340.18,0.0,0.0],"move_y":[0.0,-0.0,0.0],"move_z":[0.0,0.0,307.84]},{"name":"Shell_013","group":"group_13","group_name":"Chi tiết 14 (Shell_013)","color":"#cad1ee","byte_offset":6471000,"byte_length":17954100,"triangles":498725,"bounds_min":[174.6533,-52.2581,75.3942],"bounds_max":[235.6057,50.3058,176.0782],"center":[205.1295,-0.9761486,125.736206],"move_3d":[-226.73,-0.82,278.6],"move_x":[-362.77,0.0,0.0],"move_y":[0.0,-1.09,0.0],"move_z":[0.0,0.0,318.4]},{"name":"Shell_014","group":"group_14","group_name":"Chi tiết 15 (Shell_014)","color":"#cad1ee","byte_offset":24425100,"byte_length":11052,"triangles":307,"bounds_min":[198.024,-12.2784,135.0025],"bounds_max":[200.3543,-11.6932,135.9068],"center":[199.18915,-11.9858,135.45465],"move_3d":[-233.32,-10.07,319.75],"move_x":[-373.32,0.0,0.0],"move_y":[0.0,-13.42,0.0],"move_z":[0.0,0.0,365.42]},{"name":"Shell_015","group":"group_15","group_name":"Chi tiết 16 (Shell_015)","color":"#b7a793","byte_offset":24436152,"byte_length":11052,"triangles":307,"bounds_min":[195.4626,3.4757,110.2724],"bounds_max":[197.793,4.3168,110.8781],"center":[196.6278,3.89625,110.57525],"move_3d":[-236.17,3.27,214.41],"move_x":[-377.86,0.0,0.0],"move_y":[0.0,4.36,0.0],"move_z":[0.0,0.0,245.03]},{"name":"Shell_016","group":"group_16","group_name":"Chi tiết 17 (Shell_016)","color":"#8fa0b5","byte_offset":24447204,"byte_length":11052,"triangles":307,"bounds_min":[196.1132,-13.551,116.8223],"bounds_max":[198.4435,-12.8823,117.6805],"center":[197.27835,-13.21665,117.2514],"move_3d":[-235.44,-11.1,242.67],"move_x":[-376.71,0.0,0.0],"move_y":[0.0,-14.8,0.0],"move_z":[0.0,0.0,277.34]},{"name":"Shell_017","group":"group_17","group_name":"Chi tiết 18 (Shell_017)","color":"#a3b899","byte_offset":24458256,"byte_length":11052,"triangles":307,"bounds_min":[196.9714,15.381,124.2396],"bounds_max":[199.3018,15.8057,125.2332],"center":[198.1366,15.593349,124.736404],"move_3d":[-234.49,13.1,274.36],"move_x":[-375.19,0.0,0.0],"move_y":[0.0,17.46,0.0],"move_z":[0.0,0.0,313.56]},{"name":"Shell_018","group":"group_18","group_name":"Chi tiết 19 (Shell_018)","color":"#d4a373","byte_offset":24469308,"byte_length":11052,"triangles":307,"bounds_min":[198.5544,5.2938,139.7694],"bounds_max":[200.8848,6.1204,140.2943],"center":[199.7196,5.7071,140.03185],"move_3d":[-232.73,4.79,339.13],"move_x":[-372.37,0.0,0.0],"move_y":[0.0,6.39,0.0],"move_z":[0.0,0.0,387.57]},{"name":"Shell_019","group":"group_19","group_name":"Chi tiết 20 (Shell_019)","color":"#cad1ee","byte_offset":24480360,"byte_length":6984,"triangles":194,"bounds_min":[208.1891,-4.3168,108.5835],"bounds_max":[214.7733,-3.3855,109.5405],"center":[211.4812,-3.85115,109.062],"move_3d":[-219.68,-3.23,208.0],"move_x":[-351.49,0.0,0.0],"move_y":[0.0,-4.31,0.0],"move_z":[0.0,0.0,237.71]},{"name":"Shell_020","group":"group_20","group_name":"Chi tiết 21 (Shell_020)","color":"#7ea8be","byte_offset":24487344,"byte_length":6984,"triangles":194,"bounds_min":[208.8396,-13.6506,115.0376],"bounds_max":[215.4238,-12.8823,116.2519],"center":[212.1317,-13.266451,115.644745],"move_3d":[-218.96,-11.14,235.87],"move_x":[-350.33,0.0,0.0],"move_y":[0.0,-14.86,0.0],"move_z":[0.0,0.0,269.57]},{"name":"Shell_021","group":"group_21","group_name":"Chi tiết 22 (Shell_021)","color":"#c4b5a5","byte_offset":24494328,"byte_length":6984,"triangles":194,"bounds_min":[211.2809,5.2938,138.082],"bounds_max":[217.8651,6.2436,138.9567],"center":[214.573,5.7686996,138.51935],"move_3d":[-216.25,4.85,332.72],"move_x":[-346.0,0.0,0.0],"move_y":[0.0,6.46,0.0],"move_z":[0.0,0.0,380.25]},{"name":"Shell_022","group":"group_22","group_name":"Chi tiết 23 (Shell_022)","color":"#a5a58d","byte_offset":24501312,"byte_length":6984,"triangles":194,"bounds_min":[211.2763,-6.2435,138.0821],"bounds_max":[217.8696,-5.2937,138.9572],"center":[214.57295,-5.7686005,138.51965],"move_3d":[-216.25,-4.85,332.72],"move_x":[-346.0,0.0,0.0],"move_y":[0.0,-6.46,0.0],"move_z":[0.0,0.0,380.25]},{"name":"Shell_023","group":"group_23","group_name":"Chi tiết 24 (Shell_023)","color":"#6b705c","byte_offset":24508296,"byte_length":6984,"triangles":194,"bounds_min":[209.6979,15.3414,122.6186],"bounds_max":[216.2821,15.8437,123.8956],"center":[212.99,15.59255,123.257095],"move_3d":[-218.01,13.1,268.1],"move_x":[-348.81,0.0,0.0],"move_y":[0.0,17.46,0.0],"move_z":[0.0,0.0,306.4]},{"name":"Shell_024","group":"group_24","group_name":"Chi tiết 25 (Shell_024)","color":"#b5838d","byte_offset":24515280,"byte_length":6984,"triangles":194,"bounds_min":[210.7459,11.5739,133.2173],"bounds_max":[217.3392,12.2785,134.4948],"center":[214.04254,11.9262,133.85605],"move_3d":[-216.84,10.02,312.98],"move_x":[-346.94,0.0,0.0],"move_y":[0.0,13.36,0.0],"move_z":[0.0,0.0,357.69]},{"name":"Shell_025","group":"group_25","group_name":"Chi tiết 26 (Shell_025)","color":"#e07a5f","byte_offset":24522264,"byte_length":6984,"triangles":194,"bounds_min":[210.7459,-12.2784,133.2173],"bounds_max":[217.3392,-11.5738,134.4948],"center":[214.04254,-11.9261,133.85605],"move_3d":[-216.84,-10.02,312.98],"move_x":[-346.94,0.0,0.0],"move_y":[0.0,-13.36,0.0],"move_z":[0.0,0.0,357.69]},{"name":"Shell_026","group":"group_26","group_name":"Chi tiết 27 (Shell_026)","color":"#3d405b","byte_offset":24529248,"byte_length":6984,"triangles":194,"bounds_min":[209.6933,-15.8437,122.6186],"bounds_max":[216.2867,-15.3414,123.8961],"center":[212.98999,-15.59255,123.257355],"move_3d":[-218.01,-13.1,268.1],"move_x":[-348.81,0.0,0.0],"move_y":[0.0,-17.46,0.0],"move_z":[0.0,0.0,306.4]},{"name":"Shell_027","group":"group_27","group_name":"Chi tiết 28 (Shell_027)","color":"#81b29a","byte_offset":24536232,"byte_length":6984,"triangles":194,"bounds_min":[208.1891,3.3855,108.5835],"bounds_max":[214.7733,4.3168,109.5405],"center":[211.4812,3.85115,109.062],"move_3d":[-219.68,3.23,208.0],"move_x":[-351.49,0.0,0.0],"move_y":[0.0,4.31,0.0],"move_z":[0.0,0.0,237.71]},{"name":"Shell_028","group":"group_28","group_name":"Chi tiết 29 (Shell_028)","color":"#f2cc8f","byte_offset":24543216,"byte_length":6984,"triangles":194,"bounds_min":[208.8351,12.8823,115.0371],"bounds_max":[215.4284,13.6507,116.2523],"center":[212.13174,13.2665,115.6447],"move_3d":[-218.96,11.14,235.87],"move_x":[-350.33,0.0,0.0],"move_y":[0.0,14.86,0.0],"move_z":[0.0,0.0,269.57]},{"name":"Shell_029","group":"group_29","group_name":"Chi tiết 30 (Shell_029)","color":"#cad1ee","byte_offset":24550200,"byte_length":85824,"triangles":2384,"bounds_min":[204.6762,-24.6347,91.5743],"bounds_max":[217.4154,-4.098,115.5866],"center":[211.0458,-14.36635,103.58045],"move_3d":[-220.16,-12.07,184.79],"move_x":[-352.26,0.0,0.0],"move_y":[0.0,-16.09,0.0],"move_z":[0.0,0.0,211.19]},{"name":"Shell_030","group":"group_30","group_name":"Chi tiết 31 (Shell_030)","color":"#cad1ee","byte_offset":24636024,"byte_length":86184,"triangles":2394,"bounds_min":[209.2571,-5.5107,138.4512],"bounds_max":[224.4895,5.5108,162.4309],"center":[216.87329,0.000049829483,150.44104],"move_3d":[-213.7,0.0,383.2],"move_x":[-341.92,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,437.94]},{"name":"Shell_031","group":"group_31","group_name":"Chi tiết 32 (Shell_031)","color":"#8fa0b5","byte_offset":24722208,"byte_length":34560,"triangles":960,"bounds_min":[210.9951,1.8226,172.6256],"bounds_max":[213.6247,4.261,175.2552],"center":[212.3099,3.0418,173.9404],"move_3d":[-218.76,2.56,482.69],"move_x":[-350.02,0.0,0.0],"move_y":[0.0,3.41,0.0],"move_z":[0.0,0.0,551.65]},{"name":"Shell_032","group":"group_32","group_name":"Chi tiết 33 (Shell_032)","color":"#a3b899","byte_offset":24756768,"byte_length":33984,"triangles":944,"bounds_min":[210.9951,-4.2608,172.6256],"bounds_max":[213.6247,-1.8224,175.2552],"center":[212.3099,-3.0416,173.9404],"move_3d":[-218.76,-2.55,482.69],"move_x":[-350.02,0.0,0.0],"move_y":[0.0,-3.41,0.0],"move_z":[0.0,0.0,551.65]},{"name":"Shell_033","group":"group_33","group_name":"Chi tiết 34 (Shell_033)","color":"#cad1ee","byte_offset":24790752,"byte_length":36288,"triangles":1008,"bounds_min":[211.385,1.7417,173.183],"bounds_max":[212.9317,5.1754,174.7297],"center":[212.15836,3.45855,173.95636],"move_3d":[-218.93,2.91,482.76],"move_x":[-350.29,0.0,0.0],"move_y":[0.0,3.87,0.0],"move_z":[0.0,0.0,551.73]},{"name":"Shell_034","group":"group_34","group_name":"Chi tiết 35 (Shell_034)","color":"#9d8189","byte_offset":24827040,"byte_length":35280,"triangles":980,"bounds_min":[211.385,-5.1752,173.183],"bounds_max":[212.9317,-1.7416,174.7297],"center":[212.15836,-3.4584,173.95636],"move_3d":[-218.93,-2.91,482.76],"move_x":[-350.29,0.0,0.0],"move_y":[0.0,-3.87,0.0],"move_z":[0.0,0.0,551.73]},{"name":"Shell_035","group":"group_35","group_name":"Chi tiết 36 (Shell_035)","color":"#7ea8be","byte_offset":24862320,"byte_length":11880,"triangles":330,"bounds_min":[221.5516,-0.8399,158.4119],"bounds_max":[222.6104,1.6776,159.9671],"center":[222.081,0.41885,159.1895],"move_3d":[-207.92,0.35,420.24],"move_x":[-332.67,0.0,0.0],"move_y":[0.0,0.47,0.0],"move_z":[0.0,0.0,480.27]},{"name":"Shell_036","group":"group_36","group_name":"Chi tiết 37 (Shell_036)","color":"#c4b5a5","byte_offset":24874200,"byte_length":15120,"triangles":420,"bounds_min":[221.7034,-1.6766,158.5148],"bounds_max":[222.9286,1.6767,160.1848],"center":[222.31601,0.000050008297,159.3498],"move_3d":[-207.66,0.0,420.92],"move_x":[-332.25,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,481.05]},{"name":"Shell_037","group":"group_37","group_name":"Chi tiết 38 (Shell_037)","color":"#a5a58d","byte_offset":24889320,"byte_length":15408,"triangles":428,"bounds_min":[222.0242,-1.6765,158.7294],"bounds_max":[223.2471,1.6765,160.3987],"center":[222.63565,0.0,159.56406],"move_3d":[-207.3,0.0,421.82],"move_x":[-331.68,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,482.09]},{"name":"Shell_038","group":"group_38","group_name":"Chi tiết 39 (Shell_038)","color":"#6b705c","byte_offset":24904728,"byte_length":14904,"triangles":414,"bounds_min":[222.342,-1.6764,158.9441],"bounds_max":[223.5655,1.6766,160.6109],"center":[222.95375,0.000100016594,159.7775],"move_3d":[-206.95,0.0,422.73],"move_x":[-331.12,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,483.12]},{"name":"Shell_039","group":"group_39","group_name":"Chi tiết 40 (Shell_039)","color":"#cad1ee","byte_offset":24919632,"byte_length":74592,"triangles":2072,"bounds_min":[221.6242,-1.9116,159.0358],"bounds_max":[224.264,1.9113,162.3265],"center":[222.9441,-0.00015002489,160.68115],"move_3d":[-206.96,-0.0,426.55],"move_x":[-331.14,0.0,0.0],"move_y":[0.0,-0.0,0.0],"move_z":[0.0,0.0,487.49]},{"name":"Shell_040","group":"group_40","group_name":"Chi tiết 41 (Shell_040)","color":"#e07a5f","byte_offset":24994224,"byte_length":18216,"triangles":506,"bounds_min":[222.6933,-1.8785,159.4652],"bounds_max":[224.5849,1.9093,162.0742],"center":[223.6391,0.0153999925,160.7697],"move_3d":[-206.19,0.01,426.93],"move_x":[-329.9,0.0,0.0],"move_y":[0.0,0.02,0.0],"move_z":[0.0,0.0,487.92]},{"name":"Shell_041","group":"group_41","group_name":"Chi tiết 42 (Shell_041)","color":"#3d405b","byte_offset":25012440,"byte_length":12312,"triangles":342,"bounds_min":[209.7229,-1.0387,159.993],"bounds_max":[211.93,1.0388,162.0634],"center":[210.82645,0.000050008297,161.0282],"move_3d":[-220.41,0.0,428.02],"move_x":[-352.65,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,489.17]},{"name":"Shell_042","group":"group_42","group_name":"Chi tiết 43 (Shell_042)","color":"#81b29a","byte_offset":25024752,"byte_length":14364,"triangles":399,"bounds_min":[220.8555,4.2488,156.1765],"bounds_max":[223.1849,6.0966,162.417],"center":[222.0202,5.1727,159.29675],"move_3d":[-207.99,4.35,420.69],"move_x":[-332.78,0.0,0.0],"move_y":[0.0,5.79,0.0],"move_z":[0.0,0.0,480.79]},{"name":"Shell_043","group":"group_43","group_name":"Chi tiết 44 (Shell_043)","color":"#f2cc8f","byte_offset":25039116,"byte_length":13968,"triangles":388,"bounds_min":[220.8555,-6.0965,156.1765],"bounds_max":[223.1849,-4.2487,162.417],"center":[222.0202,-5.1726,159.29675],"move_3d":[-207.99,-4.34,420.69],"move_x":[-332.78,0.0,0.0],"move_y":[0.0,-5.79,0.0],"move_z":[0.0,0.0,480.79]},{"name":"Shell_044","group":"group_44","group_name":"Chi tiết 45 (Shell_044)","color":"#cad1ee","byte_offset":25053084,"byte_length":13680,"triangles":380,"bounds_min":[210.567,4.2488,157.2579],"bounds_max":[212.8963,6.0966,163.4984],"center":[211.73166,5.1727,160.37814],"move_3d":[-219.4,4.35,425.27],"move_x":[-351.05,0.0,0.0],"move_y":[0.0,5.79,0.0],"move_z":[0.0,0.0,486.02]},{"name":"Shell_045","group":"group_45","group_name":"Chi tiết 46 (Shell_045)","color":"#b7a793","byte_offset":25066764,"byte_length":14364,"triangles":399,"bounds_min":[210.567,-6.0965,157.2579],"bounds_max":[212.8964,-4.2487,163.4984],"center":[211.73169,-5.1726,160.37814],"move_3d":[-219.4,-4.34,425.27],"move_x":[-351.05,0.0,0.0],"move_y":[0.0,-5.79,0.0],"move_z":[0.0,0.0,486.02]},{"name":"Shell_046","group":"group_46","group_name":"Chi tiết 47 (Shell_046)","color":"#8fa0b5","byte_offset":25081128,"byte_length":1872,"triangles":52,"bounds_min":[219.8622,5.3184,137.8884],"bounds_max":[221.4089,6.8736,138.0548],"center":[220.63556,6.0959997,137.97159],"move_3d":[-209.52,5.12,330.4],"move_x":[-335.24,0.0,0.0],"move_y":[0.0,6.83,0.0],"move_z":[0.0,0.0,377.6]},{"name":"Shell_047","group":"group_47","group_name":"Chi tiết 48 (Shell_047)","color":"#a3b899","byte_offset":25083000,"byte_length":13248,"triangles":368,"bounds_min":[220.0022,5.267,139.6513],"bounds_max":[221.6513,6.9251,139.8789],"center":[220.82675,6.0960503,139.7651],"move_3d":[-209.31,5.12,338.0],"move_x":[-334.9,0.0,0.0],"move_y":[0.0,6.83,0.0],"move_z":[0.0,0.0,386.28]},{"name":"Shell_048","group":"group_48","group_name":"Chi tiết 49 (Shell_048)","color":"#d4a373","byte_offset":25096248,"byte_length":1872,"triangles":52,"bounds_min":[219.8622,-6.8736,137.8884],"bounds_max":[221.4089,-5.3184,138.0548],"center":[220.63556,-6.0959997,137.97159],"move_3d":[-209.52,-5.12,330.4],"move_x":[-335.24,0.0,0.0],"move_y":[0.0,-6.83,0.0],"move_z":[0.0,0.0,377.6]},{"name":"Shell_049","group":"group_49","group_name":"Chi tiết 50 (Shell_049)","color":"#9d8189","byte_offset":25098120,"byte_length":13248,"triangles":368,"bounds_min":[220.0022,-6.925,139.6513],"bounds_max":[221.6513,-5.2669,139.8789],"center":[220.82675,-6.09595,139.7651],"move_3d":[-209.31,-5.12,338.0],"move_x":[-334.9,0.0,0.0],"move_y":[0.0,-6.83,0.0],"move_z":[0.0,0.0,386.28]},{"name":"Shell_050","group":"group_50","group_name":"Chi tiết 51 (Shell_050)","color":"#7ea8be","byte_offset":25111368,"byte_length":13248,"triangles":368,"bounds_min":[207.877,5.267,140.9257],"bounds_max":[209.526,6.9251,141.1533],"center":[208.7015,6.0960503,141.0395],"move_3d":[-222.77,5.12,343.39],"move_x":[-356.43,0.0,0.0],"move_y":[0.0,6.83,0.0],"move_z":[0.0,0.0,392.45]},{"name":"Shell_051","group":"group_51","group_name":"Chi tiết 52 (Shell_051)","color":"#c4b5a5","byte_offset":25124616,"byte_length":1872,"triangles":52,"bounds_min":[207.737,5.3184,139.1628],"bounds_max":[209.2837,6.8736,139.3292],"center":[208.51035,6.0959997,139.246],"move_3d":[-222.98,5.12,335.8],"move_x":[-356.77,0.0,0.0],"move_y":[0.0,6.83,0.0],"move_z":[0.0,0.0,383.77]},{"name":"Shell_052","group":"group_52","group_name":"Chi tiết 53 (Shell_052)","color":"#a5a58d","byte_offset":25126488,"byte_length":1872,"triangles":52,"bounds_min":[207.737,-6.8736,139.1629],"bounds_max":[209.2837,-5.3184,139.3292],"center":[208.51035,-6.0959997,139.24605],"move_3d":[-222.98,-5.12,335.8],"move_x":[-356.77,0.0,0.0],"move_y":[0.0,-6.83,0.0],"move_z":[0.0,0.0,383.77]},{"name":"Shell_053","group":"group_53","group_name":"Chi tiết 54 (Shell_053)","color":"#cad1ee","byte_offset":25128360,"byte_length":86184,"triangles":2394,"bounds_min":[208.0766,12.1172,123.3352],"bounds_max":[221.7874,37.3731,139.8098],"center":[214.932,24.74515,131.5725],"move_3d":[-215.85,20.79,303.31],"move_x":[-345.36,0.0,0.0],"move_y":[0.0,27.71,0.0],"move_z":[0.0,0.0,346.64]},{"name":"Shell_054","group":"group_54","group_name":"Chi tiết 55 (Shell_054)","color":"#cad1ee","byte_offset":25214544,"byte_length":34344,"triangles":954,"bounds_min":[206.9989,46.4184,135.4479],"bounds_max":[209.8613,49.6733,138.6049],"center":[208.4301,48.045853,137.0264],"move_3d":[-223.07,40.36,326.4],"move_x":[-356.91,0.0,0.0],"move_y":[0.0,53.81,0.0],"move_z":[0.0,0.0,373.03]},{"name":"Shell_055","group":"group_55","group_name":"Chi tiết 56 (Shell_055)","color":"#e07a5f","byte_offset":25248888,"byte_length":34596,"triangles":961,"bounds_min":[207.6037,44.5385,141.2019],"bounds_max":[210.4661,47.7934,144.3589],"center":[209.0349,46.16595,142.7804],"move_3d":[-222.4,38.78,350.76],"move_x":[-355.83,0.0,0.0],"move_y":[0.0,51.71,0.0],"move_z":[0.0,0.0,400.87]},{"name":"Shell_056","group":"group_56","group_name":"Chi tiết 57 (Shell_056)","color":"#3d405b","byte_offset":25283484,"byte_length":36144,"triangles":1004,"bounds_min":[207.3583,46.9295,134.8055],"bounds_max":[209.1731,49.3823,138.4861],"center":[208.2657,48.1559,136.6458],"move_3d":[-223.25,40.45,324.79],"move_x":[-357.2,0.0,0.0],"move_y":[0.0,53.93,0.0],"move_z":[0.0,0.0,371.19]},{"name":"Shell_057","group":"group_57","group_name":"Chi tiết 58 (Shell_057)","color":"#cad1ee","byte_offset":25319628,"byte_length":35424,"triangles":984,"bounds_min":[207.9888,44.8294,141.3526],"bounds_max":[209.8036,47.2822,145.0332],"center":[208.89621,46.0558,143.1929],"move_3d":[-222.55,38.69,352.51],"move_x":[-356.08,0.0,0.0],"move_y":[0.0,51.58,0.0],"move_z":[0.0,0.0,402.87]},{"name":"Shell_058","group":"group_58","group_name":"Chi tiết 59 (Shell_058)","color":"#f2cc8f","byte_offset":25355052,"byte_length":11880,"triangles":330,"bounds_min":[218.7445,33.3397,133.0919],"bounds_max":[220.0743,35.3236,135.1253],"center":[219.4094,34.33165,134.10861],"move_3d":[-210.88,28.84,314.05],"move_x":[-337.41,0.0,0.0],"move_y":[0.0,38.45,0.0],"move_z":[0.0,0.0,358.91]},{"name":"Shell_059","group":"group_59","group_name":"Chi tiết 60 (Shell_059)","color":"#7209b7","byte_offset":25366932,"byte_length":15120,"triangles":420,"bounds_min":[219.0396,33.4371,133.1328],"bounds_max":[220.3747,35.5604,136.4159],"center":[219.70715,34.49875,134.77435],"move_3d":[-210.55,28.98,316.86],"move_x":[-336.88,0.0,0.0],"move_y":[0.0,38.64,0.0],"move_z":[0.0,0.0,362.13]},{"name":"Shell_060","group":"group_60","group_name":"Chi tiết 61 (Shell_060)","color":"#b7a793","byte_offset":25382052,"byte_length":15408,"triangles":428,"bounds_min":[219.3372,33.6719,133.1776],"bounds_max":[220.6753,35.794,136.4603],"center":[220.00626,34.73295,134.81894],"move_3d":[-210.22,29.18,317.05],"move_x":[-336.35,0.0,0.0],"move_y":[0.0,38.9,0.0],"move_z":[0.0,0.0,362.35]},{"name":"Shell_061","group":"group_61","group_name":"Chi tiết 62 (Shell_061)","color":"#8fa0b5","byte_offset":25397460,"byte_length":14904,"triangles":414,"bounds_min":[219.6427,33.9064,133.2229],"bounds_max":[220.9757,36.027,136.5066],"center":[220.3092,34.966698,134.86475],"move_3d":[-209.88,29.37,317.25],"move_x":[-335.81,0.0,0.0],"move_y":[0.0,39.16,0.0],"move_z":[0.0,0.0,362.57]},{"name":"Shell_062","group":"group_62","group_name":"Chi tiết 63 (Shell_062)","color":"#a3b899","byte_offset":25412364,"byte_length":74592,"triangles":2072,"bounds_min":[218.8244,34.0355,133.0494],"bounds_max":[221.6669,37.398,136.8599],"center":[220.24565,35.71675,134.95465],"move_3d":[-209.95,30.0,317.63],"move_x":[-335.93,0.0,0.0],"move_y":[0.0,40.0,0.0],"move_z":[0.0,0.0,363.0]},{"name":"Shell_063","group":"group_63","group_name":"Chi tiết 64 (Shell_063)","color":"#d4a373","byte_offset":25486956,"byte_length":18216,"triangles":506,"bounds_min":[220.0041,34.4977,133.131],"bounds_max":[221.9665,37.4146,136.8992],"center":[220.9853,35.95615,135.0151],"move_3d":[-209.13,30.2,317.88],"move_x":[-334.61,0.0,0.0],"move_y":[0.0,40.27,0.0],"move_z":[0.0,0.0,363.3]},{"name":"Shell_064","group":"group_64","group_name":"Chi tiết 65 (Shell_064)","color":"#cad1ee","byte_offset":25505172,"byte_length":12312,"triangles":342,"bounds_min":[207.1145,33.7528,134.8138],"bounds_max":[209.2242,35.9498,137.1932],"center":[208.16934,34.8513,136.00351],"move_3d":[-223.36,29.28,322.07],"move_x":[-357.37,0.0,0.0],"move_y":[0.0,39.03,0.0],"move_z":[0.0,0.0,368.08]},{"name":"Shell_065","group":"group_65","group_name":"Chi tiết 66 (Shell_065)","color":"#7ea8be","byte_offset":25517484,"byte_length":13968,"triangles":388,"bounds_min":[217.9637,32.6654,128.0083],"bounds_max":[219.8528,38.9889,131.4911],"center":[218.90825,35.82715,129.7497],"move_3d":[-211.44,30.09,295.59],"move_x":[-338.3,0.0,0.0],"move_y":[0.0,40.13,0.0],"move_z":[0.0,0.0,337.82]},{"name":"Shell_066","group":"group_66","group_name":"Chi tiết 67 (Shell_066)","color":"#c4b5a5","byte_offset":25531452,"byte_length":13680,"triangles":380,"bounds_min":[218.9922,29.4686,137.7934],"bounds_max":[220.8812,35.792,141.2762],"center":[219.9367,32.6303,139.53479],"move_3d":[-210.3,27.41,337.02],"move_x":[-336.48,0.0,0.0],"move_y":[0.0,36.55,0.0],"move_z":[0.0,0.0,385.17]},{"name":"Shell_067","group":"group_67","group_name":"Chi tiết 68 (Shell_067)","color":"#a5a58d","byte_offset":25545132,"byte_length":13680,"triangles":380,"bounds_min":[207.6751,32.6654,129.0897],"bounds_max":[209.5642,38.9889,132.5725],"center":[208.61964,35.82715,130.8311],"move_3d":[-222.86,30.09,300.17],"move_x":[-356.57,0.0,0.0],"move_y":[0.0,40.13,0.0],"move_z":[0.0,0.0,343.05]},{"name":"Shell_068","group":"group_68","group_name":"Chi tiết 69 (Shell_068)","color":"#6b705c","byte_offset":25558812,"byte_length":13680,"triangles":380,"bounds_min":[208.7036,29.4686,138.8747],"bounds_max":[210.5927,35.792,142.3575],"center":[209.64815,32.6303,140.61609],"move_3d":[-221.72,27.41,341.6],"move_x":[-354.74,0.0,0.0],"move_y":[0.0,36.55,0.0],"move_z":[0.0,0.0,390.4]},{"name":"Shell_069","group":"group_69","group_name":"Chi tiết 70 (Shell_069)","color":"#b5838d","byte_offset":25572492,"byte_length":1872,"triangles":52,"bounds_min":[218.1995,15.5546,121.4181],"bounds_max":[219.7462,16.0384,122.8891],"center":[218.97284,15.7965,122.153595],"move_3d":[-211.37,13.27,263.43],"move_x":[-338.19,0.0,0.0],"move_y":[0.0,17.69,0.0],"move_z":[0.0,0.0,301.06]},{"name":"Shell_070","group":"group_70","group_name":"Chi tiết 71 (Shell_070)","color":"#cad1ee","byte_offset":25574364,"byte_length":13248,"triangles":368,"bounds_min":[218.2074,17.242,121.9315],"bounds_max":[219.8564,17.7936,123.4998],"center":[219.03189,17.5178,122.71565],"move_3d":[-211.3,14.71,265.81],"move_x":[-338.08,0.0,0.0],"move_y":[0.0,19.62,0.0],"move_z":[0.0,0.0,303.78]},{"name":"Shell_071","group":"group_71","group_name":"Chi tiết 72 (Shell_071)","color":"#3d405b","byte_offset":25587612,"byte_length":1872,"triangles":52,"bounds_min":[219.4115,11.7871,132.9499],"bounds_max":[220.9582,12.2709,134.4209],"center":[220.18484,12.028999,133.6854],"move_3d":[-210.02,10.1,312.25],"move_x":[-336.04,0.0,0.0],"move_y":[0.0,13.47,0.0],"move_z":[0.0,0.0,356.86]},{"name":"Shell_072","group":"group_72","group_name":"Chi tiết 73 (Shell_072)","color":"#81b29a","byte_offset":25589484,"byte_length":13248,"triangles":368,"bounds_min":[219.4194,13.4745,133.4633],"bounds_max":[221.0685,14.0261,135.0316],"center":[220.24396,13.750299,134.24745],"move_3d":[-209.96,11.55,314.63],"move_x":[-335.93,0.0,0.0],"move_y":[0.0,15.4,0.0],"move_z":[0.0,0.0,359.58]},{"name":"Shell_073","group":"group_73","group_name":"Chi tiết 74 (Shell_073)","color":"#f2cc8f","byte_offset":25602732,"byte_length":13248,"triangles":368,"bounds_min":[206.0822,17.242,123.2059],"bounds_max":[207.7312,17.7936,124.7742],"center":[206.90671,17.5178,123.99005],"move_3d":[-224.76,14.71,271.2],"move_x":[-359.61,0.0,0.0],"move_y":[0.0,19.62,0.0],"move_z":[0.0,0.0,309.95]},{"name":"Shell_074","group":"group_74","group_name":"Chi tiết 75 (Shell_074)","color":"#7209b7","byte_offset":25615980,"byte_length":1872,"triangles":52,"bounds_min":[206.0743,15.5517,122.6925],"bounds_max":[207.621,16.0384,124.1635],"center":[206.84766,15.79505,123.42799],"move_3d":[-224.82,13.27,268.82],"move_x":[-359.72,0.0,0.0],"move_y":[0.0,17.69,0.0],"move_z":[0.0,0.0,307.23]},{"name":"Shell_075","group":"group_75","group_name":"Chi tiết 76 (Shell_075)","color":"#b7a793","byte_offset":25617852,"byte_length":1872,"triangles":52,"bounds_min":[207.2863,11.7841,134.2243],"bounds_max":[208.833,12.2709,135.6953],"center":[208.05965,12.0275,134.95981],"move_3d":[-223.48,10.1,317.65],"move_x":[-357.57,0.0,0.0],"move_y":[0.0,13.47,0.0],"move_z":[0.0,0.0,363.03]},{"name":"Shell_076","group":"group_76","group_name":"Chi tiết 77 (Shell_076)","color":"#cad1ee","byte_offset":25619724,"byte_length":86184,"triangles":2394,"bounds_min":[208.0766,-37.373,123.3338],"bounds_max":[221.7874,-12.1171,139.7965],"center":[214.932,-24.74505,131.56516],"move_3d":[-215.85,-20.79,303.28],"move_x":[-345.36,0.0,0.0],"move_y":[0.0,-27.71,0.0],"move_z":[0.0,0.0,346.6]},{"name":"Shell_077","group":"group_77","group_name":"Chi tiết 78 (Shell_077)","color":"#cad1ee","byte_offset":25705908,"byte_length":85824,"triangles":2384,"bounds_min":[204.6762,4.098,91.5742],"bounds_max":[217.4154,24.6224,115.5867],"center":[211.0458,14.3602,103.58045],"move_3d":[-220.16,12.06,184.79],"move_x":[-352.26,0.0,0.0],"move_y":[0.0,16.08,0.0],"move_z":[0.0,0.0,211.19]},{"name":"Shell_078","group":"group_78","group_name":"Chi tiết 79 (Shell_078)","color":"#cad1ee","byte_offset":25791732,"byte_length":34488,"triangles":958,"bounds_min":[201.3777,24.8928,81.2843],"bounds_max":[204.1344,28.4115,84.8163],"center":[202.75604,26.65215,83.0503],"move_3d":[-229.36,22.39,97.86],"move_x":[-366.98,0.0,0.0],"move_y":[0.0,29.85,0.0],"move_z":[0.0,0.0,111.84]},{"name":"Shell_079","group":"group_79","group_name":"Chi tiết 80 (Shell_079)","color":"#9d8189","byte_offset":25826220,"byte_length":34272,"triangles":952,"bounds_min":[201.7538,29.8144,84.8448],"bounds_max":[204.5106,33.3331,88.3769],"center":[203.1322,31.57375,86.610855],"move_3d":[-228.95,26.52,112.94],"move_x":[-366.31,0.0,0.0],"move_y":[0.0,35.36,0.0],"move_z":[0.0,0.0,129.07]},{"name":"Shell_080","group":"group_80","group_name":"Chi tiết 81 (Shell_080)","color":"#7ea8be","byte_offset":25860492,"byte_length":35568,"triangles":988,"bounds_min":[201.7665,24.5075,81.2483],"bounds_max":[203.4539,28.1135,84.4068],"center":[202.6102,26.310501,82.827545],"move_3d":[-229.53,22.1,96.92],"move_x":[-367.24,0.0,0.0],"move_y":[0.0,29.47,0.0],"move_z":[0.0,0.0,110.77]},{"name":"Shell_081","group":"group_81","group_name":"Chi tiết 82 (Shell_081)","color":"#cad1ee","byte_offset":25896060,"byte_length":35280,"triangles":980,"bounds_min":[202.1312,30.1125,85.2862],"bounds_max":[203.8186,33.7184,88.4447],"center":[202.9749,31.91545,86.86545],"move_3d":[-229.12,26.81,114.02],"move_x":[-366.59,0.0,0.0],"move_y":[0.0,35.75,0.0],"move_z":[0.0,0.0,130.31]},{"name":"Shell_082","group":"group_82","group_name":"Chi tiết 83 (Shell_082)","color":"#a5a58d","byte_offset":25931340,"byte_length":11880,"triangles":330,"bounds_min":[214.5314,19.8816,93.1457],"bounds_max":[215.9586,21.4624,95.5228],"center":[215.245,20.672,94.33424],"move_3d":[-215.5,17.36,145.64],"move_x":[-344.81,0.0,0.0],"move_y":[0.0,23.15,0.0],"move_z":[0.0,0.0,166.45]},{"name":"Shell_083","group":"group_83","group_name":"Chi tiết 84 (Shell_083)","color":"#6b705c","byte_offset":25943220,"byte_length":15120,"triangles":420,"bounds_min":[214.7965,19.9752,92.9155],"bounds_max":[216.2286,22.9332,95.4798],"center":[215.51254,21.4542,94.19765],"move_3d":[-215.21,18.02,145.06],"move_x":[-344.33,0.0,0.0],"move_y":[0.0,24.03,0.0],"move_z":[0.0,0.0,165.79]},{"name":"Shell_084","group":"group_84","group_name":"Chi tiết 85 (Shell_084)","color":"#b5838d","byte_offset":25958340,"byte_length":15408,"triangles":428,"bounds_min":[215.0654,20.1203,92.6875],"bounds_max":[216.5004,23.0771,95.2505],"center":[215.7829,21.598701,93.969],"move_3d":[-214.91,18.14,144.09],"move_x":[-343.85,0.0,0.0],"move_y":[0.0,24.19,0.0],"move_z":[0.0,0.0,164.68]},{"name":"Shell_085","group":"group_85","group_name":"Chi tiết 86 (Shell_085)","color":"#e07a5f","byte_offset":25973748,"byte_length":14904,"triangles":414,"bounds_min":[215.3423,20.2655,92.4589],"bounds_max":[216.7721,23.2248,95.0209],"center":[216.05719,21.74515,93.7399],"move_3d":[-214.6,18.27,143.12],"move_x":[-343.36,0.0,0.0],"move_y":[0.0,24.35,0.0],"move_z":[0.0,0.0,163.57]},{"name":"Shell_086","group":"group_86","group_name":"Chi tiết 87 (Shell_086)","color":"#3d405b","byte_offset":25988652,"byte_length":74592,"triangles":2072,"bounds_min":[214.3012,20.2362,91.4891],"bounds_max":[217.4302,23.8561,94.9203],"center":[215.86569,22.04615,93.2047],"move_3d":[-214.82,18.52,140.86],"move_x":[-343.7,0.0,0.0],"move_y":[0.0,24.69,0.0],"move_z":[0.0,0.0,160.98]},{"name":"Shell_087","group":"group_87","group_name":"Chi tiết 88 (Shell_087)","color":"#81b29a","byte_offset":26063244,"byte_length":18216,"triangles":506,"bounds_min":[215.4615,20.554,91.296],"bounds_max":[217.7025,23.9874,94.4632],"center":[216.582,22.2707,92.8796],"move_3d":[-214.02,18.71,139.48],"move_x":[-342.43,0.0,0.0],"move_y":[0.0,24.94,0.0],"move_z":[0.0,0.0,159.41]},{"name":"Shell_088","group":"group_88","group_name":"Chi tiết 89 (Shell_088)","color":"#f2cc8f","byte_offset":26081460,"byte_length":12312,"triangles":342,"bounds_min":[202.78,20.3868,93.9487],"bounds_max":[204.9602,22.8602,96.2481],"center":[203.8701,21.6235,95.098404],"move_3d":[-228.13,18.16,148.88],"move_x":[-365.0,0.0,0.0],"move_y":[0.0,24.22,0.0],"move_z":[0.0,0.0,170.14]},{"name":"Shell_089","group":"group_89","group_name":"Chi tiết 90 (Shell_089)","color":"#cad1ee","byte_offset":26093772,"byte_length":13680,"triangles":380,"bounds_min":[213.6521,14.5351,88.5655],"bounds_max":[215.8598,19.4948,94.4649],"center":[214.75595,17.01495,91.5152],"move_3d":[-216.05,14.29,133.7],"move_x":[-345.68,0.0,0.0],"move_y":[0.0,19.06,0.0],"move_z":[0.0,0.0,152.81]},{"name":"Shell_090","group":"group_90","group_name":"Chi tiết 91 (Shell_090)","color":"#b7a793","byte_offset":26107452,"byte_length":13680,"triangles":380,"bounds_min":[214.2877,22.9046,94.613],"bounds_max":[216.4954,27.8643,100.5124],"center":[215.39156,25.384449,97.5627],"move_3d":[-215.34,21.32,159.31],"move_x":[-344.55,0.0,0.0],"move_y":[0.0,28.43,0.0],"move_z":[0.0,0.0,182.07]},{"name":"Shell_091","group":"group_91","group_name":"Chi tiết 92 (Shell_091)","color":"#8fa0b5","byte_offset":26121132,"byte_length":13680,"triangles":380,"bounds_min":[203.3635,14.5351,89.6469],"bounds_max":[205.5712,19.4948,95.5463],"center":[204.46735,17.01495,92.5966],"move_3d":[-227.46,14.29,138.28],"move_x":[-363.94,0.0,0.0],"move_y":[0.0,19.06,0.0],"move_z":[0.0,0.0,158.04]},{"name":"Shell_092","group":"group_92","group_name":"Chi tiết 93 (Shell_092)","color":"#a3b899","byte_offset":26134812,"byte_length":13680,"triangles":380,"bounds_min":[203.9991,22.9046,95.6943],"bounds_max":[206.2068,27.8643,101.5937],"center":[205.10295,25.384449,98.644],"move_3d":[-226.76,21.32,163.89],"move_x":[-362.82,0.0,0.0],"move_y":[0.0,28.43,0.0],"move_z":[0.0,0.0,187.3]},{"name":"Shell_093","group":"group_93","group_name":"Chi tiết 94 (Shell_093)","color":"#d4a373","byte_offset":26148492,"byte_length":1872,"triangles":52,"bounds_min":[216.7212,3.0387,107.6338],"bounds_max":[218.2679,4.2969,108.5456],"center":[217.49455,3.6678,108.0897],"move_3d":[-213.01,3.08,203.88],"move_x":[-340.81,0.0,0.0],"move_y":[0.0,4.11,0.0],"move_z":[0.0,0.0,233.01]},{"name":"Shell_094","group":"group_94","group_name":"Chi tiết 95 (Shell_094)","color":"#9d8189","byte_offset":26150364,"byte_length":13248,"triangles":368,"bounds_min":[216.5154,4.072,106.1323],"bounds_max":[218.1644,5.4134,107.115],"center":[217.3399,4.7427,106.62365],"move_3d":[-213.18,3.98,197.67],"move_x":[-341.09,0.0,0.0],"move_y":[0.0,5.31,0.0],"move_z":[0.0,0.0,225.91]},{"name":"Shell_095","group":"group_95","group_name":"Chi tiết 96 (Shell_095)","color":"#7ea8be","byte_offset":26163612,"byte_length":1872,"triangles":52,"bounds_min":[217.4703,12.9022,114.7608],"bounds_max":[219.017,14.1604,115.6726],"center":[218.24365,13.5313,115.216705],"move_3d":[-212.18,11.37,234.06],"move_x":[-339.48,0.0,0.0],"move_y":[0.0,15.16,0.0],"move_z":[0.0,0.0,267.49]},{"name":"Shell_096","group":"group_96","group_name":"Chi tiết 97 (Shell_096)","color":"#cad1ee","byte_offset":26165484,"byte_length":13248,"triangles":368,"bounds_min":[217.2644,13.9355,113.2593],"bounds_max":[218.9135,15.277,114.242],"center":[218.08896,14.606251,113.75065],"move_3d":[-212.35,12.27,227.85],"move_x":[-339.76,0.0,0.0],"move_y":[0.0,16.36,0.0],"move_z":[0.0,0.0,260.4]},{"name":"Shell_097","group":"group_97","group_name":"Chi tiết 98 (Shell_097)","color":"#a5a58d","byte_offset":26178732,"byte_length":13248,"triangles":368,"bounds_min":[204.3902,4.072,107.4067],"bounds_max":[206.0392,5.4134,108.3894],"center":[205.21469,4.7427,107.89805],"move_3d":[-226.64,3.98,203.07],"move_x":[-362.62,0.0,0.0],"move_y":[0.0,5.31,0.0],"move_z":[0.0,0.0,232.08]},{"name":"Shell_098","group":"group_98","group_name":"Chi tiết 99 (Shell_098)","color":"#6b705c","byte_offset":26191980,"byte_length":1872,"triangles":52,"bounds_min":[204.596,3.0387,108.9082],"bounds_max":[206.1427,4.2969,109.82],"center":[205.36935,3.6678,109.364105],"move_3d":[-226.46,3.08,209.28],"move_x":[-362.34,0.0,0.0],"move_y":[0.0,4.11,0.0],"move_z":[0.0,0.0,239.17]},{"name":"Shell_099","group":"group_99","group_name":"Chi tiết 100 (Shell_099)","color":"#b5838d","byte_offset":26193852,"byte_length":1872,"triangles":52,"bounds_min":[205.3451,12.9022,116.0352],"bounds_max":[206.8917,14.1604,116.947],"center":[206.1184,13.5313,116.491104],"move_3d":[-225.63,11.37,239.45],"move_x":[-361.01,0.0,0.0],"move_y":[0.0,15.16,0.0],"move_z":[0.0,0.0,273.66]},{"name":"Shell_100","group":"group_100","group_name":"Chi tiết 101 (Shell_100)","color":"#e07a5f","byte_offset":26195724,"byte_length":34704,"triangles":964,"bounds_min":[207.6037,-47.7933,141.2021],"bounds_max":[210.4661,-44.5384,144.3591],"center":[209.0349,-46.165848,142.78061],"move_3d":[-222.4,-38.78,350.76],"move_x":[-355.83,0.0,0.0],"move_y":[0.0,-51.71,0.0],"move_z":[0.0,0.0,400.87]},{"name":"Shell_101","group":"group_101","group_name":"Chi tiết 102 (Shell_101)","color":"#3d405b","byte_offset":26230428,"byte_length":34236,"triangles":951,"bounds_min":[206.9989,-49.6732,135.448],"bounds_max":[209.8613,-46.4183,138.605],"center":[208.4301,-48.04575,137.02649],"move_3d":[-223.07,-40.36,326.4],"move_x":[-356.91,0.0,0.0],"move_y":[0.0,-53.81,0.0],"move_z":[0.0,0.0,373.03]},{"name":"Shell_102","group":"group_102","group_name":"Chi tiết 103 (Shell_102)","color":"#cad1ee","byte_offset":26264664,"byte_length":36432,"triangles":1012,"bounds_min":[207.9888,-47.2821,141.3527],"bounds_max":[209.8036,-44.8294,145.0334],"center":[208.89621,-46.055748,143.19305],"move_3d":[-222.55,-38.69,352.51],"move_x":[-356.08,0.0,0.0],"move_y":[0.0,-51.58,0.0],"move_z":[0.0,0.0,402.87]},{"name":"Shell_103","group":"group_103","group_name":"Chi tiết 104 (Shell_103)","color":"#f2cc8f","byte_offset":26301096,"byte_length":34848,"triangles":968,"bounds_min":[207.3584,-49.3822,134.8056],"bounds_max":[209.1731,-46.9294,138.4863],"center":[208.26575,-48.1558,136.64595],"move_3d":[-223.25,-40.45,324.79],"move_x":[-357.2,0.0,0.0],"move_y":[0.0,-53.93,0.0],"move_z":[0.0,0.0,371.19]},{"name":"Shell_104","group":"group_104","group_name":"Chi tiết 105 (Shell_104)","color":"#7209b7","byte_offset":26335944,"byte_length":11880,"triangles":330,"bounds_min":[219.0766,-34.2929,133.524],"bounds_max":[220.0889,-33.3337,136.3932],"center":[219.58275,-33.8133,134.9586],"move_3d":[-210.69,-28.4,317.64],"move_x":[-337.1,0.0,0.0],"move_y":[0.0,-37.87,0.0],"move_z":[0.0,0.0,363.02]},{"name":"Shell_105","group":"group_105","group_name":"Chi tiết 106 (Shell_105)","color":"#b7a793","byte_offset":26347824,"byte_length":15120,"triangles":420,"bounds_min":[218.8854,-35.4399,133.1149],"bounds_max":[220.3894,-33.4685,136.4391],"center":[219.6374,-34.4542,134.77701],"move_3d":[-210.63,-28.94,316.88],"move_x":[-337.01,0.0,0.0],"move_y":[0.0,-38.59,0.0],"move_z":[0.0,0.0,362.14]},{"name":"Shell_106","group":"group_106","group_name":"Chi tiết 107 (Shell_106)","color":"#8fa0b5","byte_offset":26362944,"byte_length":15408,"triangles":428,"bounds_min":[219.1885,-35.6722,133.1598],"bounds_max":[220.6898,-33.7031,136.4841],"center":[219.93915,-34.68765,134.82196],"move_3d":[-210.29,-29.14,317.07],"move_x":[-336.47,0.0,0.0],"move_y":[0.0,-38.85,0.0],"move_z":[0.0,0.0,362.36]},{"name":"Shell_107","group":"group_107","group_name":"Chi tiết 108 (Shell_107)","color":"#a3b899","byte_offset":26378352,"byte_length":14904,"triangles":414,"bounds_min":[219.4882,-35.9118,133.2047],"bounds_max":[220.9905,-33.9381,136.5285],"center":[220.23935,-34.92495,134.86661],"move_3d":[-209.96,-29.34,317.26],"move_x":[-335.94,0.0,0.0],"move_y":[0.0,-39.12,0.0],"move_z":[0.0,0.0,362.58]},{"name":"Shell_108","group":"group_108","group_name":"Chi tiết 109 (Shell_108)","color":"#cad1ee","byte_offset":26393256,"byte_length":74592,"triangles":2072,"bounds_min":[218.8271,-37.2241,133.0258],"bounds_max":[221.6824,-34.0674,136.8775],"center":[220.25476,-35.645752,134.95166],"move_3d":[-209.94,-29.94,317.62],"move_x":[-335.91,0.0,0.0],"move_y":[0.0,-39.92,0.0],"move_z":[0.0,0.0,362.99]},{"name":"Shell_109","group":"group_109","group_name":"Chi tiết 110 (Shell_109)","color":"#9d8189","byte_offset":26467848,"byte_length":18216,"triangles":506,"bounds_min":[219.7499,-37.3077,133.1161],"bounds_max":[221.9698,-34.5277,136.9102],"center":[220.85985,-35.9177,135.01315],"move_3d":[-209.27,-30.17,317.88],"move_x":[-334.84,0.0,0.0],"move_y":[0.0,-40.23,0.0],"move_z":[0.0,0.0,363.29]},{"name":"Shell_110","group":"group_110","group_name":"Chi tiết 111 (Shell_110)","color":"#7ea8be","byte_offset":26486064,"byte_length":12312,"triangles":342,"bounds_min":[207.1145,-35.9498,134.8139],"bounds_max":[209.2242,-33.7528,137.1933],"center":[208.16934,-34.8513,136.0036],"move_3d":[-223.36,-29.28,322.07],"move_x":[-357.37,0.0,0.0],"move_y":[0.0,-39.03,0.0],"move_z":[0.0,0.0,368.08]},{"name":"Shell_111","group":"group_111","group_name":"Chi tiết 112 (Shell_111)","color":"#c4b5a5","byte_offset":26498376,"byte_length":13680,"triangles":380,"bounds_min":[218.9922,-35.7919,137.7934],"bounds_max":[220.8813,-29.4685,141.2763],"center":[219.93675,-32.6302,139.53485],"move_3d":[-210.3,-27.41,337.02],"move_x":[-336.48,0.0,0.0],"move_y":[0.0,-36.55,0.0],"move_z":[0.0,0.0,385.17]},{"name":"Shell_112","group":"group_112","group_name":"Chi tiết 113 (Shell_112)","color":"#a5a58d","byte_offset":26512056,"byte_length":13680,"triangles":380,"bounds_min":[217.9637,-38.9888,128.0084],"bounds_max":[219.8528,-32.6654,131.4912],"center":[218.90825,-35.827103,129.7498],"move_3d":[-211.44,-30.09,295.59],"move_x":[-338.3,0.0,0.0],"move_y":[0.0,-40.13,0.0],"move_z":[0.0,0.0,337.82]},{"name":"Shell_113","group":"group_113","group_name":"Chi tiết 114 (Shell_113)","color":"#6b705c","byte_offset":26525736,"byte_length":13968,"triangles":388,"bounds_min":[208.7036,-35.7919,138.8748],"bounds_max":[210.5927,-29.4685,142.3576],"center":[209.64815,-32.6302,140.61621],"move_3d":[-221.72,-27.41,341.6],"move_x":[-354.74,0.0,0.0],"move_y":[0.0,-36.55,0.0],"move_z":[0.0,0.0,390.4]},{"name":"Shell_114","group":"group_114","group_name":"Chi tiết 115 (Shell_114)","color":"#cad1ee","byte_offset":26539704,"byte_length":13680,"triangles":380,"bounds_min":[207.6751,-38.9888,129.0898],"bounds_max":[209.5642,-32.6654,132.5726],"center":[208.61964,-35.827103,130.8312],"move_3d":[-222.86,-30.09,300.17],"move_x":[-356.57,0.0,0.0],"move_y":[0.0,-40.13,0.0],"move_z":[0.0,0.0,343.05]},{"name":"Shell_115","group":"group_115","group_name":"Chi tiết 116 (Shell_115)","color":"#e07a5f","byte_offset":26553384,"byte_length":1872,"triangles":52,"bounds_min":[219.4115,-12.2708,132.9499],"bounds_max":[220.9582,-11.7871,134.4209],"center":[220.18484,-12.02895,133.6854],"move_3d":[-210.02,-10.1,312.25],"move_x":[-336.04,0.0,0.0],"move_y":[0.0,-13.47,0.0],"move_z":[0.0,0.0,356.86]},{"name":"Shell_116","group":"group_116","group_name":"Chi tiết 117 (Shell_116)","color":"#3d405b","byte_offset":26555256,"byte_length":13248,"triangles":368,"bounds_min":[219.4194,-14.026,133.4633],"bounds_max":[221.0685,-13.4744,135.0316],"center":[220.24396,-13.7502,134.24745],"move_3d":[-209.96,-11.55,314.63],"move_x":[-335.93,0.0,0.0],"move_y":[0.0,-15.4,0.0],"move_z":[0.0,0.0,359.58]},{"name":"Shell_117","group":"group_117","group_name":"Chi tiết 118 (Shell_117)","color":"#81b29a","byte_offset":26568504,"byte_length":1872,"triangles":52,"bounds_min":[218.1995,-16.0384,121.4182],"bounds_max":[219.7462,-15.5546,122.8891],"center":[218.97284,-15.7965,122.15365],"move_3d":[-211.37,-13.27,263.43],"move_x":[-338.19,0.0,0.0],"move_y":[0.0,-17.69,0.0],"move_z":[0.0,0.0,301.06]},{"name":"Shell_118","group":"group_118","group_name":"Chi tiết 119 (Shell_118)","color":"#f2cc8f","byte_offset":26570376,"byte_length":13248,"triangles":368,"bounds_min":[218.2074,-17.7936,121.9315],"bounds_max":[219.8564,-17.242,123.4998],"center":[219.03189,-17.5178,122.71565],"move_3d":[-211.3,-14.71,265.81],"move_x":[-338.08,0.0,0.0],"move_y":[0.0,-19.62,0.0],"move_z":[0.0,0.0,303.78]},{"name":"Shell_119","group":"group_119","group_name":"Chi tiết 120 (Shell_119)","color":"#7209b7","byte_offset":26583624,"byte_length":13248,"triangles":368,"bounds_min":[207.2942,-14.026,134.7377],"bounds_max":[208.9433,-13.4744,136.306],"center":[208.11874,-13.7502,135.52185],"move_3d":[-223.41,-11.55,320.03],"move_x":[-357.46,0.0,0.0],"move_y":[0.0,-15.4,0.0],"move_z":[0.0,0.0,365.75]},{"name":"Shell_120","group":"group_120","group_name":"Chi tiết 121 (Shell_120)","color":"#b7a793","byte_offset":26596872,"byte_length":1872,"triangles":52,"bounds_min":[207.2863,-12.2708,134.2243],"bounds_max":[208.833,-11.7841,135.6953],"center":[208.05965,-12.02745,134.95981],"move_3d":[-223.48,-10.1,317.65],"move_x":[-357.57,0.0,0.0],"move_y":[0.0,-13.47,0.0],"move_z":[0.0,0.0,363.03]},{"name":"Shell_121","group":"group_121","group_name":"Chi tiết 122 (Shell_121)","color":"#8fa0b5","byte_offset":26598744,"byte_length":1872,"triangles":52,"bounds_min":[206.0743,-16.0384,122.6926],"bounds_max":[207.621,-15.5516,124.1636],"center":[206.84766,-15.795,123.4281],"move_3d":[-224.82,-13.27,268.82],"move_x":[-359.72,0.0,0.0],"move_y":[0.0,-17.69,0.0],"move_z":[0.0,0.0,307.23]},{"name":"Shell_122","group":"group_122","group_name":"Chi tiết 123 (Shell_122)","color":"#a3b899","byte_offset":26600616,"byte_length":34488,"triangles":958,"bounds_min":[201.7539,-33.3332,84.8449],"bounds_max":[204.5106,-29.8145,88.3769],"center":[203.13226,-31.573849,86.6109],"move_3d":[-228.95,-26.52,112.94],"move_x":[-366.31,0.0,0.0],"move_y":[0.0,-35.36,0.0],"move_z":[0.0,0.0,129.07]},{"name":"Shell_123","group":"group_123","group_name":"Chi tiết 124 (Shell_123)","color":"#cad1ee","byte_offset":26635104,"byte_length":33984,"triangles":944,"bounds_min":[201.3777,-28.4116,81.2844],"bounds_max":[204.1344,-24.8929,84.8164],"center":[202.75604,-26.65225,83.0504],"move_3d":[-229.36,-22.39,97.86],"move_x":[-366.98,0.0,0.0],"move_y":[0.0,-29.85,0.0],"move_z":[0.0,0.0,111.85]},{"name":"Shell_124","group":"group_124","group_name":"Chi tiết 125 (Shell_124)","color":"#9d8189","byte_offset":26669088,"byte_length":35856,"triangles":996,"bounds_min":[202.1312,-33.7185,85.2863],"bounds_max":[203.8186,-30.1125,88.4448],"center":[202.9749,-31.915499,86.865555],"move_3d":[-229.12,-26.81,114.02],"move_x":[-366.59,0.0,0.0],"move_y":[0.0,-35.75,0.0],"move_z":[0.0,0.0,130.31]},{"name":"Shell_125","group":"group_125","group_name":"Chi tiết 126 (Shell_125)","color":"#7ea8be","byte_offset":26704944,"byte_length":35280,"triangles":980,"bounds_min":[201.7665,-28.1135,81.2484],"bounds_max":[203.4539,-24.5076,84.4068],"center":[202.6102,-26.31055,82.8276],"move_3d":[-229.53,-22.1,96.92],"move_x":[-367.24,0.0,0.0],"move_y":[0.0,-29.47,0.0],"move_z":[0.0,0.0,110.77]},{"name":"Shell_126","group":"group_126","group_name":"Chi tiết 127 (Shell_126)","color":"#cad1ee","byte_offset":26740224,"byte_length":11880,"triangles":330,"bounds_min":[214.7363,-22.8618,94.5251],"bounds_max":[215.9636,-20.0884,95.5797],"center":[215.34995,-21.4751,95.0524],"move_3d":[-215.39,-18.04,148.68],"move_x":[-344.62,0.0,0.0],"move_y":[0.0,-24.05,0.0],"move_z":[0.0,0.0,169.92]},{"name":"Shell_127","group":"group_127","group_name":"Chi tiết 128 (Shell_127)","color":"#cad1ee","byte_offset":26752104,"byte_length":15120,"triangles":420,"bounds_min":[214.6571,-23.0077,93.0333],"bounds_max":[216.2352,-19.9306,95.4293],"center":[215.44615,-21.46915,94.2313],"move_3d":[-215.28,-18.03,145.2],"move_x":[-344.45,0.0,0.0],"move_y":[0.0,-24.05,0.0],"move_z":[0.0,0.0,165.95]},{"name":"Shell_128","group":"group_128","group_name":"Chi tiết 129 (Shell_128)","color":"#6b705c","byte_offset":26767224,"byte_length":15408,"triangles":428,"bounds_min":[214.9317,-23.152,92.8056],"bounds_max":[216.5069,-20.0758,95.1999],"center":[215.7193,-21.6139,94.00275],"move_3d":[-214.98,-18.16,144.24],"move_x":[-343.96,0.0,0.0],"move_y":[0.0,-24.21,0.0],"move_z":[0.0,0.0,164.84]},{"name":"Shell_129","group":"group_129","group_name":"Chi tiết 130 (Shell_129)","color":"#b5838d","byte_offset":26782632,"byte_length":14904,"triangles":414,"bounds_min":[215.2019,-23.2964,92.5724],"bounds_max":[216.7787,-20.2208,94.9708],"center":[215.9903,-21.7586,93.77161],"move_3d":[-214.68,-18.28,143.26],"move_x":[-343.48,0.0,0.0],"move_y":[0.0,-24.37,0.0],"move_z":[0.0,0.0,163.72]},{"name":"Shell_130","group":"group_130","group_name":"Chi tiết 131 (Shell_130)","color":"#e07a5f","byte_offset":26797536,"byte_length":74592,"triangles":2072,"bounds_min":[214.3012,-23.9511,91.6631],"bounds_max":[217.4347,-20.1942,94.8622],"center":[215.86795,-22.07265,93.26265],"move_3d":[-214.81,-18.54,141.1],"move_x":[-343.7,0.0,0.0],"move_y":[0.0,-24.72,0.0],"move_z":[0.0,0.0,161.26]},{"name":"Shell_131","group":"group_131","group_name":"Chi tiết 132 (Shell_131)","color":"#3d405b","byte_offset":26872128,"byte_length":18216,"triangles":506,"bounds_min":[215.2804,-24.0977,91.4303],"bounds_max":[217.6856,-20.5007,94.4038],"center":[216.483,-22.2992,92.91705],"move_3d":[-214.13,-18.73,139.64],"move_x":[-342.61,0.0,0.0],"move_y":[0.0,-24.98,0.0],"move_z":[0.0,0.0,159.59]},{"name":"Shell_132","group":"group_132","group_name":"Chi tiết 133 (Shell_132)","color":"#81b29a","byte_offset":26890344,"byte_length":12312,"triangles":342,"bounds_min":[202.78,-22.8602,93.9488],"bounds_max":[204.9602,-20.3869,96.2482],"center":[203.8701,-21.62355,95.098495],"move_3d":[-228.13,-18.16,148.88],"move_x":[-365.0,0.0,0.0],"move_y":[0.0,-24.22,0.0],"move_z":[0.0,0.0,170.14]},{"name":"Shell_133","group":"group_133","group_name":"Chi tiết 134 (Shell_133)","color":"#cad1ee","byte_offset":26902656,"byte_length":13968,"triangles":388,"bounds_min":[214.2877,-27.8643,94.613],"bounds_max":[216.4954,-22.9046,100.5124],"center":[215.39156,-25.384449,97.5627],"move_3d":[-215.34,-21.32,159.31],"move_x":[-344.55,0.0,0.0],"move_y":[0.0,-28.43,0.0],"move_z":[0.0,0.0,182.07]},{"name":"Shell_134","group":"group_134","group_name":"Chi tiết 135 (Shell_134)","color":"#7209b7","byte_offset":26916624,"byte_length":13680,"triangles":380,"bounds_min":[213.6521,-19.4948,88.5656],"bounds_max":[215.8598,-14.5351,94.4649],"center":[214.75595,-17.01495,91.51524],"move_3d":[-216.05,-14.29,133.71],"move_x":[-345.68,0.0,0.0],"move_y":[0.0,-19.06,0.0],"move_z":[0.0,0.0,152.81]},{"name":"Shell_135","group":"group_135","group_name":"Chi tiết 136 (Shell_135)","color":"#b7a793","byte_offset":26930304,"byte_length":13680,"triangles":380,"bounds_min":[203.9991,-27.8643,95.6944],"bounds_max":[206.2068,-22.9046,101.5938],"center":[205.10295,-25.384449,98.644104],"move_3d":[-226.76,-21.32,163.89],"move_x":[-362.82,0.0,0.0],"move_y":[0.0,-28.43,0.0],"move_z":[0.0,0.0,187.3]},{"name":"Shell_136","group":"group_136","group_name":"Chi tiết 137 (Shell_136)","color":"#8fa0b5","byte_offset":26943984,"byte_length":13680,"triangles":380,"bounds_min":[203.3635,-19.4948,89.6469],"bounds_max":[205.5712,-14.5351,95.5463],"center":[204.46735,-17.01495,92.5966],"move_3d":[-227.46,-14.29,138.28],"move_x":[-363.94,0.0,0.0],"move_y":[0.0,-19.06,0.0],"move_z":[0.0,0.0,158.04]},{"name":"Shell_137","group":"group_137","group_name":"Chi tiết 138 (Shell_137)","color":"#a3b899","byte_offset":26957664,"byte_length":1872,"triangles":52,"bounds_min":[217.4703,-14.1604,114.7608],"bounds_max":[219.017,-12.9022,115.6699],"center":[218.24365,-13.5313,115.21535],"move_3d":[-212.18,-11.37,234.05],"move_x":[-339.48,0.0,0.0],"move_y":[0.0,-15.16,0.0],"move_z":[0.0,0.0,267.49]},{"name":"Shell_138","group":"group_138","group_name":"Chi tiết 139 (Shell_138)","color":"#d4a373","byte_offset":26959536,"byte_length":13248,"triangles":368,"bounds_min":[217.2645,-15.277,113.2593],"bounds_max":[218.9135,-13.9355,114.243],"center":[218.08899,-14.606251,113.751144],"move_3d":[-212.35,-12.27,227.85],"move_x":[-339.76,0.0,0.0],"move_y":[0.0,-16.36,0.0],"move_z":[0.0,0.0,260.4]},{"name":"Shell_139","group":"group_139","group_name":"Chi tiết 140 (Shell_139)","color":"#9d8189","byte_offset":26972784,"byte_length":1872,"triangles":52,"bounds_min":[216.7212,-4.2969,107.6338],"bounds_max":[218.2679,-3.0387,108.5429],"center":[217.49455,-3.6678,108.08835],"move_3d":[-213.01,-3.08,203.88],"move_x":[-340.81,0.0,0.0],"move_y":[0.0,-4.11,0.0],"move_z":[0.0,0.0,233.0]},{"name":"Shell_140","group":"group_140","group_name":"Chi tiết 141 (Shell_140)","color":"#7ea8be","byte_offset":26974656,"byte_length":13248,"triangles":368,"bounds_min":[216.5154,-5.4134,106.1323],"bounds_max":[218.1644,-4.072,107.116],"center":[217.3399,-4.7427,106.624146],"move_3d":[-213.18,-3.98,197.68],"move_x":[-341.09,0.0,0.0],"move_y":[0.0,-5.31,0.0],"move_z":[0.0,0.0,225.92]},{"name":"Shell_141","group":"group_141","group_name":"Chi tiết 142 (Shell_141)","color":"#cad1ee","byte_offset":26987904,"byte_length":13248,"triangles":368,"bounds_min":[205.1392,-15.277,114.5337],"bounds_max":[206.7883,-13.9355,115.5174],"center":[205.96375,-14.606251,115.02555],"move_3d":[-225.8,-12.27,233.25],"move_x":[-361.29,0.0,0.0],"move_y":[0.0,-16.36,0.0],"move_z":[0.0,0.0,266.57]},{"name":"Shell_142","group":"group_142","group_name":"Chi tiết 143 (Shell_142)","color":"#a5a58d","byte_offset":27001152,"byte_length":1872,"triangles":52,"bounds_min":[205.3451,-14.1604,116.0352],"bounds_max":[206.8917,-12.9022,116.9464],"center":[206.1184,-13.5313,116.4908],"move_3d":[-225.63,-11.37,239.45],"move_x":[-361.01,0.0,0.0],"move_y":[0.0,-15.16,0.0],"move_z":[0.0,0.0,273.66]},{"name":"Shell_143","group":"group_143","group_name":"Chi tiết 144 (Shell_143)","color":"#6b705c","byte_offset":27003024,"byte_length":1872,"triangles":52,"bounds_min":[204.596,-4.2969,108.9082],"bounds_max":[206.1427,-3.0387,109.8194],"center":[205.36935,-3.6678,109.3638],"move_3d":[-226.46,-3.08,209.28],"move_x":[-362.34,0.0,0.0],"move_y":[0.0,-4.11,0.0],"move_z":[0.0,0.0,239.17]},{"name":"Shell_144","group":"group_144","group_name":"Chi tiết 145 (Shell_144)","color":"#cad1ee","byte_offset":27004896,"byte_length":390744,"triangles":10854,"bounds_min":[251.5042,-283.0,-8.4167],"bounds_max":[412.9618,-33.2801,109.4069],"center":[332.233,-158.14005,50.4951],"move_3d":[-85.67,-132.84,-39.97],"move_x":[-137.08,0.0,0.0],"move_y":[0.0,-177.12,0.0],"move_z":[0.0,0.0,-45.69]},{"name":"Shell_145","group":"group_145","group_name":"Chi tiết 146 (Shell_145)","color":"#cad1ee","byte_offset":27395640,"byte_length":95904,"triangles":2664,"bounds_min":[333.4858,-283.0,-8.9893],"bounds_max":[354.1885,-50.9581,100.0594],"center":[343.83716,-166.97905,45.53505],"move_3d":[-72.8,-140.26,-60.98],"move_x":[-116.47,0.0,0.0],"move_y":[0.0,-187.02,0.0],"move_z":[0.0,0.0,-69.69]},{"name":"Shell_146","group":"group_146","group_name":"Chi tiết 147 (Shell_146)","color":"#cad1ee","byte_offset":27491544,"byte_length":393084,"triangles":10919,"bounds_min":[251.504,33.2801,-8.4167],"bounds_max":[412.9618,283.0,109.4069],"center":[332.2329,158.14005,50.4951],"move_3d":[-85.67,132.84,-39.97],"move_x":[-137.08,0.0,0.0],"move_y":[0.0,177.12,0.0],"move_z":[0.0,0.0,-45.69]},{"name":"Shell_147","group":"group_147","group_name":"Chi tiết 148 (Shell_147)","color":"#cad1ee","byte_offset":27884628,"byte_length":95328,"triangles":2648,"bounds_min":[333.4858,50.9572,-8.9893],"bounds_max":[354.1885,283.0,100.0594],"center":[343.83716,166.9786,45.53505],"move_3d":[-72.8,140.26,-60.98],"move_x":[-116.47,0.0,0.0],"move_y":[0.0,187.02,0.0],"move_z":[0.0,0.0,-69.69]},{"name":"Shell_148","group":"group_148","group_name":"Chi tiết 149 (Shell_148)","color":"#4c4c4c","byte_offset":27979956,"byte_length":181008,"triangles":5028,"bounds_min":[249.0359,-65.0747,-38.9857],"bounds_max":[255.2959,-59.4747,-24.9612],"center":[252.1659,-62.2747,-31.97345],"move_3d":[-174.53,-52.31,-389.15],"move_x":[-279.25,0.0,0.0],"move_y":[0.0,-69.75,0.0],"move_z":[0.0,0.0,-444.74]},{"name":"Shell_149","group":"group_149","group_name":"Chi tiết 150 (Shell_149)","color":"#4c4c4c","byte_offset":28160964,"byte_length":198432,"triangles":5512,"bounds_min":[268.7041,-65.0747,-38.9857],"bounds_max":[274.9641,-59.4747,-24.9612],"center":[271.8341,-62.2747,-31.97345],"move_3d":[-152.7,-52.31,-389.15],"move_x":[-244.33,0.0,0.0],"move_y":[0.0,-69.75,0.0],"move_z":[0.0,0.0,-444.74]},{"name":"Shell_150","group":"group_150","group_name":"Chi tiết 151 (Shell_150)","color":"#cad1ee","byte_offset":28359396,"byte_length":183924,"triangles":5109,"bounds_min":[248.3859,-79.7352,-59.6748],"bounds_max":[275.6141,-59.2747,-2.3234],"center":[262.0,-69.50495,-30.9991],"move_3d":[-163.62,-58.38,-385.02],"move_x":[-261.79,0.0,0.0],"move_y":[0.0,-77.85,0.0],"move_z":[0.0,0.0,-440.03]},{"name":"Shell_151","group":"group_151","group_name":"Chi tiết 152 (Shell_151)","color":"#cad1ee","byte_offset":28543320,"byte_length":556740,"triangles":15465,"bounds_min":[237.6507,-79.1407,-79.3456],"bounds_max":[286.3493,-69.1593,-30.6545],"center":[262.0,-74.15,-55.000046],"move_3d":[-163.62,-62.29,-486.64],"move_x":[-261.79,0.0,0.0],"move_y":[0.0,-83.05,0.0],"move_z":[0.0,0.0,-556.16]},{"name":"Shell_152","group":"group_152","group_name":"Chi tiết 153 (Shell_152)","color":"#4c4c4c","byte_offset":29100060,"byte_length":379368,"triangles":10538,"bounds_min":[227.0052,-79.9529,-89.9797],"bounds_max":[296.9948,-68.0442,-20.0127],"center":[262.0,-73.99855,-54.9962],"move_3d":[-163.62,-62.16,-486.63],"move_x":[-261.79,0.0,0.0],"move_y":[0.0,-82.88,0.0],"move_z":[0.0,0.0,-556.14]},{"name":"Shell_153","group":"group_153","group_name":"Chi tiết 154 (Shell_153)","color":"#4c4c4c","byte_offset":29479428,"byte_length":379800,"triangles":10550,"bounds_min":[227.0052,68.0442,-89.9873],"bounds_max":[296.9948,79.9529,-20.0203],"center":[262.0,73.99855,-55.0038],"move_3d":[-163.62,62.16,-486.66],"move_x":[-261.79,0.0,0.0],"move_y":[0.0,82.88,0.0],"move_z":[0.0,0.0,-556.18]},{"name":"Shell_154","group":"group_154","group_name":"Chi tiết 155 (Shell_154)","color":"#cad1ee","byte_offset":29859228,"byte_length":545868,"triangles":15163,"bounds_min":[237.6507,69.1593,-79.3455],"bounds_max":[286.3493,79.1407,-30.6544],"center":[262.0,74.15,-54.999947],"move_3d":[-163.62,62.29,-486.64],"move_x":[-261.79,0.0,0.0],"move_y":[0.0,83.05,0.0],"move_z":[0.0,0.0,-556.16]},{"name":"Shell_155","group":"group_155","group_name":"Chi tiết 156 (Shell_155)","color":"#cad1ee","byte_offset":30405096,"byte_length":184680,"triangles":5130,"bounds_min":[248.3859,59.2747,-59.6748],"bounds_max":[275.6141,79.7352,-2.3234],"center":[262.0,69.50495,-30.9991],"move_3d":[-163.62,58.38,-385.02],"move_x":[-261.79,0.0,0.0],"move_y":[0.0,77.85,0.0],"move_z":[0.0,0.0,-440.03]},{"name":"Shell_156","group":"group_156","group_name":"Chi tiết 157 (Shell_156)","color":"#4c4c4c","byte_offset":30589776,"byte_length":203472,"triangles":5652,"bounds_min":[249.0359,59.4747,-38.9857],"bounds_max":[255.2959,65.0747,-24.9612],"center":[252.1659,62.2747,-31.97345],"move_3d":[-174.53,52.31,-389.15],"move_x":[-279.25,0.0,0.0],"move_y":[0.0,69.75,0.0],"move_z":[0.0,0.0,-444.74]},{"name":"Shell_157","group":"group_157","group_name":"Chi tiết 158 (Shell_157)","color":"#4c4c4c","byte_offset":30793248,"byte_length":173808,"triangles":4828,"bounds_min":[268.7041,59.4747,-38.9857],"bounds_max":[274.9641,65.0747,-24.9612],"center":[271.8341,62.2747,-31.97345],"move_3d":[-152.7,52.31,-389.15],"move_x":[-244.33,0.0,0.0],"move_y":[0.0,69.75,0.0],"move_z":[0.0,0.0,-444.74]},{"name":"Shell_158","group":"group_158","group_name":"Chi tiết 159 (Shell_158)","color":"#cad1ee","byte_offset":30967056,"byte_length":212688,"triangles":5908,"bounds_min":[200.894,-62.3747,-65.0352],"bounds_max":[252.432,-52.5267,7.043],"center":[226.663,-57.4507,-28.996101],"move_3d":[-202.83,-48.26,-376.54],"move_x":[-324.53,0.0,0.0],"move_y":[0.0,-64.34,0.0],"move_z":[0.0,0.0,-430.33]},{"name":"Shell_159","group":"group_159","group_name":"Chi tiết 160 (Shell_159)","color":"#cad1ee","byte_offset":31179744,"byte_length":626940,"triangles":17415,"bounds_min":[208.7529,-62.8214,-54.2989],"bounds_max":[307.8368,-53.1242,-0.7009],"center":[258.29486,-57.9728,-27.4999],"move_3d":[-167.73,-48.7,-370.21],"move_x":[-268.37,0.0,0.0],"move_y":[0.0,-64.93,0.0],"move_z":[0.0,0.0,-423.09]},{"name":"Shell_160","group":"group_160","group_name":"Chi tiết 161 (Shell_160)","color":"#cad1ee","byte_offset":31806684,"byte_length":214416,"triangles":5956,"bounds_min":[200.894,52.5267,-65.0356],"bounds_max":[252.432,62.3747,7.043],"center":[226.663,57.4507,-28.9963],"move_3d":[-202.83,48.26,-376.54],"move_x":[-324.53,0.0,0.0],"move_y":[0.0,64.34,0.0],"move_z":[0.0,0.0,-430.33]},{"name":"Shell_161","group":"group_161","group_name":"Chi tiết 162 (Shell_161)","color":"#cad1ee","byte_offset":32021100,"byte_length":624276,"triangles":17341,"bounds_min":[208.7529,53.1242,-54.3144],"bounds_max":[307.8375,62.8214,-0.7009],"center":[258.2952,57.9728,-27.50765],"move_3d":[-167.73,48.7,-370.24],"move_x":[-268.37,0.0,0.0],"move_y":[0.0,64.93,0.0],"move_z":[0.0,0.0,-423.13]},{"name":"Shell_162","group":"group_162","group_name":"Chi tiết 163 (Shell_162)","color":"#cad1ee","byte_offset":32645376,"byte_length":2348676,"triangles":65241,"bounds_min":[228.7688,-70.1435,86.9452],"bounds_max":[408.2336,70.1433,149.3132],"center":[318.50122,-0.00009918213,118.129196],"move_3d":[-100.91,-0.0,246.39],"move_x":[-161.46,0.0,0.0],"move_y":[0.0,-0.0,0.0],"move_z":[0.0,0.0,281.59]},{"name":"Shell_163","group":"group_163","group_name":"Chi tiết 164 (Shell_163)","color":"#cad1ee","byte_offset":34994052,"byte_length":91188,"triangles":2533,"bounds_min":[760.0,-4.5885,8.5241],"bounds_max":[817.9988,4.6092,158.0],"center":[788.9994,0.010349989,83.26205],"move_3d":[421.23,0.01,98.76],"move_x":[673.97,0.0,0.0],"move_y":[0.0,0.01,0.0],"move_z":[0.0,0.0,112.87]},{"name":"Shell_164","group":"group_164","group_name":"Chi tiết 165 (Shell_164)","color":"#cad1ee","byte_offset":35085240,"byte_length":207360,"triangles":5760,"bounds_min":[462.7356,-12.1461,25.1872],"bounds_max":[766.8303,12.1461,85.0486],"center":[614.78296,0.0,55.1179],"move_3d":[227.89,0.0,-20.4],"move_x":[364.63,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-23.32]},{"name":"Shell_165","group":"group_165","group_name":"Chi tiết 166 (Shell_165)","color":"#cad1ee","byte_offset":35292600,"byte_length":193716,"triangles":5381,"bounds_min":[718.6658,-8.6472,-12.2487],"bounds_max":[767.3257,8.6472,7.254],"center":[742.9957,0.0,-2.49735],"move_3d":[370.18,0.0,-264.35],"move_x":[592.28,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-302.11]},{"name":"Shell_166","group":"group_166","group_name":"Chi tiết 167 (Shell_166)","color":"#cad1ee","byte_offset":35486316,"byte_length":339408,"triangles":9428,"bounds_min":[696.9001,-194.0,48.3444],"bounds_max":[759.9644,194.0,58.3393],"center":[728.43225,0.0,53.34185],"move_3d":[354.02,0.0,-27.92],"move_x":[566.42,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-31.91]},{"name":"Shell_167","group":"group_167","group_name":"Chi tiết 168 (Shell_167)","color":"#cad1ee","byte_offset":35825724,"byte_length":76392,"triangles":2122,"bounds_min":[701.7874,-88.3852,48.6598],"bounds_max":[706.3574,-82.5909,52.971],"center":[704.0724,-85.48805,50.8154],"move_3d":[326.98,-71.81,-38.62],"move_x":[523.17,0.0,0.0],"move_y":[0.0,-95.75,0.0],"move_z":[0.0,0.0,-44.14]},{"name":"Shell_168","group":"group_168","group_name":"Chi tiết 169 (Shell_168)","color":"#d4a373","byte_offset":35902116,"byte_length":73008,"triangles":2028,"bounds_min":[702.25,-86.1555,4.0616],"bounds_max":[705.75,-11.2411,51.1569],"center":[704.0,-48.698303,27.60925],"move_3d":[326.9,-40.91,-136.87],"move_x":[523.04,0.0,0.0],"move_y":[0.0,-54.54,0.0],"move_z":[0.0,0.0,-156.43]},{"name":"Shell_169","group":"group_169","group_name":"Chi tiết 170 (Shell_169)","color":"#cad1ee","byte_offset":35975124,"byte_length":72288,"triangles":2008,"bounds_min":[702.25,11.2411,4.0616],"bounds_max":[705.75,86.1555,51.1572],"center":[704.0,48.698303,27.6094],"move_3d":[326.9,40.91,-136.87],"move_x":[523.04,0.0,0.0],"move_y":[0.0,54.54,0.0],"move_z":[0.0,0.0,-156.43]},{"name":"Shell_170","group":"group_170","group_name":"Chi tiết 171 (Shell_170)","color":"#cad1ee","byte_offset":36047412,"byte_length":78408,"triangles":2178,"bounds_min":[701.7874,82.5909,48.6586],"bounds_max":[706.3574,88.3852,52.971],"center":[704.0724,85.48805,50.8148],"move_3d":[326.98,71.81,-38.62],"move_x":[523.17,0.0,0.0],"move_y":[0.0,95.75,0.0],"move_z":[0.0,0.0,-44.14]},{"name":"Shell_171","group":"group_171","group_name":"Chi tiết 172 (Shell_171)","color":"#cad1ee","byte_offset":36125820,"byte_length":59904,"triangles":1664,"bounds_min":[755.6,-100.1699,10.3342],"bounds_max":[756.4,100.1699,114.1255],"center":[756.0,0.0,62.22985],"move_3d":[384.61,0.0,9.71],"move_x":[615.37,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,11.1]},{"name":"Shell_172","group":"group_172","group_name":"Chi tiết 173 (Shell_172)","color":"#cad1ee","byte_offset":36185724,"byte_length":1685376,"triangles":46816,"bounds_min":[187.5979,-35.2341,92.6571],"bounds_max":[234.1895,35.234,160.6493],"center":[210.8937,-0.000049591064,126.6532],"move_3d":[-220.33,-0.0,282.48],"move_x":[-352.53,0.0,0.0],"move_y":[0.0,-0.0,0.0],"move_z":[0.0,0.0,322.83]},{"name":"Shell_173","group":"group_173","group_name":"Chi tiết 174 (Shell_173)","color":"#6b705c","byte_offset":37871100,"byte_length":60840,"triangles":1690,"bounds_min":[178.0361,-69.3257,148.9566],"bounds_max":[189.6921,-15.0967,203.8026],"center":[183.8641,-42.2112,176.37961],"move_3d":[-250.33,-35.46,493.02],"move_x":[-400.53,0.0,0.0],"move_y":[0.0,-47.28,0.0],"move_z":[0.0,0.0,563.45]},{"name":"Shell_174","group":"group_174","group_name":"Chi tiết 175 (Shell_174)","color":"#cad1ee","byte_offset":37931940,"byte_length":60840,"triangles":1690,"bounds_min":[172.0367,15.0965,51.0896],"bounds_max":[179.776,69.3256,106.3322],"center":[175.90634,42.211052,78.7109],"move_3d":[-259.16,35.46,79.49],"move_x":[-414.66,0.0,0.0],"move_y":[0.0,47.28,0.0],"move_z":[0.0,0.0,90.85]},{"name":"Shell_175","group":"group_175","group_name":"Chi tiết 176 (Shell_175)","color":"#cad1ee","byte_offset":37992780,"byte_length":94176,"triangles":2616,"bounds_min":[172.0856,-8.755,119.2217],"bounds_max":[194.3698,8.755,136.7808],"center":[183.22769,0.0,128.00125],"move_3d":[-251.04,0.0,288.19],"move_x":[-401.66,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,329.36]},{"name":"Shell_176","group":"group_176","group_name":"Chi tiết 177 (Shell_176)","color":"#cad1ee","byte_offset":38086956,"byte_length":112248,"triangles":3118,"bounds_min":[171.8647,-81.8434,44.8956],"bounds_max":[190.9881,81.8434,209.8602],"center":[181.42639,0.0,127.3779],"move_3d":[-253.04,0.0,285.55],"move_x":[-404.86,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,326.34]},{"name":"Shell_177","group":"group_177","group_name":"Chi tiết 178 (Shell_177)","color":"#e5eaed","byte_offset":38199204,"byte_length":1621188,"triangles":45033,"bounds_min":[281.9284,-49.9483,-24.7231],"bounds_max":[328.474,-0.6971,11.6741],"center":[305.2012,-25.3227,-6.5245004],"move_3d":[-115.67,-21.27,-281.4],"move_x":[-185.08,0.0,0.0],"move_y":[0.0,-28.36,0.0],"move_z":[0.0,0.0,-321.6]},{"name":"Shell_178","group":"group_178","group_name":"Chi tiết 179 (Shell_178)","color":"#e5eaed","byte_offset":39820392,"byte_length":1622088,"triangles":45058,"bounds_min":[281.9284,0.6971,-24.7231],"bounds_max":[328.4769,49.9483,11.6631],"center":[305.20264,25.3227,-6.53],"move_3d":[-115.67,21.27,-281.42],"move_x":[-185.08,0.0,0.0],"move_y":[0.0,28.36,0.0],"move_z":[0.0,0.0,-321.62]},{"name":"Shell_179","group":"group_179","group_name":"Chi tiết 180 (Shell_179)","color":"#7209b7","byte_offset":41442480,"byte_length":3672,"triangles":102,"bounds_min":[369.1911,-45.7504,-16.982],"bounds_max":[372.1911,45.7504,-13.982],"center":[370.6911,0.0,-15.482],"move_3d":[-42.99,0.0,-319.32],"move_x":[-68.79,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-364.94]},{"name":"Shell_180","group":"group_180","group_name":"Chi tiết 181 (Shell_180)","color":"#b7a793","byte_offset":41446152,"byte_length":4248,"triangles":118,"bounds_min":[408.5894,-36.6649,21.0093],"bounds_max":[411.5894,36.6649,24.0093],"center":[410.0894,0.0,22.5093],"move_3d":[0.73,0.0,-158.47],"move_x":[1.17,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-181.11]},{"name":"Shell_181","group":"group_181","group_name":"Chi tiết 182 (Shell_181)","color":"#ffffff","byte_offset":41450400,"byte_length":1203696,"triangles":33436,"bounds_min":[368.7911,-32.5,-18.9769],"bounds_max":[412.9752,32.5,24.4093],"center":[390.88315,0.0,2.7161999],"move_3d":[-20.59,0.0,-242.27],"move_x":[-32.94,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-276.88]},{"name":"Shell_182","group":"group_182","group_name":"Chi tiết 183 (Shell_182)","color":"#cad1ee","byte_offset":42654096,"byte_length":3875580,"triangles":107655,"bounds_min":[0.8952,-271.0297,-71.2943],"bounds_max":[759.2001,271.03,140.6266],"center":[380.04764,0.00015258789,34.666153],"move_3d":[-32.61,0.0,-106.99],"move_x":[-52.18,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-122.28]},{"name":"Shell_183","group":"group_183","group_name":"Chi tiết 184 (Shell_183)","color":"#cad1ee","byte_offset":46529676,"byte_length":528552,"triangles":14682,"bounds_min":[462.7356,-74.1614,26.9188],"bounds_max":[769.5747,74.1614,67.5359],"center":[616.15515,0.0,47.22735],"move_3d":[229.41,0.0,-53.81],"move_x":[367.06,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-61.5]},{"name":"Shell_184","group":"group_184","group_name":"Chi tiết 185 (Shell_184)","color":"#cad1ee","byte_offset":47058228,"byte_length":834192,"triangles":23172,"bounds_min":[144.0,-20.4536,106.2056],"bounds_max":[191.5776,20.4536,146.9394],"center":[167.7888,0.0,126.5725],"move_3d":[-268.17,0.0,282.14],"move_x":[-429.07,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,322.44]},{"name":"Shell_185","group":"group_185","group_name":"Chi tiết 186 (Shell_185)","color":"#e5e5e5","byte_offset":47892420,"byte_length":118080,"triangles":3280,"bounds_min":[3.7768,-5.3026,-3.3451],"bounds_max":[20.8232,5.2997,10.5447],"center":[12.3,-0.0014500618,3.5997999],"move_3d":[-440.73,-0.0,-238.53],"move_x":[-705.16,0.0,0.0],"move_y":[0.0,-0.0,0.0],"move_z":[0.0,0.0,-272.61]},{"name":"Shell_186","group":"group_186","group_name":"Chi tiết 187 (Shell_186)","color":"#cad1ee","byte_offset":48010500,"byte_length":3960,"triangles":110,"bounds_min":[202.7306,12.5266,89.0606],"bounds_max":[208.2234,29.8415,101.6173],"center":[205.477,21.18405,95.33895],"move_3d":[-226.34,17.79,149.89],"move_x":[-362.15,0.0,0.0],"move_y":[0.0,23.73,0.0],"move_z":[0.0,0.0,171.31]},{"name":"Shell_187","group":"group_187","group_name":"Chi tiết 188 (Shell_187)","color":"#cad1ee","byte_offset":48014460,"byte_length":13680,"triangles":380,"bounds_min":[260.5066,71.1541,-36.5075],"bounds_max":[263.4991,72.2201,-33.5093],"center":[262.00287,71.6871,-35.0084],"move_3d":[-163.61,60.22,-402.0],"move_x":[-261.78,0.0,0.0],"move_y":[0.0,80.29,0.0],"move_z":[0.0,0.0,-459.43]}];
+    const container = document.getElementById('container');
+    const canvas = document.getElementById('canvas3d');
+    const loadingEl = document.getElementById('loadingEl');
+    const loadStatus = document.getElementById('loadStatus');
+    const readoutEl = document.getElementById('readoutEl');
+    const explodeSlider = document.getElementById('explodeSlider');
+    const explodeVal = document.getElementById('explodeVal');
+    const spreadScale = document.getElementById('spreadScale');
+    const btnReset = document.getElementById('btnReset');
+    const btnAutoSpin = document.getElementById('btnAutoSpin');
+    const btnMode3D = document.getElementById('btnMode3D');
+    const btnModeX = document.getElementById('btnModeX');
+    const btnModeY = document.getElementById('btnModeY');
+    const btnModeZ = document.getElementById('btnModeZ');
+    const btnEdgesToggle = document.getElementById('btnEdgesToggle');
+    const pills = document.querySelectorAll('.part-pill');
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(36, container.clientWidth / container.clientHeight, 0.01, 50000);
+    const maxDim = 1295.4678;
+    camera.position.set(maxDim * 1.4, -maxDim * 1.8, maxDim * 1.2);
+    camera.up.set(0, 0, 1);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(409.43323, 0, 59.93645);
+    controls.minDistance = maxDim * 0.1;
+    controls.maxDistance = maxDim * 10;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 2.0;
+
+    // Hệ thống ánh sáng PBR Studio
+    scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+    const dLight1 = new THREE.DirectionalLight(0xfff5ea, 1.4);
+    dLight1.position.set(maxDim, -maxDim, maxDim * 1.5);
+    scene.add(dLight1);
+
+    const dLight2 = new THREE.DirectionalLight(0xa5c4e8, 0.5);
+    dLight2.position.set(-maxDim, maxDim, maxDim * 0.8);
+    scene.add(dLight2);
+
+    const bLight = new THREE.DirectionalLight(0xffffff, 0.35);
+    bLight.position.set(0, 0, -maxDim);
+    scene.add(bLight);
+
+    const modelPivot = new THREE.Group();
+    modelPivot.position.set(409.43323, 0, 59.93645);
+    scene.add(modelPivot);
+
+    const guidesGroup = new THREE.Group();
+    guidesGroup.position.set(-409.43323, -0, -59.93645);
+    modelPivot.add(guidesGroup);
+
+    let explodeMode = '3D';
+    let distanceMultiplier = 1.0;
+    const partMeshes = [];
+    const guideLines = [];
+    const rootGroup = new THREE.Group();
+    rootGroup.position.set(-409.43323, -0, -59.93645);
+    modelPivot.add(rootGroup);
+
+    let currentExplode = 0;
+    let targetExplode = 0;
+    let activeGroup = 'all';
+
+    try {
+      
+      loadStatus.textContent = 'Đang tải dữ liệu 3D (model.bin)...';
+      let buffer = null;
+      try {
+        const res = await fetch('./model.bin');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        buffer = await res.arrayBuffer();
+      } catch (fErr) {
+        throw new Error('Không thể tải file model.bin: ' + fErr.message);
+      }
+        
+
+      rawParts.forEach((part) => {
+        const geo = new THREE.BufferGeometry();
+        const positions = new Float32Array(buffer, part.byte_offset, part.byte_length / 4);
+        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geo.computeVertexNormals();
+
+        const mat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(part.color),
+          roughness: 0.45,
+          metalness: 0.15
+        });
+
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.userData = {
+          name: part.name,
+          group: part.group,
+          group_name: part.group_name,
+          move_3d: part.move_3d,
+          move_x: part.move_x,
+          move_y: part.move_y,
+          move_z: part.move_z,
+          center: part.center
+        };
+
+        // Đường nét viền Contour CAD
+        const edgeGeo = new THREE.EdgesGeometry(geo, 24);
+        const edgeMat = new THREE.LineBasicMaterial({
+          color: new THREE.Color(0x140e08),
+          transparent: true,
+          opacity: 0.85
+        });
+        const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
+        mesh.add(edgeLines);
+
+        rootGroup.add(mesh);
+        partMeshes.push(mesh);
+
+        // Đường chỉ dẫn 3D Leader Guide Lines
+        const pStart = new THREE.Vector3(part.center[0], part.center[1], part.center[2]);
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([pStart, pStart.clone()]);
+        const lineMat = new THREE.LineDashedMaterial({
+          color: 0x38bdf8,
+          dashSize: maxDim * 0.02,
+          gapSize: maxDim * 0.015,
+          transparent: true,
+          opacity: 0
+        });
+        const line = new THREE.Line(lineGeo, lineMat);
+        line.computeLineDistances();
+        guidesGroup.add(line);
+        guideLines.push({ line, pStart });
+      });
+
+      loadingEl.style.opacity = '0';
+      setTimeout(() => { loadingEl.style.display = 'none'; }, 400);
+    } catch (err) {
+      loadStatus.textContent = 'Lỗi nạp mô hình 3D: ' + err.message;
+      console.error(err);
+    }
+
+    function getMoveVector(userData) {
+      if (explodeMode === 'X') return userData.move_x;
+      if (explodeMode === 'Y') return userData.move_y;
+      if (explodeMode === 'Z') return userData.move_z;
+      return userData.move_3d;
+    }
+
+    function updateExplode(progress) {
+      partMeshes.forEach((mesh, index) => {
+        const move = getMoveVector(mesh.userData);
+        const tx = move[0] * progress * distanceMultiplier;
+        const ty = move[1] * progress * distanceMultiplier;
+        const tz = move[2] * progress * distanceMultiplier;
+        mesh.position.set(tx, ty, tz);
+
+        const g = guideLines[index];
+        if (g) {
+          const pEnd = new THREE.Vector3(g.pStart.x + tx, g.pStart.y + ty, g.pStart.z + tz);
+          g.line.geometry.setFromPoints([g.pStart, pEnd]);
+          g.line.computeLineDistances();
+          g.line.material.opacity = progress > 0.05 ? Math.min(0.65, (progress - 0.05) * 1.5) : 0;
+        }
+      });
+      explodeVal.textContent = Math.round(progress * 100) + '%';
+      readoutEl.textContent = progress === 0 ? 'Assembled · ' + rawParts.length + ' chi tiết' : 'Exploded ' + Math.round(progress * 100) + '% (' + explodeMode + ' · ' + distanceMultiplier + 'x)';
+    }
+
+    explodeSlider.addEventListener('input', (e) => {
+      targetExplode = parseInt(e.target.value, 10) / 100;
+    });
+
+    spreadScale.addEventListener('change', (e) => {
+      distanceMultiplier = parseFloat(e.target.value);
+      updateExplode(currentExplode);
+    });
+
+    function setExplodeMode(mode, activeBtn) {
+      explodeMode = mode;
+      [btnMode3D, btnModeX, btnModeY, btnModeZ].forEach(b => b.classList.remove('active'));
+      activeBtn.classList.add('active');
+      updateExplode(currentExplode);
+    }
+
+    btnMode3D.addEventListener('click', () => setExplodeMode('3D', btnMode3D));
+    btnModeX.addEventListener('click', () => setExplodeMode('X', btnModeX));
+    btnModeY.addEventListener('click', () => setExplodeMode('Y', btnModeY));
+    btnModeZ.addEventListener('click', () => setExplodeMode('Z', btnModeZ));
+
+    let showEdges = true;
+    btnEdgesToggle.addEventListener('click', () => {
+      showEdges = !showEdges;
+      btnEdgesToggle.classList.toggle('active', showEdges);
+      partMeshes.forEach((mesh) => {
+        mesh.children.forEach((c) => { if (c.isLineSegments) c.visible = showEdges; });
+      });
+    });
+
+    pills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        pills.forEach((p) => p.classList.remove('active'));
+        pill.classList.add('active');
+        activeGroup = pill.getAttribute('data-group');
+
+        partMeshes.forEach((mesh) => {
+          const isMatch = activeGroup === 'all' || mesh.userData.group === activeGroup;
+          if (isMatch) {
+            mesh.visible = true;
+            mesh.material.opacity = 1.0;
+            mesh.material.transparent = false;
+            mesh.children.forEach((c) => { if (c.isLineSegments) c.material.opacity = 0.85; });
+          } else {
+            mesh.visible = true;
+            mesh.material.transparent = true;
+            mesh.material.opacity = 0.2;
+            mesh.children.forEach((c) => { if (c.isLineSegments) c.material.opacity = 0.15; });
+          }
+        });
+
+        if (activeGroup !== 'all' && targetExplode < 0.25) {
+          targetExplode = 0.5;
+          explodeSlider.value = 50;
+        }
+      });
+    });
+
+    btnReset.addEventListener('click', () => {
+      controls.reset();
+      camera.position.set(maxDim * 1.4, -maxDim * 1.8, maxDim * 1.2);
+      controls.target.set(409.43323, 0, 59.93645);
+      modelPivot.rotation.set(0, 0, 0);
+      targetExplode = 0;
+      explodeSlider.value = 0;
+      activeGroup = 'all';
+      pills.forEach((p, i) => p.classList.toggle('active', i === 0));
+      partMeshes.forEach((m) => {
+        m.visible = true;
+        m.material.transparent = false;
+        m.material.opacity = 1.0;
+        m.children.forEach((c) => { if (c.isLineSegments) c.material.opacity = 0.85; });
+      });
+      autoSpin = true;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 2.0;
+      btnAutoSpin.classList.add('active');
+    });
+
+    let autoSpin = true;
+    btnAutoSpin.addEventListener('click', () => {
+      autoSpin = !autoSpin;
+      controls.autoRotate = autoSpin;
+      controls.autoRotateSpeed = 2.0;
+      btnAutoSpin.classList.toggle('active', autoSpin);
+    });
+
+    const btnRotateYZ = document.getElementById('btnRotateYZ');
+    if (btnRotateYZ) {
+      btnRotateYZ.addEventListener('click', () => {
+        modelPivot.rotation.x = (modelPivot.rotation.x + Math.PI / 2) % (Math.PI * 2);
+      });
+    }
+
+    const btnRotateXZ = document.getElementById('btnRotateXZ');
+    if (btnRotateXZ) {
+      btnRotateXZ.addEventListener('click', () => {
+        modelPivot.rotation.y = (modelPivot.rotation.y + Math.PI / 2) % (Math.PI * 2);
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (Math.abs(targetExplode - currentExplode) > 0.001) {
+        currentExplode += (targetExplode - currentExplode) * 0.12;
+        updateExplode(currentExplode);
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
