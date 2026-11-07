@@ -60,17 +60,16 @@
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 22px;
+      gap: 24px;
     }
     .card {
-      background: rgba(15, 23, 42, 0.75);
+      background: rgba(15, 23, 42, 0.85);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
-      padding: 22px;
+      padding: 0;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
       position: relative;
       overflow: hidden;
     }
@@ -80,41 +79,75 @@
       top: 0; left: 0; right: 0; height: 3px;
       background: linear-gradient(90deg, #0284c7, #38bdf8);
       opacity: 0;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.25s ease;
+      z-index: 2;
     }
     .card:hover {
-      transform: translateY(-4px);
-      border-color: rgba(56, 189, 248, 0.4);
-      box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(56, 189, 248, 0.15);
+      transform: translateY(-5px);
+      border-color: rgba(56, 189, 248, 0.5);
+      box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.6), 0 0 24px -4px rgba(56, 189, 248, 0.2);
     }
     .card:hover::before {
       opacity: 1;
     }
-    .card-badge {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.05em;
+    .thumb-wrapper {
+      position: relative;
+      width: 100%;
+      height: 185px;
+      background: #0b1120;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .thumb-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 6px;
+      transition: transform 0.35s ease;
+    }
+    .card:hover .thumb-wrapper img {
+      transform: scale(1.05);
+    }
+    .part-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(56, 189, 248, 0.35);
       color: #38bdf8;
-      background: rgba(56, 189, 248, 0.1);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      display: inline-block;
-      align-self: flex-start;
+      font-size: 11px;
+      font-weight: 600;
       padding: 3px 8px;
-      border-radius: 4px;
-      margin-bottom: 12px;
+      border-radius: 12px;
+      z-index: 1;
+    }
+    .card-body {
+      padding: 16px 18px 20px 18px;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      justify-content: space-between;
     }
     .card-title {
-      font-size: 16.5px;
+      font-size: 16px;
       font-weight: 600;
       color: #f1f5f9;
       line-height: 1.4;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       word-break: break-word;
+    }
+    .card-meta {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
     }
     .card-date {
       color: #64748b;
-      font-size: 12.5px;
-      margin-bottom: 20px;
+      font-size: 12px;
     }
     .card-action {
       margin-top: auto;
@@ -173,11 +206,18 @@
 
     <div class="grid" id="modelList">
       <div class="card" data-name="Unnamed-par33" data-title="Unnamed-par33">
-        <div class="card-badge">&#128230; 3D CAD MODEL</div>
-        <div class="card-title">Unnamed-par33</div>
-        <div class="card-date">&#128338; C&#7853;p nh&#7853;t: 2026-11-08 00:35</div>
-        <div class="card-action">
-          <a href="./Unnamed-par33/index.html" class="btn">Xem 3D tr&#7921;c tuy&#7871;n &#8594;</a>
+        <div class="thumb-wrapper">
+          <img src="./Unnamed-par33/thumb.svg" onerror="this.onerror=null; this.src='./Unnamed-par33/thumb.svg';" alt="Unnamed-par33" loading="lazy" />
+          <span class="part-badge">70 chi ti&#7871;t</span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title">Unnamed-par33</h3>
+          <div class="card-meta">
+            <span class="card-date">&#128197; 2026-11-08 01:13</span>
+          </div>
+          <div class="card-action">
+            <a href="./Unnamed-par33/index.html" class="btn">&#128640; Xem 3D tr&#7921;c tuy&#7871;n</a>
+          </div>
         </div>
       </div>
     </div>

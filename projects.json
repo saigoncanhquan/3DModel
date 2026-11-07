@@ -3,6 +3,9 @@
         "name":  "Unnamed-par33",
         "title":  "Unnamed-par33",
         "path":  "./Unnamed-par33/index.html",
-        "date":  "2026-11-08 00:35"
+        "thumb":  "./Unnamed-par33/thumb.svg",
+        "fallback_thumb":  "./Unnamed-par33/thumb.svg",
+        "part_count":  70,
+        "date":  "2026-11-08 01:13"
     }
 ]
