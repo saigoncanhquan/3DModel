@@ -1,732 +1,220 @@
 <!DOCTYPE html>
-<html lang="vi" data-theme="light">
+<html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Unnamed-par33 · Untube 3D CAD Inspection</title>
+  <title>3D CAD Models Showcase &middot; Untube 3D</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: #f8fafc;
-      color: #1e293b;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #0b0f19;
+      color: #f8fafc;
       min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container { max-width: 1100px; margin: 0 auto; }
+    header {
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      overflow-x: hidden;
-    }
-    .figure-card {
-      width: 100%;
-      max-width: 1120px;
-      background: rgba(255, 255, 255, 0.94);
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      border-radius: 12px;
-      box-shadow: 0 24px 50px rgba(0,0,0,0.08);
-      backdrop-filter: blur(14px);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 20px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-      font-size: 13px;
-    }
-    .fig-badge {
-      font-family: monospace;
-      font-weight: 700;
-      color: #38bdf8;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-    .title { font-weight: 600; font-size: 14.5px; }
-    .readout { font-family: monospace; font-size: 12px; color: #64748b; }
-    .viewport-container {
-      position: relative;
-      width: 100%;
-      height: 620px;
-      background: radial-gradient(circle at 50% 40%, #f1f5f9 0%, #e2e8f0 85%);
-      cursor: grab;
-      user-select: none;
-    }
-    .viewport-container:active { cursor: grabbing; }
-    #canvas3d { width: 100%; height: 100%; display: block; touch-action: none; }
-    .overlay-hint {
-      position: absolute;
-      top: 14px;
-      left: 16px;
-      font-size: 11px;
-      font-weight: 500;
-      color: #0f172a;
-      background: rgba(255, 255, 255, 0.92);
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      padding: 5px 10px;
-      border-radius: 5px;
-      pointer-events: none;
-      backdrop-filter: blur(6px);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-    }
-    .overlay-controls {
-      position: absolute;
-      bottom: 14px;
-      right: 16px;
-      display: flex;
-      gap: 6px;
       flex-wrap: wrap;
-      justify-content: flex-end;
-      max-width: 85%;
-    }
-    .icon-btn {
-      background: rgba(255, 255, 255, 0.92);
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      color: #0f172a;
-      font-size: 11px;
-      font-weight: 500;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-      backdrop-filter: blur(6px);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      transition: all 0.2s ease;
-    }
-    .icon-btn:hover { background: #38bdf8; color: #000; font-weight: 600; }
-    .icon-btn.active { background: #38bdf8; color: #000; font-weight: 600; }
-    .card-footer {
-      padding: 16px 20px;
-      border-top: 1px solid rgba(0, 0, 0, 0.12);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .control-row {
-      display: flex;
-      align-items: center;
       justify-content: space-between;
+      align-items: flex-end;
       gap: 16px;
-      flex-wrap: wrap;
     }
-    .slider-container {
+    .title-group h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #38bdf8;
       display: flex;
       align-items: center;
-      gap: 12px;
-      flex: 1;
-      min-width: 280px;
+      gap: 10px;
     }
-    .slider-label { font-size: 12px; font-weight: 600; white-space: nowrap; }
-    .explode-slider { flex: 1; height: 6px; accent-color: #38bdf8; cursor: pointer; }
-    .mode-toggles { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-    .toggle-btn {
-      background: rgba(0,0,0,0.05);
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      color: #1e293b;
-      font-size: 11px;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s ease;
+    .title-group p.sub {
+      color: #94a3b8;
+      font-size: 14px;
+      margin-top: 6px;
     }
-    .toggle-btn:hover { border-color: #38bdf8; color: #38bdf8; }
-    .toggle-btn.active {
-      background: #38bdf8;
-      color: #0b0f19;
-      font-weight: 600;
-      border-color: #38bdf8;
+    .search-box {
+      position: relative;
+      min-width: 260px;
     }
-    .scale-select {
-      background: #ffffff;
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      color: #1e293b;
-      font-size: 11px;
-      padding: 4px 8px;
-      border-radius: 6px;
+    .search-box input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 13.5px;
       outline: none;
-      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
-    .scale-select option {
-      background: #ffffff;
-      color: #1e293b;
-      padding: 6px 10px;
-    }
-    .parts-toolbar { display: flex; gap: 6px; flex-wrap: wrap; max-height: 95px; overflow-y: auto; }
-    .part-pill {
-      background: rgba(0,0,0,0.04);
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      color: #1e293b;
-      font-size: 11px;
-      padding: 4px 9px;
-      border-radius: 5px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .part-pill:hover { border-color: #38bdf8; color: #38bdf8; }
-    .part-pill.active {
-      background: #38bdf8;
-      color: #0b0f19;
-      font-weight: 600;
+    .search-box input:focus {
       border-color: #38bdf8;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
     }
-    .caption-box {
-      font-size: 11.5px;
-      line-height: 1.5;
-      color: #64748b;
-      padding-top: 6px;
-      border-top: 1px dashed rgba(0, 0, 0, 0.12);
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 22px;
     }
-    .loading-screen {
-      position: absolute;
-      inset: 0;
+    .card {
+      background: rgba(15, 23, 42, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #f8fafc;
-      z-index: 10;
-      transition: opacity 0.4s ease;
+      justify-content: space-between;
+      transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+      overflow: hidden;
     }
-    .spinner {
-      width: 34px;
-      height: 34px;
-      border: 3px solid rgba(56, 189, 248, 0.2);
-      border-top-color: #38bdf8;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #0284c7, #38bdf8);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(56, 189, 248, 0.4);
+      box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(56, 189, 248, 0.15);
+    }
+    .card:hover::before {
+      opacity: 1;
+    }
+    .card-badge {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      display: inline-block;
+      align-self: flex-start;
+      padding: 3px 8px;
+      border-radius: 4px;
       margin-bottom: 12px;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @media (max-width: 640px) {
-      body { padding: 6px; }
-      .viewport-container { height: 400px; }
-      .parts-toolbar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .part-pill { flex-shrink: 0; }
+    .card-title {
+      font-size: 16.5px;
+      font-weight: 600;
+      color: #f1f5f9;
+      line-height: 1.4;
+      margin-bottom: 8px;
+      word-break: break-word;
     }
+    .card-date {
+      color: #64748b;
+      font-size: 12.5px;
+      margin-bottom: 20px;
+    }
+    .card-action {
+      margin-top: auto;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      background: #0284c7;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 10px 18px;
+      border-radius: 7px;
+      font-size: 13.5px;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .btn:hover {
+      background: #0ea5e9;
+      color: #ffffff;
+    }
+    .btn:active {
+      transform: scale(0.98);
+    }
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: #64748b;
+      font-size: 15px;
+    }
+    footer {
+      margin-top: 60px;
+      text-align: center;
+      font-size: 13px;
+      color: #475569;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding-top: 24px;
+    }
+    footer a { color: #38bdf8; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
   </style>
-  <script>
-    window.addEventListener('error', function(e) {
-      var s = document.getElementById('loadStatus');
-      if (s) {
-        s.style.color = '#ef4444';
-        s.textContent = 'Lỗi nạp WebGL / Three.js: ' + (e.message || 'Không thể kết nối thư viện 3D');
-      }
-    });
-  </script>
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-      }
-    }
-  </script>
 </head>
 <body>
-
-  <div class="figure-card">
-    <div class="card-header">
-      <span class="fig-badge">Untube · 3D Inspection</span>
-      <span class="title">Unnamed-par33</span>
-      <span class="readout" id="readoutEl">Assembled · 70 linh kiện</span>
-    </div>
-
-    <div class="viewport-container" id="container">
-      <div class="loading-screen" id="loadingEl">
-        <div class="spinner"></div>
-        <div style="font-size: 12px; color: #64748b;" id="loadStatus">Đang khởi tạo WebGL 3D...</div>
+  <div class="container">
+    <header>
+      <div class="title-group">
+        <h1><span>&#128640;</span> UNTUBE 3D CAD GALLERY</h1>
+        <p class="sub">Danh m&#7905;c c&aacute;c m&ocirc; h&igrave;nh 3D CAD ki&#7875;m tra b&oacute;c t&aacute;ch WebGL t&#432;&#417;ng t&aacute;c tr&#7921;c tuy&#7871;n.</p>
       </div>
-      <canvas id="canvas3d"></canvas>
-      <div class="overlay-hint">Chuột trái/1 ngón: Xoay 360° · Chuột phải/2 ngón: Pan · Cuộn/Chụm: Zoom</div>
-      <div class="overlay-controls">
-        <button class="icon-btn" id="btnReset" title="Đặt lại góc nhìn và chiều quay ban đầu">Mặc định</button>
-        <button class="icon-btn active" id="btnAutoSpin" title="Bật/Tắt tự xoay 360°">Tự xoay</button>
-        <button class="icon-btn" id="btnRotateYZ" title="Xoay dựng đứng 90° (Đổi Y-Z)">🔄 Đứng (Y-Z)</button>
-        <button class="icon-btn" id="btnRotateXZ" title="Xoay 90° quanh trục đứng (Đổi X-Z)">🔄 Xoay (X-Z)</button>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="&#128269; T&igrave;m ki&#7871;m m&ocirc; h&igrave;nh..." oninput="filterModels()" />
       </div>
-    </div>
+    </header>
 
-    <div class="card-footer">
-      <div class="control-row">
-        <div class="slider-container">
-          <span class="slider-label">Tách cụm (Explode):</span>
-          <input type="range" class="explode-slider" id="explodeSlider" min="0" max="100" value="0" />
-          <span style="font-family: monospace; font-size: 12px; width: 45px; text-align: right;" id="explodeVal">0%</span>
-        </div>
-
-        <div class="mode-toggles">
-          <button class="toggle-btn active" id="btnMode3D">3D (X+Y+Z)</button>
-          <button class="toggle-btn" id="btnModeX">Trục ngang (X)</button>
-          <button class="toggle-btn" id="btnModeY">Trục dọc (Y)</button>
-          <button class="toggle-btn" id="btnModeZ">Trục đứng (Z)</button>
-          <label style="font-size: 11px; color: #64748b; margin-left: 4px;">Cự ly:</label>
-          <select class="scale-select" id="spreadScale">
-            <option value="1">1x (Chuẩn)</option>
-            <option value="1.5">1.5x (Rộng)</option>
-            <option value="2">2x (Cực rộng)</option>
-            <option value="3">3x (Toàn cảnh)</option>
-          </select>
-          <label style="font-size: 11px; color: #64748b; margin-left: 6px;">Vật liệu:</label>
-          <select class="scale-select" id="cboMaterialPreset">
-            <option value="sw_gray" selected>Xám SolidWorks</option>
-            <option value="wood">Gỗ tự nhiên</option>
-            <option value="chrome">Chrome kim loại</option>
-            <option value="custom">Màu tự chọn...</option>
-            <option value="original">Màu gốc MTL</option>
-          </select>
-          <input type="color" id="pickerCustomColor" value="#94a3b8" style="width: 26px; height: 24px; border: none; cursor: pointer; border-radius: 4px; vertical-align: middle; display: none;" title="Chọn màu tùy chỉnh" />
-          <button class="toggle-btn active" id="btnEdgesToggle">Viền nét CAD</button>
+    <div class="grid" id="modelList">
+      <div class="card" data-name="Unnamed-par33" data-title="Unnamed-par33">
+        <div class="card-badge">&#128230; 3D CAD MODEL</div>
+        <div class="card-title">Unnamed-par33</div>
+        <div class="card-date">&#128338; C&#7853;p nh&#7853;t: 2026-11-08 00:35</div>
+        <div class="card-action">
+          <a href="./Unnamed-par33/index.html" class="btn">Xem 3D tr&#7921;c tuy&#7871;n &#8594;</a>
         </div>
       </div>
-
-      <div class="parts-toolbar" id="toolbar">
-        <button class="part-pill active" data-group="all">Tất cả (70)</button>
-        <button class="part-pill" data-group="group_0">#01 \\X2\\044104420430043d0438043d0430\\X0\\</button>
-        <button class="part-pill" data-group="group_1">#02 \\X2\\043a0440043e043d0448044204350439043d\\X0\\</button>
-        <button class="part-pill" data-group="group_2">#03 \\X2\\043a0440043e043d0448044204350439043d\\X0\\001</button>
-        <button class="part-pill" data-group="group_3">#04 \\X2\\043a0440043e043d0448044204350439043d\\X0\\002</button>
-        <button class="part-pill" data-group="group_4">#05 \\X2\\043a0440043e043d0448044204350439043d\\X0\\003</button>
-        <button class="part-pill" data-group="group_5">#06 \\X2\\043a043e043b0435043d04320430043b\\X0\\</button>
-        <button class="part-pill" data-group="group_6">#07 \\X2\\043c04300445043e04320438043a\\X0\\1</button>
-        <button class="part-pill" data-group="group_7">#08 \\X2\\0437043e043b043e0442043d0438043a\\X0\\</button>
-        <button class="part-pill" data-group="group_8">#09 \\X2\\0437043e043b043e0442043d0438043a\\X0\\001</button>
-        <button class="part-pill" data-group="group_9">#10 \\X2\\0448043004420443043d\\X0\\</button>
-        <button class="part-pill" data-group="group_10">#11 \\X2\\04480430043904310430\\X0\\ 3</button>
-        <button class="part-pill" data-group="group_11">#12 \\X2\\04480430043904310430\\X0\\ 001</button>
-        <button class="part-pill" data-group="group_12">#13 \\X2\\04480430043904310430\\X0\\ 002</button>
-        <button class="part-pill" data-group="group_13">#14 \\X2\\04480430043904310430\\X0\\ 5</button>
-        <button class="part-pill" data-group="group_14">#15 parallel pin hardened_iso_ISO 8734 - 3 x 12 - A - St</button>
-        <button class="part-pill" data-group="group_15">#16 parallel pin hardened_iso_ISO 8734 - 3 x 12 - A - St001</button>
-        <button class="part-pill" data-group="group_16">#17 parallel pin hardened_iso_ISO 8734 - 3 x 12 - A - St002</button>
-        <button class="part-pill" data-group="group_17">#18 parallel pin hardened_iso_ISO 8734 - 3 x 12 - A - St003</button>
-        <button class="part-pill" data-group="group_18">#19 slotted set screw cup point_iso_ISO 7436 - M3 x 6-N</button>
-        <button class="part-pill" data-group="group_19">#20 slotted set screw cup point_iso_ISO 7436 - M3 x 6-N001</button>
-        <button class="part-pill" data-group="group_20">#21 slotted set screw cup point_iso_ISO 7436 - M3 x 6-N002</button>
-        <button class="part-pill" data-group="group_21">#22 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N</button>
-        <button class="part-pill" data-group="group_22">#23 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N001</button>
-        <button class="part-pill" data-group="group_23">#24 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N002</button>
-        <button class="part-pill" data-group="group_24">#25 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N003</button>
-        <button class="part-pill" data-group="group_25">#26 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N004</button>
-        <button class="part-pill" data-group="group_26">#27 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N005</button>
-        <button class="part-pill" data-group="group_27">#28 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N006</button>
-        <button class="part-pill" data-group="group_28">#29 \\X2\\0448043004420443043d\\X0\\ 2</button>
-        <button class="part-pill" data-group="group_29">#30 \\X2\\0448043004420443043d\\X0\\ 001</button>
-        <button class="part-pill" data-group="group_30">#31 socket head cap screw_iso_ISO 4762 M3 x 8 - 8N</button>
-        <button class="part-pill" data-group="group_31">#32 socket head cap screw_iso_ISO 4762 M3 x 8 - 8N001</button>
-        <button class="part-pill" data-group="group_32">#33 socket head cap screw_iso_ISO 4762 M3 x 8 - 8N002</button>
-        <button class="part-pill" data-group="group_33">#34 socket head cap screw_iso_ISO 4762 M3 x 8 - 8N003</button>
-        <button class="part-pill" data-group="group_34">#35 socket head cap screw_iso_ISO 4762 M3 x 8 - 8N004</button>
-        <button class="part-pill" data-group="group_35">#36 socket head cap screw_iso_ISO 4762 M3 x 8 - 8N005</button>
-        <button class="part-pill" data-group="group_36">#37 socket head cap screw_iso_ISO 4762 M3 x 8 - 8N006</button>
-        <button class="part-pill" data-group="group_37">#38 socket head cap screw_iso_ISO 4762 M3 x 8 - 8N007</button>
-        <button class="part-pill" data-group="group_38">#39 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N007</button>
-        <button class="part-pill" data-group="group_39">#40 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N008</button>
-        <button class="part-pill" data-group="group_40">#41 parallel pin hardened 02_iso_ISO 8735-6x22-A-St</button>
-        <button class="part-pill" data-group="group_41">#42 parallel pin unhardened_iso_ISO 2338 - 5 m6 x 14 - St</button>
-        <button class="part-pill" data-group="group_42">#43 domed cap nut_din_DIN 1587 - M5 --NNU</button>
-        <button class="part-pill" data-group="group_43">#44 domed cap nut_din_DIN 1587 - M5 --NNU001</button>
-        <button class="part-pill" data-group="group_44">#45 domed cap nut_din_DIN 1587 - M6 --NNU</button>
-        <button class="part-pill" data-group="group_45">#46 domed cap nut_din_DIN 1587 - M6 --NNU001</button>
-        <button class="part-pill" data-group="group_46">#47 \\X2\\043f043e043b04370443043d\\X0\\</button>
-        <button class="part-pill" data-group="group_47">#48 \\X2\\043f043e043b04370443043d\\X0\\001</button>
-        <button class="part-pill" data-group="group_48">#49 \\X2\\043f043e044004480435043d044c\\X0\\</button>
-        <button class="part-pill" data-group="group_49">#50 \\X2\\043f043e044004480435043d044c\\X0\\001</button>
-        <button class="part-pill" data-group="group_50">#51 parallel pin hardened_iso_ISO 8734 - 3 x 12 - A - St004</button>
-        <button class="part-pill" data-group="group_51">#52 \\X2\\04480442043e043a\\X0\\</button>
-        <button class="part-pill" data-group="group_52">#53 hex thin nut chamfered gradeab_din_Hexagon Thin Nut ISO 4035 - M4 - N</button>
-        <button class="part-pill" data-group="group_53">#54 \\X2\\04460438043b0438043b043d04340440\\X0\\ \\X2\\044004300441043f0440043504340435043b043804420435043b044c\\X0\\</button>
-        <button class="part-pill" data-group="group_54">#55 \\X2\\043a043e043d0441043e043b044c\\X0\\</button>
-        <button class="part-pill" data-group="group_55">#56 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N009</button>
-        <button class="part-pill" data-group="group_56">#57 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N010</button>
-        <button class="part-pill" data-group="group_57">#58 domed cap nut_din_DIN 1587 - M5 --NNU002</button>
-        <button class="part-pill" data-group="group_58">#59 \\X2\\04460438043b0438043d04340440\\X0\\2</button>
-        <button class="part-pill" data-group="group_59">#60 \\X2\\04460438043b0438043d04340440\\X0\\001</button>
-        <button class="part-pill" data-group="group_60">#61 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N011</button>
-        <button class="part-pill" data-group="group_61">#62 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N012</button>
-        <button class="part-pill" data-group="group_62">#63 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N013</button>
-        <button class="part-pill" data-group="group_63">#64 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N014</button>
-        <button class="part-pill" data-group="group_64">#65 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N015</button>
-        <button class="part-pill" data-group="group_65">#66 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N016</button>
-        <button class="part-pill" data-group="group_66">#67 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N017</button>
-        <button class="part-pill" data-group="group_67">#68 socket head cap screw_iso_ISO 4762 M4 x 8 - 8N018</button>
-        <button class="part-pill" data-group="group_68">#69 \\X2\\043204420443043b043a0430\\X0\\</button>
-        <button class="part-pill" data-group="group_69">#70 \\X2\\04410442043e0439043a0430\\X0\\3</button>
-        
-      </div>
-
-      <div class="caption-box">
-        Mô hình 3D bóc tách gồm 70 linh kiện CAD. Kích thước tổng thể: 160.0 × 131.0 × 274.0 (Đơn vị CAD). Hỗ trợ tách rã linh hoạt đa trục X, Y, Z và 3D không gian kèm đường chỉ dẫn 3D Leader Lines.
-      </div>
     </div>
+
+    <footer>
+      Powered by <strong>Untube 3D Engine</strong> &middot; Hosted free on <a href="https://pages.github.com/" target="_blank" rel="noopener">GitHub Pages</a>
+    </footer>
   </div>
 
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
-    const rawParts = [{"name":"\\\\X2\\\\044104420430043d0438043d0430\\\\X0\\\\","group":"group_0","group_name":"Chi tiết 01 (\\\\X2\\\\044104420430043d0438043d0430\\\\X0\\\\)","color":"#b8bec6","vertex_byte_offset":0,"vertex_byte_length":914736,"index_byte_offset":914736,"index_byte_length":1829904,"vertex_count":76228,"triangles":152492,"bounds_min":[21.285639,-129.07109,39.770947],"bounds_max":[181.28192,-64.07109,118.77095],"center":[101.28378,-96.57109,79.27095],"move_3d":[0.0,0.0,-95.55],"move_x":[0.0,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-109.2]},{"name":"\\\\X2\\\\043a0440043e043d0448044204350439043d\\\\X0\\\\","group":"group_1","group_name":"Chi tiết 02 (\\\\X2\\\\043a0440043e043d0448044204350439043d\\\\X0\\\\)","color":"#b8bec6","vertex_byte_offset":2744640,"vertex_byte_length":1968,"index_byte_offset":2746608,"index_byte_length":4032,"vertex_count":164,"triangles":336,"bounds_min":[109.283775,-115.57109,143.77095],"bounds_max":[111.283775,-103.07109,210.77095],"center":[110.283775,-109.32109,177.27095],"move_3d":[10.79,-22.4,0.49],"move_x":[17.26,0.0,0.0],"move_y":[0.0,-29.87,0.0],"move_z":[0.0,0.0,0.56]},{"name":"\\\\X2\\\\043a0440043e043d0448044204350439043d\\\\X0\\\\001","group":"group_2","group_name":"Chi tiết 03 (\\\\X2\\\\043a0440043e043d0448044204350439043d\\\\X0\\\\001)","color":"#b8bec6","vertex_byte_offset":2750640,"vertex_byte_length":1968,"index_byte_offset":2752608,"index_byte_length":4032,"vertex_count":164,"triangles":336,"bounds_min":[109.283775,-90.07109,143.77095],"bounds_max":[111.283775,-77.57109,210.77095],"center":[110.283775,-83.82109,177.27095],"move_3d":[10.79,22.4,0.49],"move_x":[17.26,0.0,0.0],"move_y":[0.0,29.87,0.0],"move_z":[0.0,0.0,0.56]},{"name":"\\\\X2\\\\043a0440043e043d0448044204350439043d\\\\X0\\\\002","group":"group_3","group_name":"Chi tiết 04 (\\\\X2\\\\043a0440043e043d0448044204350439043d\\\\X0\\\\002)","color":"#b8bec6","vertex_byte_offset":2756640,"vertex_byte_length":1344,"index_byte_offset":2757984,"index_byte_length":2736,"vertex_count":112,"triangles":228,"bounds_min":[114.283775,-106.07109,143.77095],"bounds_max":[116.283775,-87.07109,210.77095],"center":[115.283775,-96.57109,177.27095],"move_3d":[16.78,0.0,0.49],"move_x":[26.85,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,0.56]},{"name":"\\\\X2\\\\043a0440043e043d0448044204350439043d\\\\X0\\\\003","group":"group_4","group_name":"Chi tiết 05 (\\\\X2\\\\043a0440043e043d0448044204350439043d\\\\X0\\\\003)","color":"#b8bec6","vertex_byte_offset":2760720,"vertex_byte_length":274452,"index_byte_offset":3035172,"index_byte_length":549048,"vertex_count":22871,"triangles":45754,"bounds_min":[111.283775,-115.57109,102.77095],"bounds_max":[162.28378,-77.57109,231.77095],"center":[136.78378,-96.57109,167.27095],"move_3d":[42.56,0.0,-9.31],"move_x":[68.09,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-10.64]},{"name":"\\\\X2\\\\043a043e043b0435043d04320430043b\\\\X0\\\\","group":"group_5","group_name":"Chi tiết 06 (\\\\X2\\\\043a043e043b0435043d04320430043b\\\\X0\\\\)","color":"#b8bec6","vertex_byte_offset":3584220,"vertex_byte_length":709608,"index_byte_offset":4293828,"index_byte_length":1419360,"vertex_count":59134,"triangles":118280,"bounds_min":[88.6326,-162.07109,100.69851],"bounds_max":[104.33924,-31.07109,134.69835],"center":[96.485916,-96.57109,117.698425],"move_3d":[-5.75,0.0,-57.89],"move_x":[-9.2,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-66.16]},{"name":"\\\\X2\\\\043c04300445043e04320438043a\\\\X0\\\\1","group":"group_6","group_name":"Chi tiết 07 (\\\\X2\\\\043c04300445043e04320438043a\\\\X0\\\\1)","color":"#b8bec6","vertex_byte_offset":5713188,"vertex_byte_length":1000944,"index_byte_offset":6714132,"index_byte_length":2002128,"vertex_count":83412,"triangles":166844,"bounds_min":[35.28388,-61.07109,47.786972],"bounds_max":[155.28368,-37.07109,167.75493],"center":[95.283775,-49.07109,107.77095],"move_3d":[-7.19,83.45,-67.62],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,111.27,0.0],"move_z":[0.0,0.0,-77.28]},{"name":"\\\\X2\\\\0437043e043b043e0442043d0438043a\\\\X0\\\\","group":"group_7","group_name":"Chi tiết 08 (\\\\X2\\\\0437043e043b043e0442043d0438043a\\\\X0\\\\)","color":"#b8bec6","vertex_byte_offset":8716260,"vertex_byte_length":34344,"index_byte_offset":8750604,"index_byte_length":68880,"vertex_count":2862,"triangles":5740,"bounds_min":[81.262566,-157.07109,86.48976],"bounds_max":[125.24176,-134.07109,130.47322],"center":[103.25217,-145.57109,108.48149],"move_3d":[2.36,-86.09,-66.92],"move_x":[3.78,0.0,0.0],"move_y":[0.0,-114.79,0.0],"move_z":[0.0,0.0,-76.48]},{"name":"\\\\X2\\\\0437043e043b043e0442043d0438043a\\\\X0\\\\001","group":"group_8","group_name":"Chi tiết 09 (\\\\X2\\\\0437043e043b043e0442043d0438043a\\\\X0\\\\001)","color":"#b8bec6","vertex_byte_offset":8819484,"vertex_byte_length":108,"index_byte_offset":8819592,"index_byte_length":168,"vertex_count":9,"triangles":14,"bounds_min":[119.537476,-145.57109,108.45146],"bounds_max":[122.25851,-145.07109,111.4396],"center":[120.897995,-145.32109,109.945526],"move_3d":[23.51,-85.65,-65.49],"move_x":[37.62,0.0,0.0],"move_y":[0.0,-114.2,0.0],"move_z":[0.0,0.0,-74.84]},{"name":"\\\\X2\\\\0448043004420443043d\\\\X0\\\\","group":"group_9","group_name":"Chi tiết 10 (\\\\X2\\\\0448043004420443043d\\\\X0\\\\)","color":"#b8bec6","vertex_byte_offset":8819760,"vertex_byte_length":476436,"index_byte_offset":9296196,"index_byte_length":953064,"vertex_count":39703,"triangles":79422,"bounds_min":[80.25336,-143.57109,85.484024],"bounds_max":[126.25099,-131.57109,202.1235],"center":[103.252174,-137.57109,143.80377],"move_3d":[2.36,-72.03,-32.31],"move_x":[3.78,0.0,0.0],"move_y":[0.0,-96.05,0.0],"move_z":[0.0,0.0,-36.92]},{"name":"\\\\X2\\\\04480430043904310430\\\\X0\\\\ 3","group":"group_10","group_name":"Chi tiết 11 (\\\\X2\\\\04480430043904310430\\\\X0\\\\ 3)","color":"#b8bec6","vertex_byte_offset":10249260,"vertex_byte_length":2544,"index_byte_offset":10251804,"index_byte_length":5088,"vertex_count":212,"triangles":424,"bounds_min":[87.783775,-117.07109,100.281944],"bounds_max":[102.783775,-114.07109,115.25995],"center":[95.283775,-115.57109,107.77095],"move_3d":[-7.19,-33.38,-67.62],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,-44.51,0.0],"move_z":[0.0,0.0,-77.28]},{"name":"\\\\X2\\\\04480430043904310430\\\\X0\\\\ 001","group":"group_11","group_name":"Chi tiết 12 (\\\\X2\\\\04480430043904310430\\\\X0\\\\ 001)","color":"#b8bec6","vertex_byte_offset":10256892,"vertex_byte_length":2544,"index_byte_offset":10259436,"index_byte_length":5088,"vertex_count":212,"triangles":424,"bounds_min":[87.783775,-79.07109,100.281944],"bounds_max":[102.783775,-76.07109,115.25995],"center":[95.283775,-77.57109,107.77095],"move_3d":[-7.19,33.38,-67.62],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,44.51,0.0],"move_z":[0.0,0.0,-77.28]},{"name":"\\\\X2\\\\04480430043904310430\\\\X0\\\\ 002","group":"group_12","group_name":"Chi tiết 13 (\\\\X2\\\\04480430043904310430\\\\X0\\\\ 002)","color":"#b8bec6","vertex_byte_offset":10264524,"vertex_byte_length":2544,"index_byte_offset":10267068,"index_byte_length":5088,"vertex_count":212,"triangles":424,"bounds_min":[87.783775,-64.07109,100.281944],"bounds_max":[102.783775,-61.07109,115.25995],"center":[95.283775,-62.57109,107.77095],"move_3d":[-7.19,59.74,-67.62],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,79.65,0.0],"move_z":[0.0,0.0,-77.28]},{"name":"\\\\X2\\\\04480430043904310430\\\\X0\\\\ 5","group":"group_13","group_name":"Chi tiết 14 (\\\\X2\\\\04480430043904310430\\\\X0\\\\ 5)","color":"#b8bec6","vertex_byte_offset":10272156,"vertex_byte_length":2496,"index_byte_offset":10274652,"index_byte_length":4992,"vertex_count":208,"triangles":416,"bounds_min":[87.783775,-134.07109,100.281944],"bounds_max":[102.783775,-129.07109,115.25995],"center":[95.283775,-131.57109,107.77095],"move_3d":[-7.19,-61.49,-67.62],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,-81.99,0.0],"move_z":[0.0,0.0,-77.28]},{"name":"parallel pin hardened_iso_ISO 8734 - 3 x 12 - A - St","group":"group_14","group_name":"Chi tiết 15 (parallel pin hardened_iso_ISO 8734 - 3 x 12 - A - St)","color":"#b8bec6","vertex_byte_offset":10279644,"vertex_byte_length":2256,"index_byte_offset":10281900,"index_byte_length":4464,"vertex_count":188,"triangles":372,"bounds_min":[89.16377,-84.57109,105.62065],"bounds_max":[101.40378,-81.57109,109.92124],"center":[95.283775,-83.07109,107.77095],"move_3d":[-7.19,23.72,-67.62],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,31.63,0.0],"move_z":[0.0,0.0,-77.28]},{"name":"parallel pin hardened_iso_ISO 8734 - 3 x 12 - A - St001","group":"group_15","group_name":"Chi tiết 16 (parallel pin hardened_iso_ISO 8734 - 3 x 12 - A - St001)","color":"#b8bec6","vertex_byte_offset":10286364,"vertex_byte_length":2256,"index_byte_offset":10288620,"index_byte_length":4464,"vertex_count":188,"triangles":372,"bounds_min":[91.56804,-84.57109,125.47562],"bounds_max":[103.808044,-81.57109,129.7762],"center":[97.68804,-83.07109,127.62591],"move_3d":[-4.31,23.72,-48.16],"move_x":[-6.9,0.0,0.0],"move_y":[0.0,31.63,0.0],"move_z":[0.0,0.0,-55.04]},{"name":"parallel pin hardened_iso_ISO 8734 - 3 x 12 - A - St002","group":"group_16","group_name":"Chi tiết 17 (parallel pin hardened_iso_ISO 8734 - 3 x 12 - A - St002)","color":"#b8bec6","vertex_byte_offset":10293084,"vertex_byte_length":2256,"index_byte_offset":10295340,"index_byte_length":4464,"vertex_count":188,"triangles":372,"bounds_min":[89.16377,-111.57109,105.62065],"bounds_max":[101.40378,-108.57109,109.92124],"center":[95.283775,-110.07109,107.77095],"move_3d":[-7.19,-23.72,-67.62],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,-31.63,0.0],"move_z":[0.0,0.0,-77.28]},{"name":"parallel pin hardened_iso_ISO 8734 - 3 x 12 - A - St003","group":"group_17","group_name":"Chi tiết 18 (parallel pin hardened_iso_ISO 8734 - 3 x 12 - A - St003)","color":"#b8bec6","vertex_byte_offset":10299804,"vertex_byte_length":2256,"index_byte_offset":10302060,"index_byte_length":4464,"vertex_count":188,"triangles":372,"bounds_min":[91.56804,-111.57109,125.47562],"bounds_max":[103.808044,-108.57109,129.7762],"center":[97.68804,-110.07109,127.62591],"move_3d":[-4.31,-23.72,-48.16],"move_x":[-6.9,0.0,0.0],"move_y":[0.0,-31.63,0.0],"move_z":[0.0,0.0,-55.04]},{"name":"slotted set screw cup point_iso_ISO 7436 - M3 x 6-N","group":"group_18","group_name":"Chi tiết 19 (slotted set screw cup point_iso_ISO 7436 - M3 x 6-N)","color":"#b8bec6","vertex_byte_offset":10306524,"vertex_byte_length":3012,"index_byte_offset":10309536,"index_byte_length":5976,"vertex_count":251,"triangles":498,"bounds_min":[88.691154,-152.57109,110.23217],"bounds_max":[94.03882,-149.57109,116.27123],"center":[91.36499,-151.07109,113.2517],"move_3d":[-11.89,-95.75,-62.25],"move_x":[-19.02,0.0,0.0],"move_y":[0.0,-127.67,0.0],"move_z":[0.0,0.0,-71.14]},{"name":"slotted set screw cup point_iso_ISO 7436 - M3 x 6-N001","group":"group_19","group_name":"Chi tiết 20 (slotted set screw cup point_iso_ISO 7436 - M3 x 6-N001)","color":"#b8bec6","vertex_byte_offset":10315512,"vertex_byte_length":3012,"index_byte_offset":10318524,"index_byte_length":5976,"vertex_count":251,"triangles":498,"bounds_min":[98.70795,-152.57103,106.659874],"bounds_max":[104.854546,-149.57115,110.09108],"center":[101.78125,-151.07109,108.37547],"move_3d":[0.6,-95.75,-67.03],"move_x":[0.95,0.0,0.0],"move_y":[0.0,-127.67,0.0],"move_z":[0.0,0.0,-76.6]},{"name":"slotted set screw cup point_iso_ISO 7436 - M3 x 6-N002","group":"group_20","group_name":"Chi tiết 21 (slotted set screw cup point_iso_ISO 7436 - M3 x 6-N002)","color":"#b8bec6","vertex_byte_offset":10324500,"vertex_byte_length":3012,"index_byte_offset":10327512,"index_byte_length":5976,"vertex_count":251,"triangles":498,"bounds_min":[89.99484,-152.57109,98.642555],"bounds_max":[94.83354,-149.57109,104.89118],"center":[92.41419,-151.07109,101.76687],"move_3d":[-10.63,-95.75,-73.5],"move_x":[-17.01,0.0,0.0],"move_y":[0.0,-127.67,0.0],"move_z":[0.0,0.0,-84.0]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N","group":"group_21","group_name":"Chi tiết 22 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N)","color":"#b8bec6","vertex_byte_offset":10333488,"vertex_byte_length":13044,"index_byte_offset":10346532,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[77.86703,-126.57109,105.77095],"bounds_max":[84.857,-119.57109,117.77095],"center":[81.362015,-123.07109,111.77095],"move_3d":[-23.88,-46.56,-63.7],"move_x":[-38.21,0.0,0.0],"move_y":[0.0,-62.08,0.0],"move_z":[0.0,0.0,-72.8]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N001","group":"group_22","group_name":"Chi tiết 23 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N001)","color":"#b8bec6","vertex_byte_offset":10372572,"vertex_byte_length":13044,"index_byte_offset":10385616,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[146.78378,-111.06608,105.77095],"bounds_max":[153.78378,-104.0761,117.77095],"center":[150.28378,-107.57109,111.77095],"move_3d":[58.74,-19.33,-63.7],"move_x":[93.98,0.0,0.0],"move_y":[0.0,-25.77,0.0],"move_z":[0.0,0.0,-72.8]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N002","group":"group_23","group_name":"Chi tiết 24 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N002)","color":"#b8bec6","vertex_byte_offset":10411656,"vertex_byte_length":13044,"index_byte_offset":10424700,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[146.78378,-89.06608,105.77095],"bounds_max":[153.78378,-82.0761,117.77095],"center":[150.28378,-85.57109,111.77095],"move_3d":[58.74,19.33,-63.7],"move_x":[93.98,0.0,0.0],"move_y":[0.0,25.77,0.0],"move_z":[0.0,0.0,-72.8]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N003","group":"group_24","group_name":"Chi tiết 25 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N003)","color":"#b8bec6","vertex_byte_offset":10450740,"vertex_byte_length":13044,"index_byte_offset":10463784,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[105.788795,-73.57109,105.77095],"bounds_max":[112.77876,-66.57109,117.77095],"center":[109.28378,-70.07109,111.77095],"move_3d":[9.59,46.56,-63.7],"move_x":[15.34,0.0,0.0],"move_y":[0.0,62.08,0.0],"move_z":[0.0,0.0,-72.8]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N004","group":"group_25","group_name":"Chi tiết 26 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N004)","color":"#b8bec6","vertex_byte_offset":10489824,"vertex_byte_length":13044,"index_byte_offset":10502868,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[77.788795,-73.57109,105.77095],"bounds_max":[84.77876,-66.57109,117.77095],"center":[81.28378,-70.07109,111.77095],"move_3d":[-23.98,46.56,-63.7],"move_x":[-38.36,0.0,0.0],"move_y":[0.0,62.08,0.0],"move_z":[0.0,0.0,-72.8]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N005","group":"group_26","group_name":"Chi tiết 27 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N005)","color":"#b8bec6","vertex_byte_offset":10528908,"vertex_byte_length":13044,"index_byte_offset":10541952,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[105.69164,-126.57109,105.77095],"bounds_max":[112.68161,-119.57109,117.77095],"center":[109.18663,-123.07109,111.77095],"move_3d":[9.47,-46.56,-63.7],"move_x":[15.16,0.0,0.0],"move_y":[0.0,-62.08,0.0],"move_z":[0.0,0.0,-72.8]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N006","group":"group_27","group_name":"Chi tiết 28 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N006)","color":"#b8bec6","vertex_byte_offset":10567992,"vertex_byte_length":13044,"index_byte_offset":10581036,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[111.7107,-149.07109,106.04747],"bounds_max":[118.69877,-137.07109,113.04713],"center":[115.204735,-143.07109,109.5473],"move_3d":[16.69,-81.7,-65.88],"move_x":[26.7,0.0,0.0],"move_y":[0.0,-108.93,0.0],"move_z":[0.0,0.0,-75.29]},{"name":"\\\\X2\\\\0448043004420443043d\\\\X0\\\\ 2","group":"group_28","group_name":"Chi tiết 29 (\\\\X2\\\\0448043004420443043d\\\\X0\\\\ 2)","color":"#b8bec6","vertex_byte_offset":10607076,"vertex_byte_length":71220,"index_byte_offset":10678296,"index_byte_length":142728,"vertex_count":5935,"triangles":11894,"bounds_min":[83.39431,-106.07109,118.15549],"bounds_max":[111.98178,-87.07109,202.80031],"center":[97.68805,-96.57109,160.4779],"move_3d":[-4.31,0.0,-15.97],"move_x":[-6.9,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-18.25]},{"name":"\\\\X2\\\\0448043004420443043d\\\\X0\\\\ 001","group":"group_29","group_name":"Chi tiết 30 (\\\\X2\\\\0448043004420443043d\\\\X0\\\\ 001)","color":"#b8bec6","vertex_byte_offset":10821024,"vertex_byte_length":3600,"index_byte_offset":10824624,"index_byte_length":7296,"vertex_count":300,"triangles":608,"bounds_min":[91.19196,-106.07109,121.12983],"bounds_max":[104.18412,-87.07109,134.122],"center":[97.68804,-96.57109,127.625916],"move_3d":[-4.31,0.0,-48.16],"move_x":[-6.9,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-55.04]},{"name":"socket head cap screw_iso_ISO 4762 M3 x 8 - 8N","group":"group_30","group_name":"Chi tiết 31 (socket head cap screw_iso_ISO 4762 M3 x 8 - 8N)","color":"#b8bec6","vertex_byte_offset":10831920,"vertex_byte_length":11772,"index_byte_offset":10843692,"index_byte_length":23496,"vertex_count":981,"triangles":1958,"bounds_min":[114.283775,-99.32109,149.52095],"bounds_max":[125.283775,-93.82109,155.02095],"center":[119.783775,-96.57109,152.27095],"move_3d":[22.18,0.0,-24.01],"move_x":[35.48,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-27.44]},{"name":"socket head cap screw_iso_ISO 4762 M3 x 8 - 8N001","group":"group_31","group_name":"Chi tiết 32 (socket head cap screw_iso_ISO 4762 M3 x 8 - 8N001)","color":"#b8bec6","vertex_byte_offset":10867188,"vertex_byte_length":11772,"index_byte_offset":10878960,"index_byte_length":23496,"vertex_count":981,"triangles":1958,"bounds_min":[106.283775,-85.32109,149.52095],"bounds_max":[117.283775,-79.82109,155.02095],"center":[111.783775,-82.57109,152.27095],"move_3d":[12.59,24.6,-24.01],"move_x":[20.14,0.0,0.0],"move_y":[0.0,32.8,0.0],"move_z":[0.0,0.0,-27.44]},{"name":"socket head cap screw_iso_ISO 4762 M3 x 8 - 8N002","group":"group_32","group_name":"Chi tiết 33 (socket head cap screw_iso_ISO 4762 M3 x 8 - 8N002)","color":"#b8bec6","vertex_byte_offset":10902456,"vertex_byte_length":11772,"index_byte_offset":10914228,"index_byte_length":23496,"vertex_count":981,"triangles":1958,"bounds_min":[106.283775,-85.32109,174.52095],"bounds_max":[117.283775,-79.82109,180.02095],"center":[111.783775,-82.57109,177.27095],"move_3d":[12.59,24.6,0.49],"move_x":[20.14,0.0,0.0],"move_y":[0.0,32.8,0.0],"move_z":[0.0,0.0,0.56]},{"name":"socket head cap screw_iso_ISO 4762 M3 x 8 - 8N003","group":"group_33","group_name":"Chi tiết 34 (socket head cap screw_iso_ISO 4762 M3 x 8 - 8N003)","color":"#b8bec6","vertex_byte_offset":10937724,"vertex_byte_length":11772,"index_byte_offset":10949496,"index_byte_length":23496,"vertex_count":981,"triangles":1958,"bounds_min":[114.283775,-99.319214,199.52283],"bounds_max":[125.283775,-93.82297,205.01907],"center":[119.783775,-96.57109,202.27095],"move_3d":[22.18,0.0,24.99],"move_x":[35.48,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,28.56]},{"name":"socket head cap screw_iso_ISO 4762 M3 x 8 - 8N004","group":"group_34","group_name":"Chi tiết 35 (socket head cap screw_iso_ISO 4762 M3 x 8 - 8N004)","color":"#b8bec6","vertex_byte_offset":10972992,"vertex_byte_length":11772,"index_byte_offset":10984764,"index_byte_length":23496,"vertex_count":981,"triangles":1958,"bounds_min":[106.283775,-85.32109,199.52095],"bounds_max":[117.283775,-79.82109,205.02095],"center":[111.783775,-82.57109,202.27095],"move_3d":[12.59,24.6,24.99],"move_x":[20.14,0.0,0.0],"move_y":[0.0,32.8,0.0],"move_z":[0.0,0.0,28.56]},{"name":"socket head cap screw_iso_ISO 4762 M3 x 8 - 8N005","group":"group_35","group_name":"Chi tiết 36 (socket head cap screw_iso_ISO 4762 M3 x 8 - 8N005)","color":"#b8bec6","vertex_byte_offset":11008260,"vertex_byte_length":11772,"index_byte_offset":11020032,"index_byte_length":23496,"vertex_count":981,"triangles":1958,"bounds_min":[106.283775,-113.32109,199.52095],"bounds_max":[117.283775,-107.82109,205.02095],"center":[111.783775,-110.57109,202.27095],"move_3d":[12.59,-24.6,24.99],"move_x":[20.14,0.0,0.0],"move_y":[0.0,-32.8,0.0],"move_z":[0.0,0.0,28.56]},{"name":"socket head cap screw_iso_ISO 4762 M3 x 8 - 8N006","group":"group_36","group_name":"Chi tiết 37 (socket head cap screw_iso_ISO 4762 M3 x 8 - 8N006)","color":"#b8bec6","vertex_byte_offset":11043528,"vertex_byte_length":11772,"index_byte_offset":11055300,"index_byte_length":23496,"vertex_count":981,"triangles":1958,"bounds_min":[106.283775,-113.32109,174.52095],"bounds_max":[117.283775,-107.82109,180.02095],"center":[111.783775,-110.57109,177.27095],"move_3d":[12.59,-24.6,0.49],"move_x":[20.14,0.0,0.0],"move_y":[0.0,-32.8,0.0],"move_z":[0.0,0.0,0.56]},{"name":"socket head cap screw_iso_ISO 4762 M3 x 8 - 8N007","group":"group_37","group_name":"Chi tiết 38 (socket head cap screw_iso_ISO 4762 M3 x 8 - 8N007)","color":"#b8bec6","vertex_byte_offset":11078796,"vertex_byte_length":11772,"index_byte_offset":11090568,"index_byte_length":23496,"vertex_count":981,"triangles":1958,"bounds_min":[106.283775,-113.32109,149.52095],"bounds_max":[117.283775,-107.82109,155.02095],"center":[111.783775,-110.57109,152.27095],"move_3d":[12.59,-24.6,-24.01],"move_x":[20.14,0.0,0.0],"move_y":[0.0,-32.8,0.0],"move_z":[0.0,0.0,-27.44]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N007","group":"group_38","group_name":"Chi tiết 39 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N007)","color":"#b8bec6","vertex_byte_offset":11114064,"vertex_byte_length":13044,"index_byte_offset":11127108,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[83.755066,-100.07109,128.22205],"bounds_max":[90.87121,-93.07109,140.38535],"center":[87.31314,-96.57109,134.3037],"move_3d":[-16.75,0.0,-41.62],"move_x":[-26.8,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-47.56]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N008","group":"group_39","group_name":"Chi tiết 40 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N008)","color":"#b8bec6","vertex_byte_offset":11153148,"vertex_byte_length":13044,"index_byte_offset":11166192,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[103.743,-100.07109,128.91672],"bounds_max":[110.85914,-93.07109,141.08003],"center":[107.30107,-96.57109,134.99838],"move_3d":[7.21,0.0,-40.94],"move_x":[11.54,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-46.79]},{"name":"parallel pin hardened 02_iso_ISO 8735-6x22-A-St","group":"group_40","group_name":"Chi tiết 41 (parallel pin hardened 02_iso_ISO 8735-6x22-A-St)","color":"#b8bec6","vertex_byte_offset":11192232,"vertex_byte_length":4968,"index_byte_offset":11197200,"index_byte_length":9888,"vertex_count":414,"triangles":824,"bounds_min":[92.28867,-107.07109,193.80882],"bounds_max":[98.278885,-85.07109,199.79904],"center":[95.28378,-96.07109,196.80392],"move_3d":[-7.19,0.88,19.63],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,1.17,0.0],"move_z":[0.0,0.0,22.44]},{"name":"parallel pin unhardened_iso_ISO 2338 - 5 m6 x 14 - St","group":"group_41","group_name":"Chi tiết 42 (parallel pin unhardened_iso_ISO 2338 - 5 m6 x 14 - St)","color":"#b8bec6","vertex_byte_offset":11207088,"vertex_byte_length":2496,"index_byte_offset":11209584,"index_byte_length":4944,"vertex_count":208,"triangles":412,"bounds_min":[92.790405,-144.07109,194.63068],"bounds_max":[97.77715,-130.07109,199.61743],"center":[95.28378,-137.07109,197.12405],"move_3d":[-7.19,-71.16,19.95],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,-94.88,0.0],"move_z":[0.0,0.0,22.8]},{"name":"domed cap nut_din_DIN 1587 - M5 --NNU","group":"group_42","group_name":"Chi tiết 43 (domed cap nut_din_DIN 1587 - M5 --NNU)","color":"#b8bec6","vertex_byte_offset":11214528,"vertex_byte_length":16224,"index_byte_offset":11230752,"index_byte_length":32400,"vertex_count":1352,"triangles":2700,"bounds_min":[90.92116,-131.57109,192.58748],"bounds_max":[99.64639,-121.57109,201.66063],"center":[95.283775,-126.57109,197.12405],"move_3d":[-7.19,-52.71,19.95],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,-70.28,0.0],"move_z":[0.0,0.0,22.8]},{"name":"domed cap nut_din_DIN 1587 - M5 --NNU001","group":"group_43","group_name":"Chi tiết 44 (domed cap nut_din_DIN 1587 - M5 --NNU001)","color":"#b8bec6","vertex_byte_offset":11263152,"vertex_byte_length":16224,"index_byte_offset":11279376,"index_byte_length":32400,"vertex_count":1352,"triangles":2700,"bounds_min":[90.67292,-151.57109,192.99554],"bounds_max":[99.89464,-141.57109,201.25258],"center":[95.28378,-146.57109,197.12405],"move_3d":[-7.19,-87.85,19.95],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,-117.13,0.0],"move_z":[0.0,0.0,22.8]},{"name":"domed cap nut_din_DIN 1587 - M6 --NNU","group":"group_44","group_name":"Chi tiết 45 (domed cap nut_din_DIN 1587 - M6 --NNU)","color":"#b8bec6","vertex_byte_offset":11311776,"vertex_byte_length":17208,"index_byte_offset":11328984,"index_byte_length":34368,"vertex_count":1434,"triangles":2864,"bounds_min":[90.070076,-118.07109,191.0487],"bounds_max":[100.497475,-106.07109,202.55916],"center":[95.283775,-112.07109,196.80392],"move_3d":[-7.19,-27.23,19.63],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,-36.31,0.0],"move_z":[0.0,0.0,22.44]},{"name":"domed cap nut_din_DIN 1587 - M6 --NNU001","group":"group_45","group_name":"Chi tiết 46 (domed cap nut_din_DIN 1587 - M6 --NNU001)","color":"#b8bec6","vertex_byte_offset":11363352,"vertex_byte_length":17208,"index_byte_offset":11380560,"index_byte_length":34368,"vertex_count":1434,"triangles":2864,"bounds_min":[90.283775,-87.07109,191.03043],"bounds_max":[100.283775,-75.07109,202.57744],"center":[95.283775,-81.07109,196.80392],"move_3d":[-7.19,27.23,19.63],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,36.31,0.0],"move_z":[0.0,0.0,22.44]},{"name":"\\\\X2\\\\043f043e043b04370443043d\\\\X0\\\\","group":"group_46","group_name":"Chi tiết 47 (\\\\X2\\\\043f043e043b04370443043d\\\\X0\\\\)","color":"#b8bec6","vertex_byte_offset":11414928,"vertex_byte_length":2064,"index_byte_offset":11416992,"index_byte_length":4128,"vertex_count":172,"triangles":344,"bounds_min":[91.283775,-103.07109,192.81326],"bounds_max":[99.283775,-90.07109,200.7946],"center":[95.283775,-96.57109,196.80392],"move_3d":[-7.19,0.0,19.63],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,22.44]},{"name":"\\\\X2\\\\043f043e043b04370443043d\\\\X0\\\\001","group":"group_47","group_name":"Chi tiết 48 (\\\\X2\\\\043f043e043b04370443043d\\\\X0\\\\001)","color":"#b8bec6","vertex_byte_offset":11421120,"vertex_byte_length":17220,"index_byte_offset":11438340,"index_byte_length":34536,"vertex_count":1435,"triangles":2878,"bounds_min":[87.783775,-106.07109,184.80392],"bounds_max":[114.283775,-87.07109,216.80392],"center":[101.033775,-96.57109,200.80392],"move_3d":[-0.3,0.0,23.55],"move_x":[-0.48,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,26.92]},{"name":"\\\\X2\\\\043f043e044004480435043d044c\\\\X0\\\\","group":"group_48","group_name":"Chi tiết 49 (\\\\X2\\\\043f043e044004480435043d044c\\\\X0\\\\)","color":"#b8bec6","vertex_byte_offset":11472876,"vertex_byte_length":26304,"index_byte_offset":11499180,"index_byte_length":52608,"vertex_count":2192,"triangles":4384,"bounds_min":[79.30724,-112.57109,288.31305],"bounds_max":[111.260315,-80.57109,291.2948],"center":[95.28378,-96.57109,289.80392],"move_3d":[-7.19,0.0,110.77],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,126.6]},{"name":"\\\\X2\\\\043f043e044004480435043d044c\\\\X0\\\\001","group":"group_49","group_name":"Chi tiết 50 (\\\\X2\\\\043f043e044004480435043d044c\\\\X0\\\\001)","color":"#b8bec6","vertex_byte_offset":11551788,"vertex_byte_length":23592,"index_byte_offset":11575380,"index_byte_length":47184,"vertex_count":1966,"triangles":3932,"bounds_min":[79.28875,-112.57109,204.30392],"bounds_max":[111.2788,-80.57109,294.80392],"center":[95.283775,-96.57109,249.55392],"move_3d":[-7.19,0.0,71.33],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,81.52]},{"name":"parallel pin hardened_iso_ISO 8734 - 3 x 12 - A - St004","group":"group_50","group_name":"Chi tiết 51 (parallel pin hardened_iso_ISO 8734 - 3 x 12 - A - St004)","color":"#b8bec6","vertex_byte_offset":11622564,"vertex_byte_length":2256,"index_byte_offset":11624820,"index_byte_length":4464,"vertex_count":188,"triangles":372,"bounds_min":[93.78509,-102.57109,206.80524],"bounds_max":[96.78247,-90.57109,209.80263],"center":[95.28378,-96.57109,208.30392],"move_3d":[-7.19,0.0,30.9],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,35.32]},{"name":"\\\\X2\\\\04480442043e043a\\\\X0\\\\","group":"group_51","group_name":"Chi tiết 52 (\\\\X2\\\\04480442043e043a\\\\X0\\\\)","color":"#b8bec6","vertex_byte_offset":11629284,"vertex_byte_length":23880,"index_byte_offset":11653164,"index_byte_length":47760,"vertex_count":1990,"triangles":3980,"bounds_min":[90.32024,-141.32109,192.12405],"bounds_max":[100.24732,-131.82109,287.12405],"center":[95.28378,-136.57109,239.62405],"move_3d":[-7.19,-70.28,61.6],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,-93.7,0.0],"move_z":[0.0,0.0,70.4]},{"name":"hex thin nut chamfered gradeab_din_Hexagon Thin Nut ISO 4035 - M4 - N","group":"group_52","group_name":"Chi tiết 53 (hex thin nut chamfered gradeab_din_Hexagon Thin Nut ISO 4035 - M4 - N)","color":"#b8bec6","vertex_byte_offset":11700924,"vertex_byte_length":5880,"index_byte_offset":11706804,"index_byte_length":11760,"vertex_count":490,"triangles":980,"bounds_min":[91.60508,-140.59367,208.92406],"bounds_max":[98.96247,-132.54851,211.12405],"center":[95.283775,-136.57109,210.02405],"move_3d":[-7.19,-70.28,32.59],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,-93.7,0.0],"move_z":[0.0,0.0,37.24]},{"name":"\\\\X2\\\\04460438043b0438043b043d04340440\\\\X0\\\\ \\\\X2\\\\044004300441043f0440043504340435043b043804420435043b044c\\\\X0\\\\","group":"group_53","group_name":"Chi tiết 54 (\\\\X2\\\\04460438043b0438043b043d04340440\\\\X0\\\\ \\\\X2\\\\044004300441043f0440043504340435043b043804420435043b044c\\\\X0\\\\)","color":"#b8bec6","vertex_byte_offset":11718564,"vertex_byte_length":10956,"index_byte_offset":11729520,"index_byte_length":21912,"vertex_count":913,"triangles":1826,"bounds_min":[82.283775,-149.57109,219.77095],"bounds_max":[108.283775,-123.57109,313.77094],"center":[95.283775,-136.57109,266.77094],"move_3d":[-7.19,-70.28,88.2],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,-93.7,0.0],"move_z":[0.0,0.0,100.8]},{"name":"\\\\X2\\\\043a043e043d0441043e043b044c\\\\X0\\\\","group":"group_54","group_name":"Chi tiết 55 (\\\\X2\\\\043a043e043d0441043e043b044c\\\\X0\\\\)","color":"#b8bec6","vertex_byte_offset":11751432,"vertex_byte_length":56892,"index_byte_offset":11808324,"index_byte_length":114120,"vertex_count":4741,"triangles":9510,"bounds_min":[41.82388,-123.56928,231.77095],"bounds_max":[138.28378,-69.57289,239.77095],"center":[90.05383,-96.57109,235.77095],"move_3d":[-13.46,0.0,57.82],"move_x":[-21.54,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,66.08]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N009","group":"group_55","group_name":"Chi tiết 56 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N009)","color":"#b8bec6","vertex_byte_offset":11922444,"vertex_byte_length":13044,"index_byte_offset":11935488,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[126.783775,-109.06608,231.77095],"bounds_max":[133.78378,-102.0761,243.77095],"center":[130.28378,-105.57109,237.77095],"move_3d":[34.76,-15.81,59.78],"move_x":[55.62,0.0,0.0],"move_y":[0.0,-21.08,0.0],"move_z":[0.0,0.0,68.32]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N010","group":"group_56","group_name":"Chi tiết 57 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N010)","color":"#b8bec6","vertex_byte_offset":11961528,"vertex_byte_length":13044,"index_byte_offset":11974572,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[126.783775,-91.06608,231.77095],"bounds_max":[133.78378,-84.0761,243.77095],"center":[130.28378,-87.57109,237.77095],"move_3d":[34.76,15.81,59.78],"move_x":[55.62,0.0,0.0],"move_y":[0.0,21.08,0.0],"move_z":[0.0,0.0,68.32]},{"name":"domed cap nut_din_DIN 1587 - M5 --NNU002","group":"group_57","group_name":"Chi tiết 58 (domed cap nut_din_DIN 1587 - M5 --NNU002)","color":"#b8bec6","vertex_byte_offset":12000612,"vertex_byte_length":16224,"index_byte_offset":12016836,"index_byte_length":32400,"vertex_count":1352,"triangles":2700,"bounds_min":[43.236378,-101.18888,239.77095],"bounds_max":[51.33118,-91.9533,249.77095],"center":[47.28378,-96.57109,244.77095],"move_3d":[-64.73,0.0,66.64],"move_x":[-103.57,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,76.16]},{"name":"\\\\X2\\\\04460438043b0438043d04340440\\\\X0\\\\2","group":"group_58","group_name":"Chi tiết 59 (\\\\X2\\\\04460438043b0438043d04340440\\\\X0\\\\2)","color":"#b8bec6","vertex_byte_offset":12049236,"vertex_byte_length":1360692,"index_byte_offset":13409928,"index_byte_length":2721720,"vertex_count":113391,"triangles":226810,"bounds_min":[68.287155,-160.57109,239.77095],"bounds_max":[122.2804,-69.57109,301.77094],"center":[95.28378,-115.07109,270.77094],"move_3d":[-7.19,-32.5,92.12],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,-43.34,0.0],"move_z":[0.0,0.0,105.28]},{"name":"\\\\X2\\\\04460438043b0438043d04340440\\\\X0\\\\001","group":"group_59","group_name":"Chi tiết 60 (\\\\X2\\\\04460438043b0438043d04340440\\\\X0\\\\001)","color":"#b8bec6","vertex_byte_offset":16131648,"vertex_byte_length":2820,"index_byte_offset":16134468,"index_byte_length":5592,"vertex_count":235,"triangles":466,"bounds_min":[77.817856,-114.07109,239.77095],"bounds_max":[112.75908,-79.07109,295.27094],"center":[95.28847,-96.57109,267.52094],"move_3d":[-7.19,0.0,88.94],"move_x":[-11.5,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,101.64]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N011","group":"group_60","group_name":"Chi tiết 61 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N011)","color":"#b8bec6","vertex_byte_offset":16140060,"vertex_byte_length":13044,"index_byte_offset":16153104,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[75.17178,-116.6881,293.77094],"bounds_max":[82.16175,-109.6881,305.77094],"center":[78.66676,-113.1881,299.77094],"move_3d":[-27.11,-29.2,120.54],"move_x":[-43.38,0.0,0.0],"move_y":[0.0,-38.93,0.0],"move_z":[0.0,0.0,137.76]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N012","group":"group_61","group_name":"Chi tiết 62 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N012)","color":"#b8bec6","vertex_byte_offset":16179144,"vertex_byte_length":13044,"index_byte_offset":16192188,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[108.4058,-83.45408,293.77094],"bounds_max":[115.395775,-76.45408,305.77094],"center":[111.90079,-79.95408,299.77094],"move_3d":[12.73,29.2,120.54],"move_x":[20.36,0.0,0.0],"move_y":[0.0,38.93,0.0],"move_z":[0.0,0.0,137.76]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N013","group":"group_62","group_name":"Chi tiết 63 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N013)","color":"#b8bec6","vertex_byte_offset":16218228,"vertex_byte_length":13044,"index_byte_offset":16231272,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[75.168755,-83.45198,293.77094],"bounds_max":[82.16479,-76.45618,305.77094],"center":[78.66677,-79.95408,299.77094],"move_3d":[-27.11,29.2,120.54],"move_x":[-43.38,0.0,0.0],"move_y":[0.0,38.93,0.0],"move_z":[0.0,0.0,137.76]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N014","group":"group_63","group_name":"Chi tiết 64 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N014)","color":"#b8bec6","vertex_byte_offset":16257312,"vertex_byte_length":13044,"index_byte_offset":16270356,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[108.4058,-116.6881,293.77094],"bounds_max":[115.395775,-109.6881,305.77094],"center":[111.90079,-113.1881,299.77094],"move_3d":[12.73,-29.2,120.54],"move_x":[20.36,0.0,0.0],"move_y":[0.0,-38.93,0.0],"move_z":[0.0,0.0,137.76]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N015","group":"group_64","group_name":"Chi tiết 65 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N015)","color":"#b8bec6","vertex_byte_offset":16296396,"vertex_byte_length":13044,"index_byte_offset":16309440,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[108.40079,-83.446236,230.77095],"bounds_max":[115.40079,-76.46193,242.77095],"center":[111.90079,-79.95409,236.77095],"move_3d":[12.73,29.2,58.8],"move_x":[20.36,0.0,0.0],"move_y":[0.0,38.93,0.0],"move_z":[0.0,0.0,67.2]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N016","group":"group_65","group_name":"Chi tiết 66 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N016)","color":"#b8bec6","vertex_byte_offset":16335480,"vertex_byte_length":13044,"index_byte_offset":16348524,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[108.40079,-116.68025,230.77095],"bounds_max":[115.40079,-109.695946,242.77095],"center":[111.90079,-113.188095,236.77095],"move_3d":[12.73,-29.2,58.8],"move_x":[20.36,0.0,0.0],"move_y":[0.0,-38.93,0.0],"move_z":[0.0,0.0,67.2]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N017","group":"group_66","group_name":"Chi tiết 67 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N017)","color":"#b8bec6","vertex_byte_offset":16374564,"vertex_byte_length":13044,"index_byte_offset":16387608,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[75.16677,-116.68025,230.77095],"bounds_max":[82.16676,-109.695946,242.77095],"center":[78.66676,-113.188095,236.77095],"move_3d":[-27.11,-29.2,58.8],"move_x":[-43.38,0.0,0.0],"move_y":[0.0,-38.93,0.0],"move_z":[0.0,0.0,67.2]},{"name":"socket head cap screw_iso_ISO 4762 M4 x 8 - 8N018","group":"group_67","group_name":"Chi tiết 68 (socket head cap screw_iso_ISO 4762 M4 x 8 - 8N018)","color":"#b8bec6","vertex_byte_offset":16413648,"vertex_byte_length":13044,"index_byte_offset":16426692,"index_byte_length":26040,"vertex_count":1087,"triangles":2170,"bounds_min":[75.16677,-83.446236,230.77095],"bounds_max":[82.16676,-76.46193,242.77095],"center":[78.66676,-79.95409,236.77095],"move_3d":[-27.11,29.2,58.8],"move_x":[-43.38,0.0,0.0],"move_y":[0.0,38.93,0.0],"move_z":[0.0,0.0,67.2]},{"name":"\\\\X2\\\\043204420443043b043a0430\\\\X0\\\\","group":"group_68","group_name":"Chi tiết 69 (\\\\X2\\\\043204420443043b043a0430\\\\X0\\\\)","color":"#b8bec6","vertex_byte_offset":16452732,"vertex_byte_length":20736,"index_byte_offset":16473468,"index_byte_length":41472,"vertex_count":1728,"triangles":3456,"bounds_min":[87.77823,-104.07109,220.77095],"bounds_max":[102.78933,-89.07109,239.77095],"center":[95.28378,-96.57109,230.27095],"move_3d":[-7.19,0.0,52.43],"move_x":[-11.51,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,59.92]},{"name":"\\\\X2\\\\04410442043e0439043a0430\\\\X0\\\\3","group":"group_69","group_name":"Chi tiết 70 (\\\\X2\\\\04410442043e0439043a0430\\\\X0\\\\3)","color":"#b8bec6","vertex_byte_offset":16514940,"vertex_byte_length":208656,"index_byte_offset":16723596,"index_byte_length":417264,"vertex_count":17388,"triangles":34772,"bounds_min":[41.783855,-102.07002,91.77095],"bounds_max":[52.783703,-91.07216,243.77095],"center":[47.28378,-96.57109,167.77095],"move_3d":[-64.73,0.0,-8.82],"move_x":[-103.57,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-10.08]}];
-    const container = document.getElementById('container');
-    const canvas = document.getElementById('canvas3d');
-    const loadingEl = document.getElementById('loadingEl');
-    const loadStatus = document.getElementById('loadStatus');
-    const readoutEl = document.getElementById('readoutEl');
-    const explodeSlider = document.getElementById('explodeSlider');
-    const explodeVal = document.getElementById('explodeVal');
-    const spreadScale = document.getElementById('spreadScale');
-    const btnReset = document.getElementById('btnReset');
-    const btnAutoSpin = document.getElementById('btnAutoSpin');
-    const btnMode3D = document.getElementById('btnMode3D');
-    const btnModeX = document.getElementById('btnModeX');
-    const btnModeY = document.getElementById('btnModeY');
-    const btnModeZ = document.getElementById('btnModeZ');
-    const pills = document.querySelectorAll('.part-pill');
-
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(36, container.clientWidth / container.clientHeight, 0.01, 50000);
-    const maxDim = 274;
-    camera.position.set(maxDim * 1.4, -maxDim * 1.8, maxDim * 1.2);
-    camera.up.set(0, 0, 1);
-
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.target.set(101.28378, -96.57109, 176.77094);
-    controls.minDistance = maxDim * 0.1;
-    controls.maxDistance = maxDim * 10;
-    controls.autoRotate = true;
-    controls.autoRotateSpeed = 2.0;
-
-    // Hệ thống ánh sáng PBR Studio
-    scene.add(new THREE.AmbientLight(0xffffff, 0.95));
-    const dLight1 = new THREE.DirectionalLight(0xfff5ea, 1.15);
-    dLight1.position.set(maxDim, -maxDim, maxDim * 1.5);
-    scene.add(dLight1);
-
-    const dLight2 = new THREE.DirectionalLight(0xa5c4e8, 0.4);
-    dLight2.position.set(-maxDim, maxDim, maxDim * 0.8);
-    scene.add(dLight2);
-
-    const bLight = new THREE.DirectionalLight(0xffffff, 0.35);
-    bLight.position.set(0, 0, -maxDim);
-    scene.add(bLight);
-
-    const modelPivot = new THREE.Group();
-    modelPivot.position.set(101.28378, -96.57109, 176.77094);
-    scene.add(modelPivot);
-
-    const guidesGroup = new THREE.Group();
-    guidesGroup.position.set(-101.28378, 96.57109, -176.77094);
-    modelPivot.add(guidesGroup);
-
-    let explodeMode = '3D';
-    let distanceMultiplier = 1.0;
-    const partMeshes = [];
-    const guideLines = [];
-    const rootGroup = new THREE.Group();
-    rootGroup.position.set(-101.28378, 96.57109, -176.77094);
-    modelPivot.add(rootGroup);
-
-    let currentExplode = 0;
-    let targetExplode = 0;
-    let activeGroup = 'all';
-
-    try {
-      
-      loadStatus.textContent = 'Đang tải dữ liệu 3D (model.bin)...';
-      let buffer = null;
-      try {
-        const res = await fetch('./model.bin');
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        buffer = await res.arrayBuffer();
-      } catch (fErr) {
-        throw new Error('Không thể tải file model.bin: ' + fErr.message);
-      }
-        
-
-      rawParts.forEach((part) => {
-        const geo = new THREE.BufferGeometry();
-        const positions = new Float32Array(buffer, part.vertex_byte_offset, part.vertex_byte_length / 4);
-        const indices = new Uint32Array(buffer, part.index_byte_offset, part.index_byte_length / 4);
-        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        geo.setIndex(new THREE.BufferAttribute(indices, 1));
-        geo.computeVertexNormals();
-
-        const initialColor = ('sw_gray' === 'original') ? part.color : '#b8bec6';
-        const mat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(initialColor),
-          roughness: 0.45,
-          metalness: 0.15
-        });
-
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.userData = {
-          name: part.name,
-          originalColor: part.color,
-          group: part.group,
-          group_name: part.group_name,
-          move_3d: part.move_3d,
-          move_x: part.move_x,
-          move_y: part.move_y,
-          move_z: part.move_z,
-          center: part.center
-        };
-
-        // Viền nét CAD sắc sảo đồng bộ theo Theme
-        const edgeGeo = new THREE.EdgesGeometry(geo, 28);
-        const edgeMat = new THREE.LineBasicMaterial({
-          color: new THREE.Color(0x1e293b),
-          transparent: true,
-          opacity: 0.85
-        });
-        const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
-        mesh.add(edgeLines);
-
-        rootGroup.add(mesh);
-        partMeshes.push(mesh);
-
-        // Đường chỉ dẫn 3D Leader Guide Lines
-        const pStart = new THREE.Vector3(part.center[0], part.center[1], part.center[2]);
-        const lineGeo = new THREE.BufferGeometry().setFromPoints([pStart, pStart.clone()]);
-        const lineMat = new THREE.LineDashedMaterial({
-          color: 0x0284c7,
-          dashSize: maxDim * 0.02,
-          gapSize: maxDim * 0.015,
-          transparent: true,
-          opacity: 0
-        });
-        const line = new THREE.Line(lineGeo, lineMat);
-        line.computeLineDistances();
-        guidesGroup.add(line);
-        guideLines.push({ line, pStart });
-      });
-
-      loadingEl.style.opacity = '0';
-      setTimeout(() => { loadingEl.style.display = 'none'; }, 400);
-    } catch (err) {
-      loadStatus.textContent = 'Lỗi nạp mô hình 3D: ' + err.message;
-      console.error(err);
-    }
-
-    function getMoveVector(userData) {
-      if (explodeMode === 'X') return userData.move_x;
-      if (explodeMode === 'Y') return userData.move_y;
-      if (explodeMode === 'Z') return userData.move_z;
-      return userData.move_3d;
-    }
-
-    function updateExplode(progress) {
-      partMeshes.forEach((mesh, index) => {
-        const move = getMoveVector(mesh.userData);
-        const tx = move[0] * progress * distanceMultiplier;
-        const ty = move[1] * progress * distanceMultiplier;
-        const tz = move[2] * progress * distanceMultiplier;
-        mesh.position.set(tx, ty, tz);
-
-        const g = guideLines[index];
-        if (g) {
-          const pEnd = new THREE.Vector3(g.pStart.x + tx, g.pStart.y + ty, g.pStart.z + tz);
-          g.line.geometry.setFromPoints([g.pStart, pEnd]);
-          g.line.computeLineDistances();
-          g.line.material.opacity = progress > 0.05 ? Math.min(0.65, (progress - 0.05) * 1.5) : 0;
-        }
-      });
-      explodeVal.textContent = Math.round(progress * 100) + '%';
-      readoutEl.textContent = progress === 0 ? 'Assembled · ' + rawParts.length + ' chi tiết' : 'Exploded ' + Math.round(progress * 100) + '% (' + explodeMode + ' · ' + distanceMultiplier + 'x)';
-    }
-
-    explodeSlider.addEventListener('input', (e) => {
-      targetExplode = parseInt(e.target.value, 10) / 100;
-    });
-
-    spreadScale.addEventListener('change', (e) => {
-      distanceMultiplier = parseFloat(e.target.value);
-      updateExplode(currentExplode);
-    });
-
-    function setExplodeMode(mode, activeBtn) {
-      explodeMode = mode;
-      [btnMode3D, btnModeX, btnModeY, btnModeZ].forEach(b => b.classList.remove('active'));
-      activeBtn.classList.add('active');
-      updateExplode(currentExplode);
-    }
-
-    btnMode3D.addEventListener('click', () => setExplodeMode('3D', btnMode3D));
-    btnModeX.addEventListener('click', () => setExplodeMode('X', btnModeX));
-    btnModeY.addEventListener('click', () => setExplodeMode('Y', btnModeY));
-    btnModeZ.addEventListener('click', () => setExplodeMode('Z', btnModeZ));
-
-    // Bộ điều khiển Preset Vật liệu PBR
-    const PRESETS = {
-      sw_gray: { color: '#b8bec6', roughness: 0.45, metalness: 0.15 },
-      wood: { color: '#c29b6e', roughness: 0.70, metalness: 0.02 },
-      chrome: { color: '#e2e8f0', roughness: 0.12, metalness: 0.90 },
-      custom: { color: '#94a3b8', roughness: 0.40, metalness: 0.15 },
-      original: { roughness: 0.45, metalness: 0.15 }
-    };
-
-    const cboMaterial = document.getElementById('cboMaterialPreset');
-    const pickerColor = document.getElementById('pickerCustomColor');
-
-    function applyMaterialPreset(presetKey, customHex) {
-      partMeshes.forEach((mesh) => {
-        if (presetKey === 'original') {
-          mesh.material.color.set(mesh.userData.originalColor || '#b8bec6');
-          mesh.material.roughness = 0.45;
-          mesh.material.metalness = 0.15;
-        } else if (presetKey === 'custom') {
-          const hex = customHex || (pickerColor ? pickerColor.value : '#94a3b8');
-          mesh.material.color.set(hex);
-          mesh.material.roughness = 0.40;
-          mesh.material.metalness = 0.15;
+  <script>
+    function filterModels() {
+      var q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+      var cards = document.querySelectorAll('#modelList .card');
+      var visible = 0;
+      cards.forEach(function(card) {
+        var t = (card.getAttribute('data-title') || '').toLowerCase();
+        var n = (card.getAttribute('data-name') || '').toLowerCase();
+        if (!q || t.indexOf(q) !== -1 || n.indexOf(q) !== -1) {
+          card.style.display = '';
+          visible++;
         } else {
-          const p = PRESETS[presetKey] || PRESETS.sw_gray;
-          mesh.material.color.set(p.color);
-          mesh.material.roughness = p.roughness;
-          mesh.material.metalness = p.metalness;
-        }
-        mesh.material.needsUpdate = true;
-      });
-    }
-
-    if (cboMaterial) {
-      cboMaterial.addEventListener('change', (e) => {
-        const val = e.target.value;
-        if (val === 'custom') {
-          if (pickerColor) pickerColor.style.display = 'inline-block';
-          applyMaterialPreset('custom', pickerColor ? pickerColor.value : null);
-        } else {
-          if (pickerColor) pickerColor.style.display = 'none';
-          applyMaterialPreset(val, null);
+          card.style.display = 'none';
         }
       });
-    }
-
-    if (pickerColor) {
-      pickerColor.addEventListener('input', (e) => {
-        if (cboMaterial && cboMaterial.value === 'custom') {
-          applyMaterialPreset('custom', e.target.value);
+      var emptyEl = document.getElementById('noResults');
+      if (visible === 0) {
+        if (!emptyEl) {
+          emptyEl = document.createElement('div');
+          emptyEl.id = 'noResults';
+          emptyEl.className = 'empty-state';
+          emptyEl.innerHTML = '&#128064; Kh&ocirc;ng t&igrave;m th&#7845;y m&ocirc; h&igrave;nh n&agrave;o ph&ugrave; h&#7907;p v&#7899;i t&#7915; kh&oacute;a.';
+          document.getElementById('modelList').appendChild(emptyEl);
         }
-      });
-    }
-
-    let showEdges = true;
-    const btnEdgesToggle = document.getElementById('btnEdgesToggle');
-    if (btnEdgesToggle) {
-      btnEdgesToggle.addEventListener('click', () => {
-        showEdges = !showEdges;
-        btnEdgesToggle.classList.toggle('active', showEdges);
-        partMeshes.forEach((mesh) => {
-          mesh.children.forEach((c) => {
-            if (c.isLineSegments) c.visible = showEdges;
-          });
-        });
-      });
-    }
-
-    pills.forEach((pill) => {
-      pill.addEventListener('click', () => {
-        pills.forEach((p) => p.classList.remove('active'));
-        pill.classList.add('active');
-        activeGroup = pill.getAttribute('data-group');
-
-        partMeshes.forEach((mesh) => {
-          const isMatch = activeGroup === 'all' || mesh.userData.group === activeGroup;
-          if (isMatch) {
-            mesh.visible = true;
-            mesh.material.opacity = 1.0;
-            mesh.material.transparent = false;
-          } else {
-            mesh.visible = true;
-            mesh.material.transparent = true;
-            mesh.material.opacity = 0.2;
-          }
-          mesh.children.forEach((c) => {
-            if (c.isLineSegments) {
-              c.visible = showEdges && isMatch;
-              c.material.opacity = isMatch ? 0.85 : 0.2;
-            }
-          });
-        });
-
-        if (activeGroup !== 'all' && targetExplode < 0.25) {
-          targetExplode = 0.5;
-          explodeSlider.value = 50;
-        }
-      });
-    });
-
-    btnReset.addEventListener('click', () => {
-      controls.reset();
-      camera.position.set(maxDim * 1.4, -maxDim * 1.8, maxDim * 1.2);
-      controls.target.set(101.28378, -96.57109, 176.77094);
-      modelPivot.rotation.set(0, 0, 0);
-      targetExplode = 0;
-      explodeSlider.value = 0;
-      activeGroup = 'all';
-      pills.forEach((p, i) => p.classList.toggle('active', i === 0));
-      showEdges = true;
-      if (btnEdgesToggle) btnEdgesToggle.classList.add('active');
-      partMeshes.forEach((m) => {
-        m.visible = true;
-        m.material.transparent = false;
-        m.material.opacity = 1.0;
-        m.children.forEach((c) => {
-          if (c.isLineSegments) {
-            c.visible = true;
-            c.material.opacity = 0.85;
-          }
-        });
-      });
-      autoSpin = true;
-      controls.autoRotate = true;
-      controls.autoRotateSpeed = 2.0;
-      btnAutoSpin.classList.add('active');
-    });
-
-    let autoSpin = true;
-    btnAutoSpin.addEventListener('click', () => {
-      autoSpin = !autoSpin;
-      controls.autoRotate = autoSpin;
-      controls.autoRotateSpeed = 2.0;
-      btnAutoSpin.classList.toggle('active', autoSpin);
-    });
-
-    const btnRotateYZ = document.getElementById('btnRotateYZ');
-    if (btnRotateYZ) {
-      btnRotateYZ.addEventListener('click', () => {
-        modelPivot.rotation.x = (modelPivot.rotation.x + Math.PI / 2) % (Math.PI * 2);
-      });
-    }
-
-    const btnRotateXZ = document.getElementById('btnRotateXZ');
-    if (btnRotateXZ) {
-      btnRotateXZ.addEventListener('click', () => {
-        modelPivot.rotation.y = (modelPivot.rotation.y + Math.PI / 2) % (Math.PI * 2);
-      });
-    }
-
-    window.addEventListener('resize', () => {
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
-    });
-
-    function animate() {
-      requestAnimationFrame(animate);
-      if (Math.abs(targetExplode - currentExplode) > 0.001) {
-        currentExplode += (targetExplode - currentExplode) * 0.12;
-        updateExplode(currentExplode);
+      } else if (emptyEl) {
+        emptyEl.remove();
       }
-      controls.update();
-      renderer.render(scene, camera);
     }
-    animate();
   </script>
 </body>
 </html>
