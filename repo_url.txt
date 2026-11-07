@@ -1,1 +1,1 @@
-git@github.com:saigoncanhquan/3DModel.git
+https://github.com/saigoncanhquan/3DModel.git
