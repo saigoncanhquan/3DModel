@@ -1,5 +1,14 @@
 [
     {
+        "name":  "Table_Assembly_Step",
+        "title":  "Table Assembly Step",
+        "path":  "./Table_Assembly_Step/index.html",
+        "thumb":  "./Table_Assembly_Step/thumb.svg",
+        "fallback_thumb":  "./Table_Assembly_Step/thumb.svg",
+        "part_count":  37,
+        "date":  "2026-11-09 00:40"
+    },
+    {
         "name":  "sh-2",
         "title":  "sh-2",
         "path":  "./sh-2/index.html",

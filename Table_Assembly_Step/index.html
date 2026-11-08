@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Table Assembly Step · Untube 3D CAD Inspection</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f8fafc;
+      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+    .figure-card {
+      width: 100%;
+      max-width: 1120px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 24px 50px rgba(0,0,0,0.08);
+      backdrop-filter: blur(14px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+      font-size: 13px;
+    }
+    .fig-badge {
+      font-family: monospace;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .title { font-weight: 600; font-size: 14.5px; }
+    .readout { font-family: monospace; font-size: 12px; color: #64748b; }
+    .viewport-container {
+      position: relative;
+      width: 100%;
+      height: 620px;
+      background: radial-gradient(circle at 50% 40%, #f1f5f9 0%, #e2e8f0 85%);
+      cursor: grab;
+      user-select: none;
+    }
+    .viewport-container:active { cursor: grabbing; }
+    #canvas3d { width: 100%; height: 100%; display: block; touch-action: none; }
+    .overlay-hint {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #0f172a;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      padding: 5px 10px;
+      border-radius: 5px;
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .overlay-controls {
+      position: absolute;
+      bottom: 14px;
+      right: 16px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      max-width: 85%;
+    }
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #0f172a;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: all 0.2s ease;
+    }
+    .icon-btn:hover { background: #38bdf8; color: #000; font-weight: 600; }
+    .icon-btn.active { background: #38bdf8; color: #000; font-weight: 600; }
+    .card-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(0, 0, 0, 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 280px;
+    }
+    .slider-label { font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .explode-slider { flex: 1; height: 6px; accent-color: #38bdf8; cursor: pointer; }
+    .mode-toggles { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .toggle-btn {
+      background: rgba(0,0,0,0.05);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e293b;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .toggle-btn:hover { border-color: #38bdf8; color: #38bdf8; }
+    .toggle-btn.active {
+      background: #38bdf8;
+      color: #0b0f19;
+      font-weight: 600;
+      border-color: #38bdf8;
+    }
+    .scale-select {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e293b;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+    .scale-select option {
+      background: #ffffff;
+      color: #1e293b;
+      padding: 6px 10px;
+    }
+    .parts-toolbar { display: flex; gap: 6px; flex-wrap: wrap; max-height: 95px; overflow-y: auto; }
+    .part-pill {
+      background: rgba(0,0,0,0.04);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e293b;
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .part-pill:hover { border-color: #38bdf8; color: #38bdf8; }
+    .part-pill.active {
+      background: #38bdf8;
+      color: #0b0f19;
+      font-weight: 600;
+      border-color: #38bdf8;
+    }
+    .caption-box {
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: #64748b;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(0, 0, 0, 0.12);
+    }
+    .loading-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      z-index: 10;
+      transition: opacity 0.4s ease;
+    }
+    .spinner {
+      width: 34px;
+      height: 34px;
+      border: 3px solid rgba(56, 189, 248, 0.2);
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 640px) {
+      body { padding: 6px; }
+      .viewport-container { height: 400px; }
+      .parts-toolbar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .part-pill { flex-shrink: 0; }
+    }
+  </style>
+  <script>
+    window.addEventListener('error', function(e) {
+      var s = document.getElementById('loadStatus');
+      if (s) {
+        s.style.color = '#ef4444';
+        s.textContent = 'Lỗi nạp WebGL / Three.js: ' + (e.message || 'Không thể kết nối thư viện 3D');
+      }
+    });
+  </script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <div class="figure-card">
+    <div class="card-header">
+      <span class="fig-badge">Untube · 3D Inspection</span>
+      <span class="title">Table Assembly Step</span>
+      <span class="readout" id="readoutEl">Assembled · 37 linh kiện</span>
+    </div>
+
+    <div class="viewport-container" id="container">
+      <div class="loading-screen" id="loadingEl">
+        <div class="spinner"></div>
+        <div style="font-size: 12px; color: #64748b;" id="loadStatus">Đang khởi tạo WebGL 3D...</div>
+      </div>
+      <canvas id="canvas3d"></canvas>
+      <div class="overlay-hint">Chuột trái/1 ngón: Xoay 360° · Chuột phải/2 ngón: Pan · Cuộn/Chụm: Zoom</div>
+      <div class="overlay-controls">
+        <button class="icon-btn" id="btnReset" title="Đặt lại góc nhìn và chiều quay ban đầu">Mặc định</button>
+        <button class="icon-btn active" id="btnAutoSpin" title="Bật/Tắt tự xoay 360°">Tự xoay</button>
+        <button class="icon-btn" id="btnSnapThumb" title="Chụp góc nhìn hiện tại làm ảnh Thumbnail (thumb.png)">📸 Chụp ảnh</button>
+        <button class="icon-btn" id="btnRotateYZ" title="Xoay dựng đứng 90° (Đổi Y-Z)">🔄 Đứng (Y-Z)</button>
+        <button class="icon-btn" id="btnRotateXZ" title="Xoay 90° quanh trục đứng (Đổi X-Z)">🔄 Xoay (X-Z)</button>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <div class="control-row">
+        <div class="slider-container">
+          <span class="slider-label">Tách cụm (Explode):</span>
+          <input type="range" class="explode-slider" id="explodeSlider" min="0" max="100" value="0" />
+          <span style="font-family: monospace; font-size: 12px; width: 45px; text-align: right;" id="explodeVal">0%</span>
+        </div>
+
+        <div class="mode-toggles">
+          <button class="toggle-btn active" id="btnMode3D">3D (X+Y+Z)</button>
+          <button class="toggle-btn" id="btnModeX">Trục ngang (X)</button>
+          <button class="toggle-btn" id="btnModeY">Trục dọc (Y)</button>
+          <button class="toggle-btn" id="btnModeZ">Trục đứng (Z)</button>
+          <label style="font-size: 11px; color: #64748b; margin-left: 4px;">Cự ly:</label>
+          <select class="scale-select" id="spreadScale">
+            <option value="1">1x (Chuẩn)</option>
+            <option value="1.5">1.5x (Rộng)</option>
+            <option value="2">2x (Cực rộng)</option>
+            <option value="3">3x (Toàn cảnh)</option>
+          </select>
+          <label style="font-size: 11px; color: #64748b; margin-left: 6px;">Vật liệu:</label>
+          <select class="scale-select" id="cboMaterialPreset">
+            <option value="sw_gray" selected>Xám SolidWorks</option>
+            <option value="wood">Gỗ tự nhiên</option>
+            <option value="chrome">Chrome kim loại</option>
+            <option value="custom">Màu tự chọn...</option>
+            <option value="original">Màu gốc MTL</option>
+          </select>
+          <input type="color" id="pickerCustomColor" value="#94a3b8" style="width: 26px; height: 24px; border: none; cursor: pointer; border-radius: 4px; vertical-align: middle; display: none;" title="Chọn màu tùy chỉnh" />
+          <button class="toggle-btn active" id="btnEdgesToggle">Viền nét CAD</button>
+        </div>
+      </div>
+
+      <div class="parts-toolbar" id="toolbar">
+        <button class="part-pill active" data-group="all">Tất cả (37)</button>
+        <button class="part-pill" data-group="group_0">#01 Shell_000</button>
+        <button class="part-pill" data-group="group_1">#02 Shell_001</button>
+        <button class="part-pill" data-group="group_2">#03 Shell_002</button>
+        <button class="part-pill" data-group="group_3">#04 Shell_003</button>
+        <button class="part-pill" data-group="group_4">#05 Shell_004</button>
+        <button class="part-pill" data-group="group_5">#06 Shell_005</button>
+        <button class="part-pill" data-group="group_6">#07 Shell_006</button>
+        <button class="part-pill" data-group="group_7">#08 Shell_007</button>
+        <button class="part-pill" data-group="group_8">#09 Shell_008</button>
+        <button class="part-pill" data-group="group_9">#10 Shell_009</button>
+        <button class="part-pill" data-group="group_10">#11 Shell_010</button>
+        <button class="part-pill" data-group="group_11">#12 Shell_011</button>
+        <button class="part-pill" data-group="group_12">#13 Shell_012</button>
+        <button class="part-pill" data-group="group_13">#14 Shell_013</button>
+        <button class="part-pill" data-group="group_14">#15 Shell_014</button>
+        <button class="part-pill" data-group="group_15">#16 Shell_015</button>
+        <button class="part-pill" data-group="group_16">#17 Shell_016</button>
+        <button class="part-pill" data-group="group_17">#18 Shell_017</button>
+        <button class="part-pill" data-group="group_18">#19 Shell_018</button>
+        <button class="part-pill" data-group="group_19">#20 Shell_019</button>
+        <button class="part-pill" data-group="group_20">#21 Shell_020</button>
+        <button class="part-pill" data-group="group_21">#22 Shell_021</button>
+        <button class="part-pill" data-group="group_22">#23 Shell_022</button>
+        <button class="part-pill" data-group="group_23">#24 Shell_023</button>
+        <button class="part-pill" data-group="group_24">#25 Shell_024</button>
+        <button class="part-pill" data-group="group_25">#26 Shell_025</button>
+        <button class="part-pill" data-group="group_26">#27 Shell_026</button>
+        <button class="part-pill" data-group="group_27">#28 Shell_027</button>
+        <button class="part-pill" data-group="group_28">#29 Shell_028</button>
+        <button class="part-pill" data-group="group_29">#30 Shell_029</button>
+        <button class="part-pill" data-group="group_30">#31 Shell_030</button>
+        <button class="part-pill" data-group="group_31">#32 Shell_031</button>
+        <button class="part-pill" data-group="group_32">#33 Shell_032</button>
+        <button class="part-pill" data-group="group_33">#34 Shell_033</button>
+        <button class="part-pill" data-group="group_34">#35 Shell_034</button>
+        <button class="part-pill" data-group="group_35">#36 Shell_035</button>
+        <button class="part-pill" data-group="group_36">#37 Shell_036</button>
+        
+      </div>
+
+      <div class="caption-box">
+        Mô hình 3D bóc tách gồm 37 linh kiện CAD. Kích thước tổng thể: 1800.0 × 1000.0 × 1403.0 (Đơn vị CAD). Hỗ trợ tách rã linh hoạt đa trục X, Y, Z và 3D không gian kèm đường chỉ dẫn 3D Leader Lines.
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const rawParts = [{"name":"Shell_000","group":"group_0","group_name":"Chi tiết 01 (Shell_000)","color":"#cad1ee","vertex_byte_offset":0,"vertex_byte_length":25476,"index_byte_offset":25476,"index_byte_length":44652,"vertex_count":2123,"triangles":3721,"bounds_min":[-900.0,-500.0,1270.0],"bounds_max":[900.0,500.0,1295.0],"center":[0.0,0.0,1282.5],"move_3d":[0.0,0.0,866.28],"move_x":[0.0,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,990.04]},{"name":"Shell_001","group":"group_1","group_name":"Chi tiết 02 (Shell_001)","color":"#cad1ee","vertex_byte_offset":70128,"vertex_byte_length":10164,"index_byte_offset":80292,"index_byte_length":17148,"vertex_count":847,"triangles":1429,"bounds_min":[-586.9993,314.0007,40.0],"bounds_max":[-563.0007,337.9993,86.0],"center":[-575.0,326.0,63.0],"move_3d":[-402.5,492.91,-667.0],"move_x":[-644.0,0.0,0.0],"move_y":[0.0,657.22,0.0],"move_z":[0.0,0.0,-762.29]},{"name":"Shell_002","group":"group_2","group_name":"Chi tiết 03 (Shell_002)","color":"#cad1ee","vertex_byte_offset":97440,"vertex_byte_length":10176,"index_byte_offset":107616,"index_byte_length":17148,"vertex_count":848,"triangles":1429,"bounds_min":[644.0126,223.0126,1234.0],"bounds_max":[667.9874,246.9874,1280.0],"center":[656.0,235.0,1257.0],"move_3d":[459.2,355.32,834.22],"move_x":[734.72,0.0,0.0],"move_y":[0.0,473.76,0.0],"move_z":[0.0,0.0,953.4]},{"name":"Shell_003","group":"group_3","group_name":"Chi tiết 04 (Shell_003)","color":"#cad1ee","vertex_byte_offset":124764,"vertex_byte_length":456,"index_byte_offset":125220,"index_byte_length":624,"vertex_count":38,"triangles":52,"bounds_min":[548.0,-341.0,-52.0],"bounds_max":[652.0,-326.0,52.0],"center":[600.0,-333.5,0.0],"move_3d":[420.0,-504.25,-746.21],"move_x":[672.0,0.0,0.0],"move_y":[0.0,-672.34,0.0],"move_z":[0.0,0.0,-852.81]},{"name":"Shell_004","group":"group_4","group_name":"Chi tiết 05 (Shell_004)","color":"#cad1ee","vertex_byte_offset":125844,"vertex_byte_length":10176,"index_byte_offset":136020,"index_byte_length":17148,"vertex_count":848,"triangles":1429,"bounds_min":[613.0029,182.0029,40.0],"bounds_max":[636.9971,205.9971,86.0],"center":[625.0,194.0,63.0],"move_3d":[437.5,293.33,-667.0],"move_x":[700.0,0.0,0.0],"move_y":[0.0,391.1,0.0],"move_z":[0.0,0.0,-762.29]},{"name":"Shell_005","group":"group_5","group_name":"Chi tiết 06 (Shell_005)","color":"#cad1ee","vertex_byte_offset":153168,"vertex_byte_length":10140,"index_byte_offset":163308,"index_byte_length":17148,"vertex_count":845,"triangles":1429,"bounds_min":[-555.9988,223.0012,1234.0],"bounds_max":[-532.0012,246.9988,1280.0],"center":[-544.0,235.0,1257.0],"move_3d":[-380.8,355.32,834.22],"move_x":[-609.28,0.0,0.0],"move_y":[0.0,473.76,0.0],"move_z":[0.0,0.0,953.4]},{"name":"Shell_006","group":"group_6","group_name":"Chi tiết 07 (Shell_006)","color":"#cad1ee","vertex_byte_offset":180456,"vertex_byte_length":456,"index_byte_offset":180912,"index_byte_length":624,"vertex_count":38,"triangles":52,"bounds_min":[-652.0,-341.0,-52.0],"bounds_max":[-548.0,-326.0,52.0],"center":[-600.0,-333.5,0.0],"move_3d":[-420.0,-504.25,-746.21],"move_x":[-672.0,0.0,0.0],"move_y":[0.0,-672.34,0.0],"move_z":[0.0,0.0,-852.81]},{"name":"Shell_007","group":"group_7","group_name":"Chi tiết 08 (Shell_007)","color":"#cad1ee","vertex_byte_offset":181536,"vertex_byte_length":10164,"index_byte_offset":191700,"index_byte_length":17148,"vertex_count":847,"triangles":1429,"bounds_min":[-667.9988,273.0013,1234.0],"bounds_max":[-644.0012,296.9987,1280.0],"center":[-656.0,285.0,1257.0],"move_3d":[-459.2,430.92,834.22],"move_x":[-734.72,0.0,0.0],"move_y":[0.0,574.56,0.0],"move_z":[0.0,0.0,953.4]},{"name":"Shell_008","group":"group_8","group_name":"Chi tiết 09 (Shell_008)","color":"#cad1ee","vertex_byte_offset":208848,"vertex_byte_length":10176,"index_byte_offset":219024,"index_byte_length":17148,"vertex_count":848,"triangles":1429,"bounds_min":[-667.9874,223.0126,1234.0],"bounds_max":[-644.0126,246.9874,1280.0],"center":[-656.0,235.0,1257.0],"move_3d":[-459.2,355.32,834.22],"move_x":[-734.72,0.0,0.0],"move_y":[0.0,473.76,0.0],"move_z":[0.0,0.0,953.4]},{"name":"Shell_009","group":"group_9","group_name":"Chi tiết 10 (Shell_009)","color":"#cad1ee","vertex_byte_offset":236172,"vertex_byte_length":10164,"index_byte_offset":246336,"index_byte_length":17148,"vertex_count":847,"triangles":1429,"bounds_min":[563.0002,314.0002,40.0],"bounds_max":[586.9998,337.9998,86.0],"center":[575.0,326.0,63.0],"move_3d":[402.5,492.91,-667.0],"move_x":[644.0,0.0,0.0],"move_y":[0.0,657.22,0.0],"move_z":[0.0,0.0,-762.29]},{"name":"Shell_010","group":"group_10","group_name":"Chi tiết 11 (Shell_010)","color":"#cad1ee","vertex_byte_offset":263484,"vertex_byte_length":10164,"index_byte_offset":273648,"index_byte_length":17148,"vertex_count":847,"triangles":1429,"bounds_min":[613.0,314.0,40.0],"bounds_max":[637.0,338.0,86.0],"center":[625.0,326.0,63.0],"move_3d":[437.5,492.91,-667.0],"move_x":[700.0,0.0,0.0],"move_y":[0.0,657.22,0.0],"move_z":[0.0,0.0,-762.29]},{"name":"Shell_011","group":"group_11","group_name":"Chi tiết 12 (Shell_011)","color":"#cad1ee","vertex_byte_offset":290796,"vertex_byte_length":10152,"index_byte_offset":300948,"index_byte_length":17148,"vertex_count":846,"triangles":1429,"bounds_min":[-586.9921,182.0079,40.0],"bounds_max":[-563.0079,205.9921,86.0],"center":[-575.0,194.0,63.0],"move_3d":[-402.5,293.33,-667.0],"move_x":[-644.0,0.0,0.0],"move_y":[0.0,391.1,0.0],"move_z":[0.0,0.0,-762.29]},{"name":"Shell_012","group":"group_12","group_name":"Chi tiết 13 (Shell_012)","color":"#cad1ee","vertex_byte_offset":318096,"vertex_byte_length":10140,"index_byte_offset":328236,"index_byte_length":17148,"vertex_count":845,"triangles":1429,"bounds_min":[-636.9999,314.0001,40.0],"bounds_max":[-613.0001,337.9999,86.0],"center":[-625.0,326.0,63.0],"move_3d":[-437.5,492.91,-667.0],"move_x":[-700.0,0.0,0.0],"move_y":[0.0,657.22,0.0],"move_z":[0.0,0.0,-762.29]},{"name":"Shell_013","group":"group_13","group_name":"Chi tiết 14 (Shell_013)","color":"#cad1ee","vertex_byte_offset":345384,"vertex_byte_length":10176,"index_byte_offset":355560,"index_byte_length":17148,"vertex_count":848,"triangles":1429,"bounds_min":[-636.9985,182.0015,40.0],"bounds_max":[-613.0015,205.9985,86.0],"center":[-625.0,194.0,63.0],"move_3d":[-437.5,293.33,-667.0],"move_x":[-700.0,0.0,0.0],"move_y":[0.0,391.1,0.0],"move_z":[0.0,0.0,-762.29]},{"name":"Shell_014","group":"group_14","group_name":"Chi tiết 15 (Shell_014)","color":"#cad1ee","vertex_byte_offset":372708,"vertex_byte_length":19656,"index_byte_offset":392364,"index_byte_length":35316,"vertex_count":1638,"triangles":2943,"bounds_min":[685.0466,230.0042,470.0047],"bounds_max":[697.0388,289.9958,529.9952],"center":[691.0427,260.0,499.99994],"move_3d":[483.73,393.12,-117.56],"move_x":[773.97,0.0,0.0],"move_y":[0.0,524.16,0.0],"move_z":[0.0,0.0,-134.35]},{"name":"Shell_015","group":"group_15","group_name":"Chi tiết 16 (Shell_015)","color":"#cad1ee","vertex_byte_offset":427680,"vertex_byte_length":401016,"index_byte_offset":828696,"index_byte_length":673128,"vertex_count":33418,"triangles":56094,"bounds_min":[540.0466,245.281,485.281],"bounds_max":[685.0466,274.719,514.719],"center":[612.5466,260.0,500.0],"move_3d":[428.78,393.12,-117.56],"move_x":[686.05,0.0,0.0],"move_y":[0.0,524.16,0.0],"move_z":[0.0,0.0,-134.35]},{"name":"Shell_016","group":"group_16","group_name":"Chi tiết 17 (Shell_016)","color":"#cad1ee","vertex_byte_offset":1501824,"vertex_byte_length":15504,"index_byte_offset":1517328,"index_byte_length":27024,"vertex_count":1292,"triangles":2252,"bounds_min":[550.0,-340.0,-50.0],"bounds_max":[650.0,360.0,50.0],"center":[600.0,10.0,0.0],"move_3d":[420.0,15.12,-746.21],"move_x":[672.0,0.0,0.0],"move_y":[0.0,20.16,0.0],"move_z":[0.0,0.0,-852.81]},{"name":"Shell_017","group":"group_17","group_name":"Chi tiết 18 (Shell_017)","color":"#cad1ee","vertex_byte_offset":1544352,"vertex_byte_length":15600,"index_byte_offset":1559952,"index_byte_length":27096,"vertex_count":1300,"triangles":2258,"bounds_min":[-650.0,-340.0,-50.0],"bounds_max":[-550.0,360.0,50.0],"center":[-600.0,10.0,0.0],"move_3d":[-420.0,15.12,-746.21],"move_x":[-672.0,0.0,0.0],"move_y":[0.0,20.16,0.0],"move_z":[0.0,0.0,-852.81]},{"name":"Shell_018","group":"group_18","group_name":"Chi tiết 19 (Shell_018)","color":"#cad1ee","vertex_byte_offset":1587048,"vertex_byte_length":10176,"index_byte_offset":1597224,"index_byte_length":17148,"vertex_count":848,"triangles":1429,"bounds_min":[563.0065,182.0065,40.0],"bounds_max":[586.9935,205.9935,86.0],"center":[575.0,194.0,63.0],"move_3d":[402.5,293.33,-667.0],"move_x":[644.0,0.0,0.0],"move_y":[0.0,391.1,0.0],"move_z":[0.0,0.0,-762.29]},{"name":"Shell_019","group":"group_19","group_name":"Chi tiết 20 (Shell_019)","color":"#cad1ee","vertex_byte_offset":1614372,"vertex_byte_length":19668,"index_byte_offset":1634040,"index_byte_length":35316,"vertex_count":1639,"triangles":2943,"bounds_min":[-697.0388,230.0042,470.0047],"bounds_max":[-685.0466,289.9958,529.9952],"center":[-691.0427,260.0,499.99994],"move_3d":[-483.73,393.12,-117.56],"move_x":[-773.97,0.0,0.0],"move_y":[0.0,524.16,0.0],"move_z":[0.0,0.0,-134.35]},{"name":"Shell_020","group":"group_20","group_name":"Chi tiết 21 (Shell_020)","color":"#cad1ee","vertex_byte_offset":1669356,"vertex_byte_length":401016,"index_byte_offset":2070372,"index_byte_length":673128,"vertex_count":33418,"triangles":56094,"bounds_min":[-685.0466,245.281,485.281],"bounds_max":[-540.0466,274.719,514.719],"center":[-612.5466,260.0,500.0],"move_3d":[-428.78,393.12,-117.56],"move_x":[-686.05,0.0,0.0],"move_y":[0.0,524.16,0.0],"move_z":[0.0,0.0,-134.35]},{"name":"Shell_021","group":"group_21","group_name":"Chi tiết 22 (Shell_021)","color":"#cad1ee","vertex_byte_offset":2743500,"vertex_byte_length":3288,"index_byte_offset":2746788,"index_byte_length":5640,"vertex_count":274,"triangles":470,"bounds_min":[580.0,190.0,-88.0],"bounds_max":[620.0,230.0,-48.0],"center":[600.0,210.0,-68.0],"move_3d":[420.0,317.52,-831.71],"move_x":[672.0,0.0,0.0],"move_y":[0.0,423.36,0.0],"move_z":[0.0,0.0,-950.52]},{"name":"Shell_022","group":"group_22","group_name":"Chi tiết 23 (Shell_022)","color":"#cad1ee","vertex_byte_offset":2752428,"vertex_byte_length":3276,"index_byte_offset":2755704,"index_byte_length":5640,"vertex_count":273,"triangles":470,"bounds_min":[-620.0,190.0,-88.0],"bounds_max":[-580.0,230.0,-48.0],"center":[-600.0,210.0,-68.0],"move_3d":[-420.0,317.52,-831.71],"move_x":[-672.0,0.0,0.0],"move_y":[0.0,423.36,0.0],"move_z":[0.0,0.0,-950.52]},{"name":"Shell_023","group":"group_23","group_name":"Chi tiết 24 (Shell_023)","color":"#cad1ee","vertex_byte_offset":2761344,"vertex_byte_length":3288,"index_byte_offset":2764632,"index_byte_length":5640,"vertex_count":274,"triangles":470,"bounds_min":[-620.0,-230.0,-88.0],"bounds_max":[-580.0,-190.0,-48.0],"center":[-600.0,-210.0,-68.0],"move_3d":[-420.0,-317.52,-831.71],"move_x":[-672.0,0.0,0.0],"move_y":[0.0,-423.36,0.0],"move_z":[0.0,0.0,-950.52]},{"name":"Shell_024","group":"group_24","group_name":"Chi tiết 25 (Shell_024)","color":"#cad1ee","vertex_byte_offset":2770272,"vertex_byte_length":8064,"index_byte_offset":2778336,"index_byte_length":13848,"vertex_count":672,"triangles":1154,"bounds_min":[562.5,-247.5,-108.0],"bounds_max":[637.5,-172.5,-48.0],"center":[600.0,-210.0,-78.0],"move_3d":[420.0,-317.52,-844.28],"move_x":[672.0,0.0,0.0],"move_y":[0.0,-423.36,0.0],"move_z":[0.0,0.0,-964.89]},{"name":"Shell_025","group":"group_25","group_name":"Chi tiết 26 (Shell_025)","color":"#cad1ee","vertex_byte_offset":2792184,"vertex_byte_length":4296,"index_byte_offset":2796480,"index_byte_length":7464,"vertex_count":358,"triangles":622,"bounds_min":[562.5,172.5,-108.0],"bounds_max":[637.5,247.5,-88.0],"center":[600.0,210.0,-98.0],"move_3d":[420.0,317.52,-869.43],"move_x":[672.0,0.0,0.0],"move_y":[0.0,423.36,0.0],"move_z":[0.0,0.0,-993.63]},{"name":"Shell_026","group":"group_26","group_name":"Chi tiết 27 (Shell_026)","color":"#cad1ee","vertex_byte_offset":2803944,"vertex_byte_length":4296,"index_byte_offset":2808240,"index_byte_length":7464,"vertex_count":358,"triangles":622,"bounds_min":[-637.5,-247.5,-108.0],"bounds_max":[-562.5,-172.5,-88.0],"center":[-600.0,-210.0,-98.0],"move_3d":[-420.0,-317.52,-869.43],"move_x":[-672.0,0.0,0.0],"move_y":[0.0,-423.36,0.0],"move_z":[0.0,0.0,-993.63]},{"name":"Shell_027","group":"group_27","group_name":"Chi tiết 28 (Shell_027)","color":"#cad1ee","vertex_byte_offset":2815704,"vertex_byte_length":4296,"index_byte_offset":2820000,"index_byte_length":7464,"vertex_count":358,"triangles":622,"bounds_min":[-637.5,172.5,-108.0],"bounds_max":[-562.5,247.5,-88.0],"center":[-600.0,210.0,-98.0],"move_3d":[-420.0,317.52,-869.43],"move_x":[-672.0,0.0,0.0],"move_y":[0.0,423.36,0.0],"move_z":[0.0,0.0,-993.63]},{"name":"Shell_028","group":"group_28","group_name":"Chi tiết 29 (Shell_028)","color":"#cad1ee","vertex_byte_offset":2827464,"vertex_byte_length":10140,"index_byte_offset":2837604,"index_byte_length":17148,"vertex_count":845,"triangles":1429,"bounds_min":[532.0012,273.0012,1234.0],"bounds_max":[555.9988,296.9988,1280.0],"center":[544.0,285.0,1257.0],"move_3d":[380.8,430.92,834.22],"move_x":[609.28,0.0,0.0],"move_y":[0.0,574.56,0.0],"move_z":[0.0,0.0,953.4]},{"name":"Shell_029","group":"group_29","group_name":"Chi tiết 30 (Shell_029)","color":"#cad1ee","vertex_byte_offset":2854752,"vertex_byte_length":39708,"index_byte_offset":2894460,"index_byte_length":66972,"vertex_count":3309,"triangles":5581,"bounds_min":[-650.0,165.0,50.0],"bounds_max":[650.0,355.0,750.0],"center":[0.0,260.0,400.0],"move_3d":[0.0,393.12,-243.29],"move_x":[0.0,0.0,0.0],"move_y":[0.0,524.16,0.0],"move_z":[0.0,0.0,-278.04]},{"name":"Shell_030","group":"group_30","group_name":"Chi tiết 31 (Shell_030)","color":"#cad1ee","vertex_byte_offset":2961432,"vertex_byte_length":10164,"index_byte_offset":2971596,"index_byte_length":17148,"vertex_count":847,"triangles":1429,"bounds_min":[644.0012,273.0013,1234.0],"bounds_max":[667.9988,296.9987,1280.0],"center":[656.0,285.0,1257.0],"move_3d":[459.2,430.92,834.22],"move_x":[734.72,0.0,0.0],"move_y":[0.0,574.56,0.0],"move_z":[0.0,0.0,953.4]},{"name":"Shell_031","group":"group_31","group_name":"Chi tiết 32 (Shell_031)","color":"#cad1ee","vertex_byte_offset":2988744,"vertex_byte_length":57852,"index_byte_offset":3046596,"index_byte_length":92328,"vertex_count":4821,"triangles":7694,"bounds_min":[-640.0,220.0,570.0],"bounds_max":[-560.0,300.0,1270.0],"center":[-600.0,260.0,920.0],"move_3d":[-420.0,393.12,410.51],"move_x":[-672.0,0.0,0.0],"move_y":[0.0,524.16,0.0],"move_z":[0.0,0.0,469.15]},{"name":"Shell_032","group":"group_32","group_name":"Chi tiết 33 (Shell_032)","color":"#cad1ee","vertex_byte_offset":3138924,"vertex_byte_length":71952,"index_byte_offset":3210876,"index_byte_length":116724,"vertex_count":5996,"triangles":9727,"bounds_min":[508.6602,220.0,570.0],"bounds_max":[691.3397,300.0,1270.0],"center":[599.99994,260.0,920.0],"move_3d":[420.0,393.12,410.51],"move_x":[672.0,0.0,0.0],"move_y":[0.0,524.16,0.0],"move_z":[0.0,0.0,469.15]},{"name":"Shell_033","group":"group_33","group_name":"Chi tiết 34 (Shell_033)","color":"#cad1ee","vertex_byte_offset":3327600,"vertex_byte_length":6996,"index_byte_offset":3334596,"index_byte_length":11856,"vertex_count":583,"triangles":988,"bounds_min":[-560.0,220.0,1250.0],"bounds_max":[-508.6602,300.0,1270.0],"center":[-534.3301,260.0,1260.0],"move_3d":[-374.03,393.12,837.99],"move_x":[-598.45,0.0,0.0],"move_y":[0.0,524.16,0.0],"move_z":[0.0,0.0,957.71]},{"name":"Shell_034","group":"group_34","group_name":"Chi tiết 35 (Shell_034)","color":"#cad1ee","vertex_byte_offset":3346452,"vertex_byte_length":7032,"index_byte_offset":3353484,"index_byte_length":11904,"vertex_count":586,"triangles":992,"bounds_min":[-691.3397,220.0,1250.0],"bounds_max":[-640.0,300.0,1270.0],"center":[-665.66986,260.0,1260.0],"move_3d":[-465.97,393.12,837.99],"move_x":[-745.55,0.0,0.0],"move_y":[0.0,524.16,0.0],"move_z":[0.0,0.0,957.71]},{"name":"Shell_035","group":"group_35","group_name":"Chi tiết 36 (Shell_035)","color":"#cad1ee","vertex_byte_offset":3365388,"vertex_byte_length":10140,"index_byte_offset":3375528,"index_byte_length":17148,"vertex_count":845,"triangles":1429,"bounds_min":[-555.9988,273.0012,1234.0],"bounds_max":[-532.0012,296.9988,1280.0],"center":[-544.0,285.0,1257.0],"move_3d":[-380.8,430.92,834.22],"move_x":[-609.28,0.0,0.0],"move_y":[0.0,574.56,0.0],"move_z":[0.0,0.0,953.4]},{"name":"Shell_036","group":"group_36","group_name":"Chi tiết 37 (Shell_036)","color":"#cad1ee","vertex_byte_offset":3392676,"vertex_byte_length":10140,"index_byte_offset":3402816,"index_byte_length":17148,"vertex_count":845,"triangles":1429,"bounds_min":[532.0012,223.0012,1234.0],"bounds_max":[555.9988,246.9988,1280.0],"center":[544.0,235.0,1257.0],"move_3d":[380.8,355.32,834.22],"move_x":[609.28,0.0,0.0],"move_y":[0.0,473.76,0.0],"move_z":[0.0,0.0,953.4]}];
+    const container = document.getElementById('container');
+    const canvas = document.getElementById('canvas3d');
+    const loadingEl = document.getElementById('loadingEl');
+    const loadStatus = document.getElementById('loadStatus');
+    const readoutEl = document.getElementById('readoutEl');
+    const explodeSlider = document.getElementById('explodeSlider');
+    const explodeVal = document.getElementById('explodeVal');
+    const spreadScale = document.getElementById('spreadScale');
+    const btnReset = document.getElementById('btnReset');
+    const btnAutoSpin = document.getElementById('btnAutoSpin');
+    const btnMode3D = document.getElementById('btnMode3D');
+    const btnModeX = document.getElementById('btnModeX');
+    const btnModeY = document.getElementById('btnModeY');
+    const btnModeZ = document.getElementById('btnModeZ');
+    const pills = document.querySelectorAll('.part-pill');
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(36, container.clientWidth / container.clientHeight, 0.01, 50000);
+    const maxDim = 1800;
+    camera.position.set(maxDim * 1.4, -maxDim * 1.8, maxDim * 1.2);
+    camera.up.set(0, 0, 1);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(0, 0, 593.5);
+    controls.minDistance = maxDim * 0.1;
+    controls.maxDistance = maxDim * 10;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 2.0;
+
+    // Hệ thống ánh sáng PBR Studio
+    scene.add(new THREE.AmbientLight(0xffffff, 0.95));
+    const dLight1 = new THREE.DirectionalLight(0xfff5ea, 1.15);
+    dLight1.position.set(maxDim, -maxDim, maxDim * 1.5);
+    scene.add(dLight1);
+
+    const dLight2 = new THREE.DirectionalLight(0xa5c4e8, 0.4);
+    dLight2.position.set(-maxDim, maxDim, maxDim * 0.8);
+    scene.add(dLight2);
+
+    const bLight = new THREE.DirectionalLight(0xffffff, 0.35);
+    bLight.position.set(0, 0, -maxDim);
+    scene.add(bLight);
+
+    const modelPivot = new THREE.Group();
+    modelPivot.position.set(0, 0, 593.5);
+    scene.add(modelPivot);
+
+    const guidesGroup = new THREE.Group();
+    guidesGroup.position.set(-0, -0, -593.5);
+    modelPivot.add(guidesGroup);
+
+    let explodeMode = '3D';
+    let distanceMultiplier = 1.0;
+    const partMeshes = [];
+    const guideLines = [];
+    const rootGroup = new THREE.Group();
+    rootGroup.position.set(-0, -0, -593.5);
+    modelPivot.add(rootGroup);
+
+    let currentExplode = 0;
+    let targetExplode = 0;
+    let activeGroup = 'all';
+
+    try {
+      
+      loadStatus.textContent = 'Đang tải dữ liệu 3D (model.bin)...';
+      let buffer = null;
+      try {
+        const res = await fetch('./model.bin');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        buffer = await res.arrayBuffer();
+      } catch (fErr) {
+        throw new Error('Không thể tải file model.bin: ' + fErr.message);
+      }
+        
+
+      rawParts.forEach((part) => {
+        const geo = new THREE.BufferGeometry();
+        const positions = new Float32Array(buffer, part.vertex_byte_offset, part.vertex_byte_length / 4);
+        const indices = new Uint32Array(buffer, part.index_byte_offset, part.index_byte_length / 4);
+        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geo.setIndex(new THREE.BufferAttribute(indices, 1));
+        geo.computeVertexNormals();
+
+        const initialColor = ('sw_gray' === 'original') ? part.color : '#b8bec6';
+        const mat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(initialColor),
+          roughness: 0.45,
+          metalness: 0.15
+        });
+
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.userData = {
+          name: part.name,
+          originalColor: part.color,
+          group: part.group,
+          group_name: part.group_name,
+          move_3d: part.move_3d,
+          move_x: part.move_x,
+          move_y: part.move_y,
+          move_z: part.move_z,
+          center: part.center
+        };
+
+        // Viền nét CAD sắc sảo đồng bộ theo Theme
+        const edgeGeo = new THREE.EdgesGeometry(geo, 28);
+        const edgeMat = new THREE.LineBasicMaterial({
+          color: new THREE.Color(0x1e293b),
+          transparent: true,
+          opacity: 0.85
+        });
+        const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
+        mesh.add(edgeLines);
+
+        rootGroup.add(mesh);
+        partMeshes.push(mesh);
+
+        // Đường chỉ dẫn 3D Leader Guide Lines
+        const pStart = new THREE.Vector3(part.center[0], part.center[1], part.center[2]);
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([pStart, pStart.clone()]);
+        const lineMat = new THREE.LineDashedMaterial({
+          color: 0x0284c7,
+          dashSize: maxDim * 0.02,
+          gapSize: maxDim * 0.015,
+          transparent: true,
+          opacity: 0
+        });
+        const line = new THREE.Line(lineGeo, lineMat);
+        line.computeLineDistances();
+        guidesGroup.add(line);
+        guideLines.push({ line, pStart });
+      });
+
+      loadingEl.style.opacity = '0';
+      setTimeout(() => { loadingEl.style.display = 'none'; }, 400);
+    } catch (err) {
+      loadStatus.textContent = 'Lỗi nạp mô hình 3D: ' + err.message;
+      console.error(err);
+    }
+
+    function getMoveVector(userData) {
+      if (explodeMode === 'X') return userData.move_x;
+      if (explodeMode === 'Y') return userData.move_y;
+      if (explodeMode === 'Z') return userData.move_z;
+      return userData.move_3d;
+    }
+
+    function updateExplode(progress) {
+      partMeshes.forEach((mesh, index) => {
+        const move = getMoveVector(mesh.userData);
+        const tx = move[0] * progress * distanceMultiplier;
+        const ty = move[1] * progress * distanceMultiplier;
+        const tz = move[2] * progress * distanceMultiplier;
+        mesh.position.set(tx, ty, tz);
+
+        const g = guideLines[index];
+        if (g) {
+          const pEnd = new THREE.Vector3(g.pStart.x + tx, g.pStart.y + ty, g.pStart.z + tz);
+          g.line.geometry.setFromPoints([g.pStart, pEnd]);
+          g.line.computeLineDistances();
+          g.line.material.opacity = progress > 0.05 ? Math.min(0.65, (progress - 0.05) * 1.5) : 0;
+        }
+      });
+      explodeVal.textContent = Math.round(progress * 100) + '%';
+      readoutEl.textContent = progress === 0 ? 'Assembled · ' + rawParts.length + ' chi tiết' : 'Exploded ' + Math.round(progress * 100) + '% (' + explodeMode + ' · ' + distanceMultiplier + 'x)';
+    }
+
+    explodeSlider.addEventListener('input', (e) => {
+      targetExplode = parseInt(e.target.value, 10) / 100;
+    });
+
+    spreadScale.addEventListener('change', (e) => {
+      distanceMultiplier = parseFloat(e.target.value);
+      updateExplode(currentExplode);
+    });
+
+    function setExplodeMode(mode, activeBtn) {
+      explodeMode = mode;
+      [btnMode3D, btnModeX, btnModeY, btnModeZ].forEach(b => b.classList.remove('active'));
+      activeBtn.classList.add('active');
+      updateExplode(currentExplode);
+    }
+
+    btnMode3D.addEventListener('click', () => setExplodeMode('3D', btnMode3D));
+    btnModeX.addEventListener('click', () => setExplodeMode('X', btnModeX));
+    btnModeY.addEventListener('click', () => setExplodeMode('Y', btnModeY));
+    btnModeZ.addEventListener('click', () => setExplodeMode('Z', btnModeZ));
+
+    // Bộ điều khiển Preset Vật liệu PBR
+    const PRESETS = {
+      sw_gray: { color: '#b8bec6', roughness: 0.45, metalness: 0.15 },
+      wood: { color: '#c29b6e', roughness: 0.70, metalness: 0.02 },
+      chrome: { color: '#e2e8f0', roughness: 0.12, metalness: 0.90 },
+      custom: { color: '#94a3b8', roughness: 0.40, metalness: 0.15 },
+      original: { roughness: 0.45, metalness: 0.15 }
+    };
+
+    const cboMaterial = document.getElementById('cboMaterialPreset');
+    const pickerColor = document.getElementById('pickerCustomColor');
+
+    function applyMaterialPreset(presetKey, customHex) {
+      partMeshes.forEach((mesh) => {
+        if (presetKey === 'original') {
+          mesh.material.color.set(mesh.userData.originalColor || '#b8bec6');
+          mesh.material.roughness = 0.45;
+          mesh.material.metalness = 0.15;
+        } else if (presetKey === 'custom') {
+          const hex = customHex || (pickerColor ? pickerColor.value : '#94a3b8');
+          mesh.material.color.set(hex);
+          mesh.material.roughness = 0.40;
+          mesh.material.metalness = 0.15;
+        } else {
+          const p = PRESETS[presetKey] || PRESETS.sw_gray;
+          mesh.material.color.set(p.color);
+          mesh.material.roughness = p.roughness;
+          mesh.material.metalness = p.metalness;
+        }
+        mesh.material.needsUpdate = true;
+      });
+    }
+
+    if (cboMaterial) {
+      cboMaterial.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val === 'custom') {
+          if (pickerColor) pickerColor.style.display = 'inline-block';
+          applyMaterialPreset('custom', pickerColor ? pickerColor.value : null);
+        } else {
+          if (pickerColor) pickerColor.style.display = 'none';
+          applyMaterialPreset(val, null);
+        }
+      });
+    }
+
+    if (pickerColor) {
+      pickerColor.addEventListener('input', (e) => {
+        if (cboMaterial && cboMaterial.value === 'custom') {
+          applyMaterialPreset('custom', e.target.value);
+        }
+      });
+    }
+
+    let showEdges = true;
+    const btnEdgesToggle = document.getElementById('btnEdgesToggle');
+    if (btnEdgesToggle) {
+      btnEdgesToggle.addEventListener('click', () => {
+        showEdges = !showEdges;
+        btnEdgesToggle.classList.toggle('active', showEdges);
+        partMeshes.forEach((mesh) => {
+          mesh.children.forEach((c) => {
+            if (c.isLineSegments) c.visible = showEdges;
+          });
+        });
+      });
+    }
+
+    pills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        pills.forEach((p) => p.classList.remove('active'));
+        pill.classList.add('active');
+        activeGroup = pill.getAttribute('data-group');
+
+        partMeshes.forEach((mesh) => {
+          const isMatch = activeGroup === 'all' || mesh.userData.group === activeGroup;
+          if (isMatch) {
+            mesh.visible = true;
+            mesh.material.opacity = 1.0;
+            mesh.material.transparent = false;
+          } else {
+            mesh.visible = true;
+            mesh.material.transparent = true;
+            mesh.material.opacity = 0.2;
+          }
+          mesh.children.forEach((c) => {
+            if (c.isLineSegments) {
+              c.visible = showEdges && isMatch;
+              c.material.opacity = isMatch ? 0.85 : 0.2;
+            }
+          });
+        });
+
+        if (activeGroup !== 'all' && targetExplode < 0.25) {
+          targetExplode = 0.5;
+          explodeSlider.value = 50;
+        }
+      });
+    });
+
+    btnReset.addEventListener('click', () => {
+      controls.reset();
+      camera.position.set(maxDim * 1.4, -maxDim * 1.8, maxDim * 1.2);
+      controls.target.set(0, 0, 593.5);
+      modelPivot.rotation.set(0, 0, 0);
+      targetExplode = 0;
+      explodeSlider.value = 0;
+      activeGroup = 'all';
+      pills.forEach((p, i) => p.classList.toggle('active', i === 0));
+      showEdges = true;
+      if (btnEdgesToggle) btnEdgesToggle.classList.add('active');
+      partMeshes.forEach((m) => {
+        m.visible = true;
+        m.material.transparent = false;
+        m.material.opacity = 1.0;
+        m.children.forEach((c) => {
+          if (c.isLineSegments) {
+            c.visible = true;
+            c.material.opacity = 0.85;
+          }
+        });
+      });
+      autoSpin = true;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 2.0;
+      btnAutoSpin.classList.add('active');
+    });
+
+    let autoSpin = true;
+    btnAutoSpin.addEventListener('click', () => {
+      autoSpin = !autoSpin;
+      controls.autoRotate = autoSpin;
+      controls.autoRotateSpeed = 2.0;
+      btnAutoSpin.classList.toggle('active', autoSpin);
+    });
+
+    const btnSnapThumb = document.getElementById('btnSnapThumb');
+    if (btnSnapThumb) {
+      btnSnapThumb.addEventListener('click', () => {
+        if (autoSpin) {
+          autoSpin = false;
+          controls.autoRotate = false;
+          btnAutoSpin.classList.remove('active');
+        }
+        controls.update();
+        renderer.render(scene, camera);
+        const dataUrl = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.download = 'thumb.png';
+        a.href = dataUrl;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+    }
+
+    const btnRotateYZ = document.getElementById('btnRotateYZ');
+    if (btnRotateYZ) {
+      btnRotateYZ.addEventListener('click', () => {
+        modelPivot.rotation.x = (modelPivot.rotation.x + Math.PI / 2) % (Math.PI * 2);
+      });
+    }
+
+    const btnRotateXZ = document.getElementById('btnRotateXZ');
+    if (btnRotateXZ) {
+      btnRotateXZ.addEventListener('click', () => {
+        modelPivot.rotation.y = (modelPivot.rotation.y + Math.PI / 2) % (Math.PI * 2);
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (Math.abs(targetExplode - currentExplode) > 0.001) {
+        currentExplode += (targetExplode - currentExplode) * 0.12;
+        updateExplode(currentExplode);
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
