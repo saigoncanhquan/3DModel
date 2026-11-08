@@ -1,5 +1,14 @@
 [
     {
+        "name":  "sh-2",
+        "title":  "sh-2",
+        "path":  "./sh-2/index.html",
+        "thumb":  "./sh-2/thumb.png",
+        "fallback_thumb":  "./sh-2/thumb.svg",
+        "part_count":  244,
+        "date":  "2026-11-08 23:11"
+    },
+    {
         "name":  "Unnamed-par33",
         "title":  "Unnamed-par33",
         "path":  "./Unnamed-par33/index.html",
