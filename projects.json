@@ -1,5 +1,14 @@
 [
     {
+        "name":  "Ensamblaje_Soporte_Varitas",
+        "title":  "Ensamblaje Soporte Varitas",
+        "path":  "./Ensamblaje_Soporte_Varitas/index.html",
+        "thumb":  "./Ensamblaje_Soporte_Varitas/thumb.svg",
+        "fallback_thumb":  "./Ensamblaje_Soporte_Varitas/thumb.svg",
+        "part_count":  5,
+        "date":  "2026-11-09 02:03"
+    },
+    {
         "name":  "Table_Assembly_Step",
         "title":  "Table Assembly Step",
         "path":  "./Table_Assembly_Step/index.html",
