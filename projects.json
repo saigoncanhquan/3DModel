@@ -1,5 +1,14 @@
 [
     {
+        "name":  "PP-4",
+        "title":  "PP-4",
+        "path":  "./PP-4/index.html",
+        "thumb":  "./PP-4/thumb.jpg",
+        "fallback_thumb":  "./PP-4/thumb.svg",
+        "part_count":  59,
+        "date":  "2026-11-10 08:40"
+    },
+    {
         "name":  "Ensamblaje_Soporte_Varitas",
         "title":  "Ensamblaje Soporte Varitas",
         "path":  "./Ensamblaje_Soporte_Varitas/index.html",
