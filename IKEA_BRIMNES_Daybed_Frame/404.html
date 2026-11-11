@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IKEA_BRIMNES_Daybed_Frame · Untube 3D CAD Inspection</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f8fafc;
+      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+    .figure-card {
+      width: 100%;
+      max-width: 1120px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 24px 50px rgba(0,0,0,0.08);
+      backdrop-filter: blur(14px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+      font-size: 13px;
+    }
+    .fig-badge {
+      font-family: monospace;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .title { font-weight: 600; font-size: 14.5px; }
+    .readout { font-family: monospace; font-size: 12px; color: #64748b; }
+    .viewport-container {
+      position: relative;
+      width: 100%;
+      height: 620px;
+      background: radial-gradient(circle at 50% 40%, #f1f5f9 0%, #e2e8f0 85%);
+      cursor: grab;
+      user-select: none;
+    }
+    .viewport-container:active { cursor: grabbing; }
+    #canvas3d { width: 100%; height: 100%; display: block; touch-action: none; }
+    .overlay-hint {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #0f172a;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      padding: 5px 10px;
+      border-radius: 5px;
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .overlay-controls {
+      position: absolute;
+      bottom: 14px;
+      right: 16px;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      max-width: 85%;
+    }
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #0f172a;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: all 0.2s ease;
+    }
+    .icon-btn:hover { background: #38bdf8; color: #000; font-weight: 600; }
+    .icon-btn.active { background: #38bdf8; color: #000; font-weight: 600; }
+    .card-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(0, 0, 0, 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 280px;
+    }
+    .slider-label { font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .explode-slider { flex: 1; height: 6px; accent-color: #38bdf8; cursor: pointer; }
+    .mode-toggles { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .toggle-btn {
+      background: rgba(0,0,0,0.05);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e293b;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .toggle-btn:hover { border-color: #38bdf8; color: #38bdf8; }
+    .toggle-btn.active {
+      background: #38bdf8;
+      color: #0b0f19;
+      font-weight: 600;
+      border-color: #38bdf8;
+    }
+    .scale-select {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e293b;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+    .scale-select option {
+      background: #ffffff;
+      color: #1e293b;
+      padding: 6px 10px;
+    }
+    .parts-toolbar { display: flex; gap: 6px; flex-wrap: wrap; max-height: 95px; overflow-y: auto; }
+    .part-pill {
+      background: rgba(0,0,0,0.04);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e293b;
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .part-pill:hover { border-color: #38bdf8; color: #38bdf8; }
+    .part-pill.active {
+      background: #38bdf8;
+      color: #0b0f19;
+      font-weight: 600;
+      border-color: #38bdf8;
+    }
+    .caption-box {
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: #64748b;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(0, 0, 0, 0.12);
+    }
+    .loading-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      z-index: 10;
+      transition: opacity 0.4s ease;
+    }
+    .spinner {
+      width: 34px;
+      height: 34px;
+      border: 3px solid rgba(56, 189, 248, 0.2);
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 640px) {
+      body { padding: 6px; }
+      .viewport-container { height: 400px; }
+      .parts-toolbar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .part-pill { flex-shrink: 0; }
+    }
+  </style>
+  <script>
+    window.addEventListener('error', function(e) {
+      var s = document.getElementById('loadStatus');
+      if (s) {
+        s.style.color = '#ef4444';
+        s.textContent = 'Lỗi nạp WebGL / Three.js: ' + (e.message || 'Không thể kết nối thư viện 3D');
+      }
+    });
+  </script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <div class="figure-card">
+    <div class="card-header">
+      <span class="fig-badge">Untube · 3D Inspection</span>
+      <span class="title">IKEA_BRIMNES_Daybed_Frame</span>
+      <span class="readout" id="readoutEl">Assembled · 115 linh kiện</span>
+    </div>
+
+    <div class="viewport-container" id="container">
+      <div class="loading-screen" id="loadingEl">
+        <div class="spinner"></div>
+        <div style="font-size: 12px; color: #64748b;" id="loadStatus">Đang khởi tạo WebGL 3D...</div>
+      </div>
+      <canvas id="canvas3d"></canvas>
+      <div class="overlay-hint">Chuột trái/1 ngón: Xoay 360° · Chuột phải/2 ngón: Pan · Cuộn/Chụm: Zoom</div>
+      <div class="overlay-controls">
+        <button class="icon-btn" id="btnReset" title="Đặt lại góc nhìn và chiều quay ban đầu">Mặc định</button>
+        <button class="icon-btn active" id="btnAutoSpin" title="Bật/Tắt tự xoay 360°">Tự xoay</button>
+        <button class="icon-btn" id="btnSnapThumb" title="Chụp góc nhìn hiện tại làm ảnh Thumbnail (thumb.png)">📸 Chụp ảnh</button>
+        <button class="icon-btn" id="btnRotateYZ" title="Xoay dựng đứng 90° (Đổi Y-Z)">🔄 Đứng (Y-Z)</button>
+        <button class="icon-btn" id="btnRotateXZ" title="Xoay 90° quanh trục đứng (Đổi X-Z)">🔄 Xoay (X-Z)</button>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <div class="control-row">
+        <div class="slider-container">
+          <span class="slider-label">Tách cụm (Explode):</span>
+          <input type="range" class="explode-slider" id="explodeSlider" min="0" max="100" value="0" />
+          <span style="font-family: monospace; font-size: 12px; width: 45px; text-align: right;" id="explodeVal">0%</span>
+        </div>
+
+        <div class="mode-toggles">
+          <button class="toggle-btn active" id="btnMode3D">3D (X+Y+Z)</button>
+          <button class="toggle-btn" id="btnModeX">Trục ngang (X)</button>
+          <button class="toggle-btn" id="btnModeY">Trục dọc (Y)</button>
+          <button class="toggle-btn" id="btnModeZ">Trục đứng (Z)</button>
+          <label style="font-size: 11px; color: #64748b; margin-left: 4px;">Cự ly:</label>
+          <select class="scale-select" id="spreadScale">
+            <option value="1">1x (Chuẩn)</option>
+            <option value="1.5">1.5x (Rộng)</option>
+            <option value="2">2x (Cực rộng)</option>
+            <option value="3">3x (Toàn cảnh)</option>
+          </select>
+          <label style="font-size: 11px; color: #64748b; margin-left: 6px;">Vật liệu:</label>
+          <select class="scale-select" id="cboMaterialPreset">
+            <option value="sw_gray">Xám SolidWorks</option>
+            <option value="wood" selected>Gỗ tự nhiên</option>
+            <option value="chrome">Chrome kim loại</option>
+            <option value="custom">Màu tự chọn...</option>
+            <option value="original">Màu gốc MTL</option>
+          </select>
+          <input type="color" id="pickerCustomColor" value="#94a3b8" style="width: 26px; height: 24px; border: none; cursor: pointer; border-radius: 4px; vertical-align: middle; display: none;" title="Chọn màu tùy chỉnh" />
+          <button class="toggle-btn active" id="btnEdgesToggle">Viền nét CAD</button>
+        </div>
+      </div>
+
+      <div class="parts-toolbar" id="toolbar">
+        <button class="part-pill active" data-group="all">Tất cả (115)</button>
+        <button class="part-pill" data-group="group_0">#01 Shell_000</button>
+        <button class="part-pill" data-group="group_1">#02 Shell_001</button>
+        <button class="part-pill" data-group="group_2">#03 Shell_002</button>
+        <button class="part-pill" data-group="group_3">#04 Shell_003</button>
+        <button class="part-pill" data-group="group_4">#05 Shell_004</button>
+        <button class="part-pill" data-group="group_5">#06 Shell_005</button>
+        <button class="part-pill" data-group="group_6">#07 Shell_006</button>
+        <button class="part-pill" data-group="group_7">#08 Shell_007</button>
+        <button class="part-pill" data-group="group_8">#09 Shell_008</button>
+        <button class="part-pill" data-group="group_9">#10 Shell_009</button>
+        <button class="part-pill" data-group="group_10">#11 Shell_010</button>
+        <button class="part-pill" data-group="group_11">#12 Shell_011</button>
+        <button class="part-pill" data-group="group_12">#13 Shell_012</button>
+        <button class="part-pill" data-group="group_13">#14 Shell_013</button>
+        <button class="part-pill" data-group="group_14">#15 Shell_014</button>
+        <button class="part-pill" data-group="group_15">#16 Shell_015</button>
+        <button class="part-pill" data-group="group_16">#17 Shell_016</button>
+        <button class="part-pill" data-group="group_17">#18 Shell_017</button>
+        <button class="part-pill" data-group="group_18">#19 Shell_018</button>
+        <button class="part-pill" data-group="group_19">#20 Shell_019</button>
+        <button class="part-pill" data-group="group_20">#21 Shell_020</button>
+        <button class="part-pill" data-group="group_21">#22 Shell_021</button>
+        <button class="part-pill" data-group="group_22">#23 Shell_022</button>
+        <button class="part-pill" data-group="group_23">#24 Shell_023</button>
+        <button class="part-pill" data-group="group_24">#25 Shell_024</button>
+        <button class="part-pill" data-group="group_25">#26 Shell_025</button>
+        <button class="part-pill" data-group="group_26">#27 Shell_026</button>
+        <button class="part-pill" data-group="group_27">#28 Shell_027</button>
+        <button class="part-pill" data-group="group_28">#29 Shell_028</button>
+        <button class="part-pill" data-group="group_29">#30 Shell_029</button>
+        <button class="part-pill" data-group="group_30">#31 Shell_030</button>
+        <button class="part-pill" data-group="group_31">#32 Shell_031</button>
+        <button class="part-pill" data-group="group_32">#33 Shell_032</button>
+        <button class="part-pill" data-group="group_33">#34 Shell_033</button>
+        <button class="part-pill" data-group="group_34">#35 Shell_034</button>
+        <button class="part-pill" data-group="group_35">#36 Shell_035</button>
+        <button class="part-pill" data-group="group_36">#37 Shell_036</button>
+        <button class="part-pill" data-group="group_37">#38 Shell_037</button>
+        <button class="part-pill" data-group="group_38">#39 Shell_038</button>
+        <button class="part-pill" data-group="group_39">#40 Shell_039</button>
+        <button class="part-pill" data-group="group_40">#41 Shell_040</button>
+        <button class="part-pill" data-group="group_41">#42 Shell_041</button>
+        <button class="part-pill" data-group="group_42">#43 Shell_042</button>
+        <button class="part-pill" data-group="group_43">#44 Shell_043</button>
+        <button class="part-pill" data-group="group_44">#45 Shell_044</button>
+        <button class="part-pill" data-group="group_45">#46 Shell_045</button>
+        <button class="part-pill" data-group="group_46">#47 Shell_046</button>
+        <button class="part-pill" data-group="group_47">#48 Shell_047</button>
+        <button class="part-pill" data-group="group_48">#49 Shell_048</button>
+        <button class="part-pill" data-group="group_49">#50 Shell_049</button>
+        <button class="part-pill" data-group="group_50">#51 Shell_050</button>
+        <button class="part-pill" data-group="group_51">#52 Shell_051</button>
+        <button class="part-pill" data-group="group_52">#53 Shell_052</button>
+        <button class="part-pill" data-group="group_53">#54 Shell_053</button>
+        <button class="part-pill" data-group="group_54">#55 Shell_054</button>
+        <button class="part-pill" data-group="group_55">#56 Shell_055</button>
+        <button class="part-pill" data-group="group_56">#57 Shell_056</button>
+        <button class="part-pill" data-group="group_57">#58 Shell_057</button>
+        <button class="part-pill" data-group="group_58">#59 Shell_058</button>
+        <button class="part-pill" data-group="group_59">#60 Shell_059</button>
+        <button class="part-pill" data-group="group_60">#61 Shell_060</button>
+        <button class="part-pill" data-group="group_61">#62 Shell_061</button>
+        <button class="part-pill" data-group="group_62">#63 Shell_062</button>
+        <button class="part-pill" data-group="group_63">#64 Shell_063</button>
+        <button class="part-pill" data-group="group_64">#65 Shell_064</button>
+        <button class="part-pill" data-group="group_65">#66 Shell_065</button>
+        <button class="part-pill" data-group="group_66">#67 Shell_066</button>
+        <button class="part-pill" data-group="group_67">#68 Shell_067</button>
+        <button class="part-pill" data-group="group_68">#69 Shell_068</button>
+        <button class="part-pill" data-group="group_69">#70 Shell_069</button>
+        <button class="part-pill" data-group="group_70">#71 Shell_070</button>
+        <button class="part-pill" data-group="group_71">#72 Shell_071</button>
+        <button class="part-pill" data-group="group_72">#73 Shell_072</button>
+        <button class="part-pill" data-group="group_73">#74 Shell_073</button>
+        <button class="part-pill" data-group="group_74">#75 Shell_074</button>
+        <button class="part-pill" data-group="group_75">#76 Shell_075</button>
+        <button class="part-pill" data-group="group_76">#77 Shell_076</button>
+        <button class="part-pill" data-group="group_77">#78 Shell_077</button>
+        <button class="part-pill" data-group="group_78">#79 Shell_078</button>
+        <button class="part-pill" data-group="group_79">#80 Shell_079</button>
+        <button class="part-pill" data-group="group_80">#81 Shell_080</button>
+        <button class="part-pill" data-group="group_81">#82 Shell_081</button>
+        <button class="part-pill" data-group="group_82">#83 Shell_082</button>
+        <button class="part-pill" data-group="group_83">#84 Shell_083</button>
+        <button class="part-pill" data-group="group_84">#85 Shell_084</button>
+        <button class="part-pill" data-group="group_85">#86 Shell_085</button>
+        <button class="part-pill" data-group="group_86">#87 Shell_086</button>
+        <button class="part-pill" data-group="group_87">#88 Shell_087</button>
+        <button class="part-pill" data-group="group_88">#89 Shell_088</button>
+        <button class="part-pill" data-group="group_89">#90 Shell_089</button>
+        <button class="part-pill" data-group="group_90">#91 Shell_090</button>
+        <button class="part-pill" data-group="group_91">#92 Shell_091</button>
+        <button class="part-pill" data-group="group_92">#93 Shell_092</button>
+        <button class="part-pill" data-group="group_93">#94 Shell_093</button>
+        <button class="part-pill" data-group="group_94">#95 Shell_094</button>
+        <button class="part-pill" data-group="group_95">#96 Shell_095</button>
+        <button class="part-pill" data-group="group_96">#97 Shell_096</button>
+        <button class="part-pill" data-group="group_97">#98 Shell_097</button>
+        <button class="part-pill" data-group="group_98">#99 Shell_098</button>
+        <button class="part-pill" data-group="group_99">#100 Shell_099</button>
+        <button class="part-pill" data-group="group_100">#101 Shell_100</button>
+        <button class="part-pill" data-group="group_101">#102 Shell_101</button>
+        <button class="part-pill" data-group="group_102">#103 Shell_102</button>
+        <button class="part-pill" data-group="group_103">#104 Shell_103</button>
+        <button class="part-pill" data-group="group_104">#105 Shell_104</button>
+        <button class="part-pill" data-group="group_105">#106 Shell_105</button>
+        <button class="part-pill" data-group="group_106">#107 Shell_106</button>
+        <button class="part-pill" data-group="group_107">#108 Shell_107</button>
+        <button class="part-pill" data-group="group_108">#109 Shell_108</button>
+        <button class="part-pill" data-group="group_109">#110 Shell_109</button>
+        <button class="part-pill" data-group="group_110">#111 Shell_110</button>
+        <button class="part-pill" data-group="group_111">#112 Shell_111</button>
+        <button class="part-pill" data-group="group_112">#113 Shell_112</button>
+        <button class="part-pill" data-group="group_113">#114 Shell_113</button>
+        <button class="part-pill" data-group="group_114">#115 Shell_114</button>
+        
+      </div>
+
+      <div class="caption-box">
+        Mô hình 3D bóc tách gồm 115 linh kiện CAD. Kích thước tổng thể: 2050.0 × 876.0 × 575.0 (Đơn vị CAD). Hỗ trợ tách rã linh hoạt đa trục X, Y, Z và 3D không gian kèm đường chỉ dẫn 3D Leader Lines.
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const rawParts = [{"name":"Shell_000","group":"group_0","group_name":"Chi tiết 01 (Shell_000)","color":"#eeeeee","vertex_byte_offset":0,"vertex_byte_length":96,"index_byte_offset":96,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[0.0,0.0,0.0],"bounds_max":[25.0,860.0,570.0],"center":[12.5,430.0,285.0],"move_3d":[-708.75,15.73,8.73],"move_x":[-1134.0,0.0,0.0],"move_y":[0.0,20.97,0.0],"move_z":[0.0,0.0,9.98]},{"name":"Shell_001","group":"group_1","group_name":"Chi tiết 02 (Shell_001)","color":"#b8bec6","vertex_byte_offset":240,"vertex_byte_length":96,"index_byte_offset":336,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[2025.0,0.0,0.0],"bounds_max":[2050.0,860.0,570.0],"center":[2037.5,430.0,285.0],"move_3d":[708.75,15.73,8.73],"move_x":[1134.0,0.0,0.0],"move_y":[0.0,20.97,0.0],"move_z":[0.0,0.0,9.98]},{"name":"Shell_002","group":"group_2","group_name":"Chi tiết 03 (Shell_002)","color":"#b8bec6","vertex_byte_offset":480,"vertex_byte_length":96,"index_byte_offset":576,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[25.0,835.0,70.0],"bounds_max":[2025.0,860.0,570.0],"center":[1025.0,847.5,320.0],"move_3d":[0.0,836.43,131.02],"move_x":[0.0,0.0,0.0],"move_y":[0.0,1115.24,0.0],"move_z":[0.0,0.0,149.74]},{"name":"Shell_003","group":"group_3","group_name":"Chi tiết 04 (Shell_003)","color":"#b8bec6","vertex_byte_offset":720,"vertex_byte_length":96,"index_byte_offset":816,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[25.0,835.0,0.0],"bounds_max":[2025.0,860.0,70.0],"center":[1025.0,847.5,35.0],"move_3d":[0.0,836.43,-864.74],"move_x":[0.0,0.0,0.0],"move_y":[0.0,1115.24,0.0],"move_z":[0.0,0.0,-988.28]},{"name":"Shell_004","group":"group_4","group_name":"Chi tiết 05 (Shell_004)","color":"#484848","vertex_byte_offset":960,"vertex_byte_length":96,"index_byte_offset":1056,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[25.0,805.0,260.0],"bounds_max":[2025.0,835.0,264.0],"center":[1025.0,820.0,262.0],"move_3d":[0.0,782.37,-71.63],"move_x":[0.0,0.0,0.0],"move_y":[0.0,1043.16,0.0],"move_z":[0.0,0.0,-81.86]},{"name":"Shell_005","group":"group_5","group_name":"Chi tiết 06 (Shell_005)","color":"#b8bec6","vertex_byte_offset":1200,"vertex_byte_length":96,"index_byte_offset":1296,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[25.0,831.0,264.0],"bounds_max":[2025.0,835.0,299.0],"center":[1025.0,833.0,281.5],"move_3d":[0.0,807.92,-3.49],"move_x":[0.0,0.0,0.0],"move_y":[0.0,1077.23,0.0],"move_z":[0.0,0.0,-3.99]},{"name":"Shell_006","group":"group_6","group_name":"Chi tiết 07 (Shell_006)","color":"#b8bec6","vertex_byte_offset":1440,"vertex_byte_length":96,"index_byte_offset":1536,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[25.0,60.0,45.0],"bounds_max":[37.0,750.0,65.0],"center":[31.0,405.0,55.0],"move_3d":[-695.8,-33.42,-794.87],"move_x":[-1113.28,0.0,0.0],"move_y":[0.0,-44.56,0.0],"move_z":[0.0,0.0,-908.42]},{"name":"Shell_007","group":"group_7","group_name":"Chi tiết 08 (Shell_007)","color":"#b8bec6","vertex_byte_offset":1680,"vertex_byte_length":96,"index_byte_offset":1776,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[2013.0,60.0,45.0],"bounds_max":[2025.0,750.0,65.0],"center":[2019.0,405.0,55.0],"move_3d":[695.8,-33.42,-794.87],"move_x":[1113.28,0.0,0.0],"move_y":[0.0,-44.56,0.0],"move_z":[0.0,0.0,-908.42]},{"name":"Shell_008","group":"group_8","group_name":"Chi tiết 09 (Shell_008)","color":"#b8bec6","vertex_byte_offset":1920,"vertex_byte_length":96,"index_byte_offset":2016,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[3.0,30.0,-5.0],"bounds_max":[22.0,60.0,0.0],"center":[12.5,45.0,-2.5],"move_3d":[-708.75,-741.09,-995.77],"move_x":[-1134.0,0.0,0.0],"move_y":[0.0,-988.12,0.0],"move_z":[0.0,0.0,-1138.02]},{"name":"Shell_009","group":"group_9","group_name":"Chi tiết 10 (Shell_009)","color":"#b8bec6","vertex_byte_offset":2160,"vertex_byte_length":96,"index_byte_offset":2256,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[2028.0,30.0,-5.0],"bounds_max":[2047.0,60.0,0.0],"center":[2037.5,45.0,-2.5],"move_3d":[708.75,-741.09,-995.77],"move_x":[1134.0,0.0,0.0],"move_y":[0.0,-988.12,0.0],"move_z":[0.0,0.0,-1138.02]},{"name":"Shell_010","group":"group_10","group_name":"Chi tiết 11 (Shell_010)","color":"#b8bec6","vertex_byte_offset":2400,"vertex_byte_length":96,"index_byte_offset":2496,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[3.0,265.0,-5.0],"bounds_max":[22.0,295.0,0.0],"center":[12.5,280.0,-2.5],"move_3d":[-708.75,-279.14,-995.77],"move_x":[-1134.0,0.0,0.0],"move_y":[0.0,-372.18,0.0],"move_z":[0.0,0.0,-1138.02]},{"name":"Shell_011","group":"group_11","group_name":"Chi tiết 12 (Shell_011)","color":"#b8bec6","vertex_byte_offset":2640,"vertex_byte_length":96,"index_byte_offset":2736,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[2028.0,265.0,-5.0],"bounds_max":[2047.0,295.0,0.0],"center":[2037.5,280.0,-2.5],"move_3d":[708.75,-279.14,-995.77],"move_x":[1134.0,0.0,0.0],"move_y":[0.0,-372.18,0.0],"move_z":[0.0,0.0,-1138.02]},{"name":"Shell_012","group":"group_12","group_name":"Chi tiết 13 (Shell_012)","color":"#b8bec6","vertex_byte_offset":2880,"vertex_byte_length":96,"index_byte_offset":2976,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[3.0,565.0,-5.0],"bounds_max":[22.0,595.0,0.0],"center":[12.5,580.0,-2.5],"move_3d":[-708.75,310.59,-995.77],"move_x":[-1134.0,0.0,0.0],"move_y":[0.0,414.12,0.0],"move_z":[0.0,0.0,-1138.02]},{"name":"Shell_013","group":"group_13","group_name":"Chi tiết 14 (Shell_013)","color":"#b8bec6","vertex_byte_offset":3120,"vertex_byte_length":96,"index_byte_offset":3216,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[2028.0,565.0,-5.0],"bounds_max":[2047.0,595.0,0.0],"center":[2037.5,580.0,-2.5],"move_3d":[708.75,310.59,-995.77],"move_x":[1134.0,0.0,0.0],"move_y":[0.0,414.12,0.0],"move_z":[0.0,0.0,-1138.02]},{"name":"Shell_014","group":"group_14","group_name":"Chi tiết 15 (Shell_014)","color":"#b8bec6","vertex_byte_offset":3360,"vertex_byte_length":96,"index_byte_offset":3456,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[3.0,800.0,-5.0],"bounds_max":[22.0,830.0,0.0],"center":[12.5,815.0,-2.5],"move_3d":[-708.75,772.54,-995.77],"move_x":[-1134.0,0.0,0.0],"move_y":[0.0,1030.05,0.0],"move_z":[0.0,0.0,-1138.02]},{"name":"Shell_015","group":"group_15","group_name":"Chi tiết 16 (Shell_015)","color":"#b8bec6","vertex_byte_offset":3600,"vertex_byte_length":96,"index_byte_offset":3696,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[2028.0,800.0,-5.0],"bounds_max":[2047.0,830.0,0.0],"center":[2037.5,815.0,-2.5],"move_3d":[708.75,772.54,-995.77],"move_x":[1134.0,0.0,0.0],"move_y":[0.0,1030.05,0.0],"move_z":[0.0,0.0,-1138.02]},{"name":"Shell_016","group":"group_16","group_name":"Chi tiết 17 (Shell_016)","color":"#b8bec6","vertex_byte_offset":3840,"vertex_byte_length":1320,"index_byte_offset":5160,"index_byte_length":1920,"vertex_count":110,"triangles":160,"bounds_min":[60.0271,814.0068,264.0],"bounds_max":[68.0,821.9932,276.0],"center":[64.01355,818.0,270.0],"move_3d":[-672.69,778.44,-43.67],"move_x":[-1076.3,0.0,0.0],"move_y":[0.0,1037.92,0.0],"move_z":[0.0,0.0,-49.91]},{"name":"Shell_017","group":"group_17","group_name":"Chi tiết 18 (Shell_017)","color":"#b8bec6","vertex_byte_offset":7080,"vertex_byte_length":1320,"index_byte_offset":8400,"index_byte_length":1920,"vertex_count":110,"triangles":160,"bounds_min":[200.0271,814.0068,264.0],"bounds_max":[208.0,821.9932,276.0],"center":[204.01355,818.0,270.0],"move_3d":[-574.69,778.44,-43.67],"move_x":[-919.5,0.0,0.0],"move_y":[0.0,1037.92,0.0],"move_z":[0.0,0.0,-49.91]},{"name":"Shell_018","group":"group_18","group_name":"Chi tiết 19 (Shell_018)","color":"#b8bec6","vertex_byte_offset":10320,"vertex_byte_length":1320,"index_byte_offset":11640,"index_byte_length":1920,"vertex_count":110,"triangles":160,"bounds_min":[340.0271,814.0068,264.0],"bounds_max":[348.0,821.9932,276.0],"center":[344.01355,818.0,270.0],"move_3d":[-476.69,778.44,-43.67],"move_x":[-762.7,0.0,0.0],"move_y":[0.0,1037.92,0.0],"move_z":[0.0,0.0,-49.91]},{"name":"Shell_019","group":"group_19","group_name":"Chi tiết 20 (Shell_019)","color":"#b8bec6","vertex_byte_offset":13560,"vertex_byte_length":1320,"index_byte_offset":14880,"index_byte_length":1920,"vertex_count":110,"triangles":160,"bounds_min":[480.0271,814.0068,264.0],"bounds_max":[488.0,821.9932,276.0],"center":[484.01355,818.0,270.0],"move_3d":[-378.69,778.44,-43.67],"move_x":[-605.9,0.0,0.0],"move_y":[0.0,1037.92,0.0],"move_z":[0.0,0.0,-49.91]},{"name":"Shell_020","group":"group_20","group_name":"Chi tiết 21 (Shell_020)","color":"#b8bec6","vertex_byte_offset":16800,"vertex_byte_length":1320,"index_byte_offset":18120,"index_byte_length":1920,"vertex_count":110,"triangles":160,"bounds_min":[620.0271,814.0068,264.0],"bounds_max":[628.0,821.9932,276.0],"center":[624.01355,818.0,270.0],"move_3d":[-280.69,778.44,-43.67],"move_x":[-449.1,0.0,0.0],"move_y":[0.0,1037.92,0.0],"move_z":[0.0,0.0,-49.91]},{"name":"Shell_021","group":"group_21","group_name":"Chi tiết 22 (Shell_021)","color":"#b8bec6","vertex_byte_offset":20040,"vertex_byte_length":1320,"index_byte_offset":21360,"index_byte_length":1920,"vertex_count":110,"triangles":160,"bounds_min":[760.0271,814.0068,264.0],"bounds_max":[768.0,821.9932,276.0],"center":[764.01355,818.0,270.0],"move_3d":[-182.69,778.44,-43.67],"move_x":[-292.3,0.0,0.0],"move_y":[0.0,1037.92,0.0],"move_z":[0.0,0.0,-49.91]},{"name":"Shell_022","group":"group_22","group_name":"Chi tiết 23 (Shell_022)","color":"#b8bec6","vertex_byte_offset":23280,"vertex_byte_length":1320,"index_byte_offset":24600,"index_byte_length":1920,"vertex_count":110,"triangles":160,"bounds_min":[900.0271,814.0068,264.0],"bounds_max":[908.0,821.9932,276.0],"center":[904.01355,818.0,270.0],"move_3d":[-84.69,778.44,-43.67],"move_x":[-135.5,0.0,0.0],"move_y":[0.0,1037.92,0.0],"move_z":[0.0,0.0,-49.91]},{"name":"Shell_023","group":"group_23","group_name":"Chi tiết 24 (Shell_023)","color":"#b8bec6","vertex_byte_offset":26520,"vertex_byte_length":1320,"index_byte_offset":27840,"index_byte_length":1920,"vertex_count":110,"triangles":160,"bounds_min":[1040.0271,814.0068,264.0],"bounds_max":[1048.0,821.9932,276.0],"center":[1044.0135,818.0,270.0],"move_3d":[13.31,778.44,-43.67],"move_x":[21.3,0.0,0.0],"move_y":[0.0,1037.92,0.0],"move_z":[0.0,0.0,-49.91]},{"name":"Shell_024","group":"group_24","group_name":"Chi tiết 25 (Shell_024)","color":"#b8bec6","vertex_byte_offset":29760,"vertex_byte_length":1320,"index_byte_offset":31080,"index_byte_length":1920,"vertex_count":110,"triangles":160,"bounds_min":[1180.0271,814.0068,264.0],"bounds_max":[1188.0,821.9932,276.0],"center":[1184.0135,818.0,270.0],"move_3d":[111.31,778.44,-43.67],"move_x":[178.1,0.0,0.0],"move_y":[0.0,1037.92,0.0],"move_z":[0.0,0.0,-49.91]},{"name":"Shell_025","group":"group_25","group_name":"Chi tiết 26 (Shell_025)","color":"#b8bec6","vertex_byte_offset":33000,"vertex_byte_length":1320,"index_byte_offset":34320,"index_byte_length":1920,"vertex_count":110,"triangles":160,"bounds_min":[1320.0271,814.0068,264.0],"bounds_max":[1328.0,821.9932,276.0],"center":[1324.0135,818.0,270.0],"move_3d":[209.31,778.44,-43.67],"move_x":[334.9,0.0,0.0],"move_y":[0.0,1037.92,0.0],"move_z":[0.0,0.0,-49.91]},{"name":"Shell_026","group":"group_26","group_name":"Chi tiết 27 (Shell_026)","color":"#b8bec6","vertex_byte_offset":36240,"vertex_byte_length":1320,"index_byte_offset":37560,"index_byte_length":1920,"vertex_count":110,"triangles":160,"bounds_min":[1460.0271,814.0068,264.0],"bounds_max":[1468.0,821.9932,276.0],"center":[1464.0135,818.0,270.0],"move_3d":[307.31,778.44,-43.67],"move_x":[491.7,0.0,0.0],"move_y":[0.0,1037.92,0.0],"move_z":[0.0,0.0,-49.91]},{"name":"Shell_027","group":"group_27","group_name":"Chi tiết 28 (Shell_027)","color":"#b8bec6","vertex_byte_offset":39480,"vertex_byte_length":1320,"index_byte_offset":40800,"index_byte_length":1920,"vertex_count":110,"triangles":160,"bounds_min":[1600.0271,814.0068,264.0],"bounds_max":[1608.0,821.9932,276.0],"center":[1604.0135,818.0,270.0],"move_3d":[405.31,778.44,-43.67],"move_x":[648.5,0.0,0.0],"move_y":[0.0,1037.92,0.0],"move_z":[0.0,0.0,-49.91]},{"name":"Shell_028","group":"group_28","group_name":"Chi tiết 29 (Shell_028)","color":"#b8bec6","vertex_byte_offset":42720,"vertex_byte_length":1320,"index_byte_offset":44040,"index_byte_length":1920,"vertex_count":110,"triangles":160,"bounds_min":[1740.0271,814.0068,264.0],"bounds_max":[1748.0,821.9932,276.0],"center":[1744.0135,818.0,270.0],"move_3d":[503.31,778.44,-43.67],"move_x":[805.3,0.0,0.0],"move_y":[0.0,1037.92,0.0],"move_z":[0.0,0.0,-49.91]},{"name":"Shell_029","group":"group_29","group_name":"Chi tiết 30 (Shell_029)","color":"#b8bec6","vertex_byte_offset":45960,"vertex_byte_length":1320,"index_byte_offset":47280,"index_byte_length":1920,"vertex_count":110,"triangles":160,"bounds_min":[1880.0271,814.0068,264.0],"bounds_max":[1888.0,821.9932,276.0],"center":[1884.0135,818.0,270.0],"move_3d":[601.31,778.44,-43.67],"move_x":[962.1,0.0,0.0],"move_y":[0.0,1037.92,0.0],"move_z":[0.0,0.0,-49.91]},{"name":"Shell_030","group":"group_30","group_name":"Chi tiết 31 (Shell_030)","color":"#e2e2e2","vertex_byte_offset":49200,"vertex_byte_length":96,"index_byte_offset":49296,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[28.0,10.0,246.0],"bounds_max":[2022.0,36.0,272.0],"center":[1025.0,23.0,259.0],"move_3d":[0.0,-784.34,-82.11],"move_x":[0.0,0.0,0.0],"move_y":[0.0,-1045.78,0.0],"move_z":[0.0,0.0,-93.84]},{"name":"Shell_031","group":"group_31","group_name":"Chi tiết 32 (Shell_031)","color":"#b8bec6","vertex_byte_offset":49440,"vertex_byte_length":96,"index_byte_offset":49536,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[37.0,36.0,24.0],"bounds_max":[53.0,780.0,246.0],"center":[45.0,408.0,135.0],"move_3d":[-686.0,-27.52,-515.35],"move_x":[-1097.6,0.0,0.0],"move_y":[0.0,-36.69,0.0],"move_z":[0.0,0.0,-588.97]},{"name":"Shell_032","group":"group_32","group_name":"Chi tiết 33 (Shell_032)","color":"#b8bec6","vertex_byte_offset":49680,"vertex_byte_length":96,"index_byte_offset":49776,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1016.0,36.0,24.0],"bounds_max":[1034.0,800.0,254.0],"center":[1025.0,418.0,139.0],"move_3d":[0.0,-7.86,-501.38],"move_x":[0.0,0.0,0.0],"move_y":[0.0,-10.48,0.0],"move_z":[0.0,0.0,-573.0]},{"name":"Shell_033","group":"group_33","group_name":"Chi tiết 34 (Shell_033)","color":"#b8bec6","vertex_byte_offset":49920,"vertex_byte_length":96,"index_byte_offset":50016,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1997.0,36.0,24.0],"bounds_max":[2013.0,780.0,246.0],"center":[2005.0,408.0,135.0],"move_3d":[686.0,-27.52,-515.35],"move_x":[1097.6,0.0,0.0],"move_y":[0.0,-36.69,0.0],"move_z":[0.0,0.0,-588.97]},{"name":"Shell_034","group":"group_34","group_name":"Chi tiết 35 (Shell_034)","color":"#484848","vertex_byte_offset":50160,"vertex_byte_length":96,"index_byte_offset":50256,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[53.0,60.0,45.0],"bounds_max":[65.0,750.0,65.0],"center":[59.0,405.0,55.0],"move_3d":[-676.2,-33.42,-794.87],"move_x":[-1081.92,0.0,0.0],"move_y":[0.0,-44.56,0.0],"move_z":[0.0,0.0,-908.42]},{"name":"Shell_035","group":"group_35","group_name":"Chi tiết 36 (Shell_035)","color":"#b8bec6","vertex_byte_offset":50400,"vertex_byte_length":96,"index_byte_offset":50496,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1004.0,60.0,45.0],"bounds_max":[1016.0,750.0,65.0],"center":[1010.0,405.0,55.0],"move_3d":[-10.5,-33.42,-794.87],"move_x":[-16.8,0.0,0.0],"move_y":[0.0,-44.56,0.0],"move_z":[0.0,0.0,-908.42]},{"name":"Shell_036","group":"group_36","group_name":"Chi tiết 37 (Shell_036)","color":"#b8bec6","vertex_byte_offset":50640,"vertex_byte_length":96,"index_byte_offset":50736,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1034.0,60.0,45.0],"bounds_max":[1046.0,750.0,65.0],"center":[1040.0,405.0,55.0],"move_3d":[10.5,-33.42,-794.87],"move_x":[16.8,0.0,0.0],"move_y":[0.0,-44.56,0.0],"move_z":[0.0,0.0,-908.42]},{"name":"Shell_037","group":"group_37","group_name":"Chi tiết 38 (Shell_037)","color":"#b8bec6","vertex_byte_offset":50880,"vertex_byte_length":96,"index_byte_offset":50976,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1985.0,60.0,45.0],"bounds_max":[1997.0,750.0,65.0],"center":[1991.0,405.0,55.0],"move_3d":[676.2,-33.42,-794.87],"move_x":[1081.92,0.0,0.0],"move_y":[0.0,-44.56,0.0],"move_z":[0.0,0.0,-908.42]},{"name":"Shell_038","group":"group_38","group_name":"Chi tiết 39 (Shell_038)","color":"#b8bec6","vertex_byte_offset":51120,"vertex_byte_length":96,"index_byte_offset":51216,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[33.0,70.0,6.0],"bounds_max":[57.0,110.0,24.0],"center":[45.0,90.0,15.0],"move_3d":[-686.0,-652.63,-934.62],"move_x":[-1097.6,0.0,0.0],"move_y":[0.0,-870.17,0.0],"move_z":[0.0,0.0,-1068.14]},{"name":"Shell_039","group":"group_39","group_name":"Chi tiết 40 (Shell_039)","color":"#b8bec6","vertex_byte_offset":51360,"vertex_byte_length":1680,"index_byte_offset":53040,"index_byte_length":2640,"vertex_count":140,"triangles":220,"bounds_min":[30.0,80.0,2.028],"bounds_max":[60.0,100.0,21.972],"center":[45.0,90.0,12.0],"move_3d":[-686.0,-652.63,-945.1],"move_x":[-1097.6,0.0,0.0],"move_y":[0.0,-870.17,0.0],"move_z":[0.0,0.0,-1080.12]},{"name":"Shell_040","group":"group_40","group_name":"Chi tiết 41 (Shell_040)","color":"#b8bec6","vertex_byte_offset":55680,"vertex_byte_length":96,"index_byte_offset":55776,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1013.0,70.0,6.0],"bounds_max":[1037.0,110.0,24.0],"center":[1025.0,90.0,15.0],"move_3d":[0.0,-652.63,-934.62],"move_x":[0.0,0.0,0.0],"move_y":[0.0,-870.17,0.0],"move_z":[0.0,0.0,-1068.14]},{"name":"Shell_041","group":"group_41","group_name":"Chi tiết 42 (Shell_041)","color":"#b8bec6","vertex_byte_offset":55920,"vertex_byte_length":1680,"index_byte_offset":57600,"index_byte_length":2640,"vertex_count":140,"triangles":220,"bounds_min":[1010.0,80.0,2.028],"bounds_max":[1040.0,100.0,21.972],"center":[1025.0,90.0,12.0],"move_3d":[0.0,-652.63,-945.1],"move_x":[0.0,0.0,0.0],"move_y":[0.0,-870.17,0.0],"move_z":[0.0,0.0,-1080.12]},{"name":"Shell_042","group":"group_42","group_name":"Chi tiết 43 (Shell_042)","color":"#b8bec6","vertex_byte_offset":60240,"vertex_byte_length":96,"index_byte_offset":60336,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1013.0,720.0,6.0],"bounds_max":[1037.0,760.0,24.0],"center":[1025.0,740.0,15.0],"move_3d":[0.0,625.11,-934.62],"move_x":[0.0,0.0,0.0],"move_y":[0.0,833.48,0.0],"move_z":[0.0,0.0,-1068.14]},{"name":"Shell_043","group":"group_43","group_name":"Chi tiết 44 (Shell_043)","color":"#b8bec6","vertex_byte_offset":60480,"vertex_byte_length":1680,"index_byte_offset":62160,"index_byte_length":2640,"vertex_count":140,"triangles":220,"bounds_min":[1010.0,730.0,2.028],"bounds_max":[1040.0,750.0,21.972],"center":[1025.0,740.0,12.0],"move_3d":[0.0,625.11,-945.1],"move_x":[0.0,0.0,0.0],"move_y":[0.0,833.48,0.0],"move_z":[0.0,0.0,-1080.12]},{"name":"Shell_044","group":"group_44","group_name":"Chi tiết 45 (Shell_044)","color":"#b8bec6","vertex_byte_offset":64800,"vertex_byte_length":96,"index_byte_offset":64896,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1993.0,70.0,6.0],"bounds_max":[2017.0,110.0,24.0],"center":[2005.0,90.0,15.0],"move_3d":[686.0,-652.63,-934.62],"move_x":[1097.6,0.0,0.0],"move_y":[0.0,-870.17,0.0],"move_z":[0.0,0.0,-1068.14]},{"name":"Shell_045","group":"group_45","group_name":"Chi tiết 46 (Shell_045)","color":"#b8bec6","vertex_byte_offset":65040,"vertex_byte_length":1680,"index_byte_offset":66720,"index_byte_length":2640,"vertex_count":140,"triangles":220,"bounds_min":[1990.0,80.0,2.028],"bounds_max":[2020.0,100.0,21.972],"center":[2005.0,90.0,12.0],"move_3d":[686.0,-652.63,-945.1],"move_x":[1097.6,0.0,0.0],"move_y":[0.0,-870.17,0.0],"move_z":[0.0,0.0,-1080.12]},{"name":"Shell_046","group":"group_46","group_name":"Chi tiết 47 (Shell_046)","color":"#d2b48c","vertex_byte_offset":69360,"vertex_byte_length":96,"index_byte_offset":69456,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[35.0,380.0,265.0],"bounds_max":[93.0,830.0,280.0],"center":[64.0,605.0,272.5],"move_3d":[-672.7,359.73,-34.94],"move_x":[-1076.32,0.0,0.0],"move_y":[0.0,479.64,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_047","group":"group_47","group_name":"Chi tiết 48 (Shell_047)","color":"#b8bec6","vertex_byte_offset":69600,"vertex_byte_length":96,"index_byte_offset":69696,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[105.0,16.0,265.0],"bounds_max":[163.0,480.0,280.0],"center":[134.0,248.0,272.5],"move_3d":[-623.7,-342.04,-34.94],"move_x":[-997.92,0.0,0.0],"move_y":[0.0,-456.05,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_048","group":"group_48","group_name":"Chi tiết 49 (Shell_048)","color":"#484848","vertex_byte_offset":69840,"vertex_byte_length":1152,"index_byte_offset":70992,"index_byte_length":1704,"vertex_count":96,"triangles":142,"bounds_min":[130.5,19.5069,262.0],"bounds_max":[137.4724,26.4931,280.0],"center":[133.9862,23.0,271.0],"move_3d":[-623.71,-784.34,-40.18],"move_x":[-997.94,0.0,0.0],"move_y":[0.0,-1045.78,0.0],"move_z":[0.0,0.0,-45.92]},{"name":"Shell_049","group":"group_49","group_name":"Chi tiết 50 (Shell_049)","color":"#d2b48c","vertex_byte_offset":72696,"vertex_byte_length":96,"index_byte_offset":72792,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[175.0,380.0,265.0],"bounds_max":[233.0,830.0,280.0],"center":[204.0,605.0,272.5],"move_3d":[-574.7,359.73,-34.94],"move_x":[-919.52,0.0,0.0],"move_y":[0.0,479.64,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_050","group":"group_50","group_name":"Chi tiết 51 (Shell_050)","color":"#b8bec6","vertex_byte_offset":72936,"vertex_byte_length":96,"index_byte_offset":73032,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[245.0,16.0,265.0],"bounds_max":[303.0,480.0,280.0],"center":[274.0,248.0,272.5],"move_3d":[-525.7,-342.04,-34.94],"move_x":[-841.12,0.0,0.0],"move_y":[0.0,-456.05,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_051","group":"group_51","group_name":"Chi tiết 52 (Shell_051)","color":"#484848","vertex_byte_offset":73176,"vertex_byte_length":1152,"index_byte_offset":74328,"index_byte_length":1704,"vertex_count":96,"triangles":142,"bounds_min":[270.5,19.5069,262.0],"bounds_max":[277.4724,26.4931,280.0],"center":[273.9862,23.0,271.0],"move_3d":[-525.71,-784.34,-40.18],"move_x":[-841.14,0.0,0.0],"move_y":[0.0,-1045.78,0.0],"move_z":[0.0,0.0,-45.92]},{"name":"Shell_052","group":"group_52","group_name":"Chi tiết 53 (Shell_052)","color":"#d2b48c","vertex_byte_offset":76032,"vertex_byte_length":96,"index_byte_offset":76128,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[315.0,380.0,265.0],"bounds_max":[373.0,830.0,280.0],"center":[344.0,605.0,272.5],"move_3d":[-476.7,359.73,-34.94],"move_x":[-762.72,0.0,0.0],"move_y":[0.0,479.64,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_053","group":"group_53","group_name":"Chi tiết 54 (Shell_053)","color":"#b8bec6","vertex_byte_offset":76272,"vertex_byte_length":96,"index_byte_offset":76368,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[385.0,16.0,265.0],"bounds_max":[443.0,480.0,280.0],"center":[414.0,248.0,272.5],"move_3d":[-427.7,-342.04,-34.94],"move_x":[-684.32,0.0,0.0],"move_y":[0.0,-456.05,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_054","group":"group_54","group_name":"Chi tiết 55 (Shell_054)","color":"#484848","vertex_byte_offset":76512,"vertex_byte_length":1152,"index_byte_offset":77664,"index_byte_length":1704,"vertex_count":96,"triangles":142,"bounds_min":[410.5,19.5069,262.0],"bounds_max":[417.4724,26.4931,280.0],"center":[413.9862,23.0,271.0],"move_3d":[-427.71,-784.34,-40.18],"move_x":[-684.34,0.0,0.0],"move_y":[0.0,-1045.78,0.0],"move_z":[0.0,0.0,-45.92]},{"name":"Shell_055","group":"group_55","group_name":"Chi tiết 56 (Shell_055)","color":"#d2b48c","vertex_byte_offset":79368,"vertex_byte_length":96,"index_byte_offset":79464,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[455.0,380.0,265.0],"bounds_max":[513.0,830.0,280.0],"center":[484.0,605.0,272.5],"move_3d":[-378.7,359.73,-34.94],"move_x":[-605.92,0.0,0.0],"move_y":[0.0,479.64,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_056","group":"group_56","group_name":"Chi tiết 57 (Shell_056)","color":"#b8bec6","vertex_byte_offset":79608,"vertex_byte_length":96,"index_byte_offset":79704,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[525.0,16.0,265.0],"bounds_max":[583.0,480.0,280.0],"center":[554.0,248.0,272.5],"move_3d":[-329.7,-342.04,-34.94],"move_x":[-527.52,0.0,0.0],"move_y":[0.0,-456.05,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_057","group":"group_57","group_name":"Chi tiết 58 (Shell_057)","color":"#484848","vertex_byte_offset":79848,"vertex_byte_length":1152,"index_byte_offset":81000,"index_byte_length":1704,"vertex_count":96,"triangles":142,"bounds_min":[550.5,19.5069,262.0],"bounds_max":[557.4724,26.4931,280.0],"center":[553.9862,23.0,271.0],"move_3d":[-329.71,-784.34,-40.18],"move_x":[-527.54,0.0,0.0],"move_y":[0.0,-1045.78,0.0],"move_z":[0.0,0.0,-45.92]},{"name":"Shell_058","group":"group_58","group_name":"Chi tiết 59 (Shell_058)","color":"#d2b48c","vertex_byte_offset":82704,"vertex_byte_length":96,"index_byte_offset":82800,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[595.0,380.0,265.0],"bounds_max":[653.0,830.0,280.0],"center":[624.0,605.0,272.5],"move_3d":[-280.7,359.73,-34.94],"move_x":[-449.12,0.0,0.0],"move_y":[0.0,479.64,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_059","group":"group_59","group_name":"Chi tiết 60 (Shell_059)","color":"#b8bec6","vertex_byte_offset":82944,"vertex_byte_length":96,"index_byte_offset":83040,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[665.0,16.0,265.0],"bounds_max":[723.0,480.0,280.0],"center":[694.0,248.0,272.5],"move_3d":[-231.7,-342.04,-34.94],"move_x":[-370.72,0.0,0.0],"move_y":[0.0,-456.05,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_060","group":"group_60","group_name":"Chi tiết 61 (Shell_060)","color":"#484848","vertex_byte_offset":83184,"vertex_byte_length":1152,"index_byte_offset":84336,"index_byte_length":1704,"vertex_count":96,"triangles":142,"bounds_min":[690.5,19.5069,262.0],"bounds_max":[697.4724,26.4931,280.0],"center":[693.9862,23.0,271.0],"move_3d":[-231.71,-784.34,-40.18],"move_x":[-370.74,0.0,0.0],"move_y":[0.0,-1045.78,0.0],"move_z":[0.0,0.0,-45.92]},{"name":"Shell_061","group":"group_61","group_name":"Chi tiết 62 (Shell_061)","color":"#d2b48c","vertex_byte_offset":86040,"vertex_byte_length":96,"index_byte_offset":86136,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[735.0,380.0,265.0],"bounds_max":[793.0,830.0,280.0],"center":[764.0,605.0,272.5],"move_3d":[-182.7,359.73,-34.94],"move_x":[-292.32,0.0,0.0],"move_y":[0.0,479.64,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_062","group":"group_62","group_name":"Chi tiết 63 (Shell_062)","color":"#b8bec6","vertex_byte_offset":86280,"vertex_byte_length":96,"index_byte_offset":86376,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[805.0,16.0,265.0],"bounds_max":[863.0,480.0,280.0],"center":[834.0,248.0,272.5],"move_3d":[-133.7,-342.04,-34.94],"move_x":[-213.92,0.0,0.0],"move_y":[0.0,-456.05,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_063","group":"group_63","group_name":"Chi tiết 64 (Shell_063)","color":"#484848","vertex_byte_offset":86520,"vertex_byte_length":1152,"index_byte_offset":87672,"index_byte_length":1704,"vertex_count":96,"triangles":142,"bounds_min":[830.5,19.5069,262.0],"bounds_max":[837.4724,26.4931,280.0],"center":[833.9862,23.0,271.0],"move_3d":[-133.71,-784.34,-40.18],"move_x":[-213.94,0.0,0.0],"move_y":[0.0,-1045.78,0.0],"move_z":[0.0,0.0,-45.92]},{"name":"Shell_064","group":"group_64","group_name":"Chi tiết 65 (Shell_064)","color":"#d2b48c","vertex_byte_offset":89376,"vertex_byte_length":96,"index_byte_offset":89472,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[875.0,380.0,265.0],"bounds_max":[933.0,830.0,280.0],"center":[904.0,605.0,272.5],"move_3d":[-84.7,359.73,-34.94],"move_x":[-135.52,0.0,0.0],"move_y":[0.0,479.64,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_065","group":"group_65","group_name":"Chi tiết 66 (Shell_065)","color":"#b8bec6","vertex_byte_offset":89616,"vertex_byte_length":96,"index_byte_offset":89712,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[945.0,16.0,265.0],"bounds_max":[1003.0,480.0,280.0],"center":[974.0,248.0,272.5],"move_3d":[-35.7,-342.04,-34.94],"move_x":[-57.12,0.0,0.0],"move_y":[0.0,-456.05,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_066","group":"group_66","group_name":"Chi tiết 67 (Shell_066)","color":"#484848","vertex_byte_offset":89856,"vertex_byte_length":1152,"index_byte_offset":91008,"index_byte_length":1704,"vertex_count":96,"triangles":142,"bounds_min":[970.5,19.5069,262.0],"bounds_max":[977.4724,26.4931,280.0],"center":[973.9862,23.0,271.0],"move_3d":[-35.71,-784.34,-40.18],"move_x":[-57.14,0.0,0.0],"move_y":[0.0,-1045.78,0.0],"move_z":[0.0,0.0,-45.92]},{"name":"Shell_067","group":"group_67","group_name":"Chi tiết 68 (Shell_067)","color":"#d2b48c","vertex_byte_offset":92712,"vertex_byte_length":96,"index_byte_offset":92808,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1015.0,380.0,265.0],"bounds_max":[1073.0,830.0,280.0],"center":[1044.0,605.0,272.5],"move_3d":[13.3,359.73,-34.94],"move_x":[21.28,0.0,0.0],"move_y":[0.0,479.64,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_068","group":"group_68","group_name":"Chi tiết 69 (Shell_068)","color":"#b8bec6","vertex_byte_offset":92952,"vertex_byte_length":96,"index_byte_offset":93048,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1085.0,16.0,265.0],"bounds_max":[1143.0,480.0,280.0],"center":[1114.0,248.0,272.5],"move_3d":[62.3,-342.04,-34.94],"move_x":[99.68,0.0,0.0],"move_y":[0.0,-456.05,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_069","group":"group_69","group_name":"Chi tiết 70 (Shell_069)","color":"#484848","vertex_byte_offset":93192,"vertex_byte_length":1152,"index_byte_offset":94344,"index_byte_length":1704,"vertex_count":96,"triangles":142,"bounds_min":[1110.5,19.5069,262.0],"bounds_max":[1117.4724,26.4931,280.0],"center":[1113.9862,23.0,271.0],"move_3d":[62.29,-784.34,-40.18],"move_x":[99.66,0.0,0.0],"move_y":[0.0,-1045.78,0.0],"move_z":[0.0,0.0,-45.92]},{"name":"Shell_070","group":"group_70","group_name":"Chi tiết 71 (Shell_070)","color":"#d2b48c","vertex_byte_offset":96048,"vertex_byte_length":96,"index_byte_offset":96144,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1155.0,380.0,265.0],"bounds_max":[1213.0,830.0,280.0],"center":[1184.0,605.0,272.5],"move_3d":[111.3,359.73,-34.94],"move_x":[178.08,0.0,0.0],"move_y":[0.0,479.64,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_071","group":"group_71","group_name":"Chi tiết 72 (Shell_071)","color":"#b8bec6","vertex_byte_offset":96288,"vertex_byte_length":96,"index_byte_offset":96384,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1225.0,16.0,265.0],"bounds_max":[1283.0,480.0,280.0],"center":[1254.0,248.0,272.5],"move_3d":[160.3,-342.04,-34.94],"move_x":[256.48,0.0,0.0],"move_y":[0.0,-456.05,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_072","group":"group_72","group_name":"Chi tiết 73 (Shell_072)","color":"#484848","vertex_byte_offset":96528,"vertex_byte_length":1152,"index_byte_offset":97680,"index_byte_length":1704,"vertex_count":96,"triangles":142,"bounds_min":[1250.5,19.5069,262.0],"bounds_max":[1257.4724,26.4931,280.0],"center":[1253.9862,23.0,271.0],"move_3d":[160.29,-784.34,-40.18],"move_x":[256.46,0.0,0.0],"move_y":[0.0,-1045.78,0.0],"move_z":[0.0,0.0,-45.92]},{"name":"Shell_073","group":"group_73","group_name":"Chi tiết 74 (Shell_073)","color":"#d2b48c","vertex_byte_offset":99384,"vertex_byte_length":96,"index_byte_offset":99480,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1295.0,380.0,265.0],"bounds_max":[1353.0,830.0,280.0],"center":[1324.0,605.0,272.5],"move_3d":[209.3,359.73,-34.94],"move_x":[334.88,0.0,0.0],"move_y":[0.0,479.64,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_074","group":"group_74","group_name":"Chi tiết 75 (Shell_074)","color":"#b8bec6","vertex_byte_offset":99624,"vertex_byte_length":96,"index_byte_offset":99720,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1365.0,16.0,265.0],"bounds_max":[1423.0,480.0,280.0],"center":[1394.0,248.0,272.5],"move_3d":[258.3,-342.04,-34.94],"move_x":[413.28,0.0,0.0],"move_y":[0.0,-456.05,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_075","group":"group_75","group_name":"Chi tiết 76 (Shell_075)","color":"#484848","vertex_byte_offset":99864,"vertex_byte_length":1152,"index_byte_offset":101016,"index_byte_length":1704,"vertex_count":96,"triangles":142,"bounds_min":[1390.5,19.5069,262.0],"bounds_max":[1397.4724,26.4931,280.0],"center":[1393.9862,23.0,271.0],"move_3d":[258.29,-784.34,-40.18],"move_x":[413.26,0.0,0.0],"move_y":[0.0,-1045.78,0.0],"move_z":[0.0,0.0,-45.92]},{"name":"Shell_076","group":"group_76","group_name":"Chi tiết 77 (Shell_076)","color":"#d2b48c","vertex_byte_offset":102720,"vertex_byte_length":96,"index_byte_offset":102816,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1435.0,380.0,265.0],"bounds_max":[1493.0,830.0,280.0],"center":[1464.0,605.0,272.5],"move_3d":[307.3,359.73,-34.94],"move_x":[491.68,0.0,0.0],"move_y":[0.0,479.64,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_077","group":"group_77","group_name":"Chi tiết 78 (Shell_077)","color":"#b8bec6","vertex_byte_offset":102960,"vertex_byte_length":96,"index_byte_offset":103056,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1505.0,16.0,265.0],"bounds_max":[1563.0,480.0,280.0],"center":[1534.0,248.0,272.5],"move_3d":[356.3,-342.04,-34.94],"move_x":[570.08,0.0,0.0],"move_y":[0.0,-456.05,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_078","group":"group_78","group_name":"Chi tiết 79 (Shell_078)","color":"#484848","vertex_byte_offset":103200,"vertex_byte_length":1152,"index_byte_offset":104352,"index_byte_length":1704,"vertex_count":96,"triangles":142,"bounds_min":[1530.5,19.5069,262.0],"bounds_max":[1537.4724,26.4931,280.0],"center":[1533.9862,23.0,271.0],"move_3d":[356.29,-784.34,-40.18],"move_x":[570.06,0.0,0.0],"move_y":[0.0,-1045.78,0.0],"move_z":[0.0,0.0,-45.92]},{"name":"Shell_079","group":"group_79","group_name":"Chi tiết 80 (Shell_079)","color":"#d2b48c","vertex_byte_offset":106056,"vertex_byte_length":96,"index_byte_offset":106152,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1575.0,380.0,265.0],"bounds_max":[1633.0,830.0,280.0],"center":[1604.0,605.0,272.5],"move_3d":[405.3,359.73,-34.94],"move_x":[648.48,0.0,0.0],"move_y":[0.0,479.64,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_080","group":"group_80","group_name":"Chi tiết 81 (Shell_080)","color":"#b8bec6","vertex_byte_offset":106296,"vertex_byte_length":96,"index_byte_offset":106392,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1645.0,16.0,265.0],"bounds_max":[1703.0,480.0,280.0],"center":[1674.0,248.0,272.5],"move_3d":[454.3,-342.04,-34.94],"move_x":[726.88,0.0,0.0],"move_y":[0.0,-456.05,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_081","group":"group_81","group_name":"Chi tiết 82 (Shell_081)","color":"#484848","vertex_byte_offset":106536,"vertex_byte_length":1152,"index_byte_offset":107688,"index_byte_length":1704,"vertex_count":96,"triangles":142,"bounds_min":[1670.5,19.5069,262.0],"bounds_max":[1677.4724,26.4931,280.0],"center":[1673.9862,23.0,271.0],"move_3d":[454.29,-784.34,-40.18],"move_x":[726.86,0.0,0.0],"move_y":[0.0,-1045.78,0.0],"move_z":[0.0,0.0,-45.92]},{"name":"Shell_082","group":"group_82","group_name":"Chi tiết 83 (Shell_082)","color":"#d2b48c","vertex_byte_offset":109392,"vertex_byte_length":96,"index_byte_offset":109488,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1715.0,380.0,265.0],"bounds_max":[1773.0,830.0,280.0],"center":[1744.0,605.0,272.5],"move_3d":[503.3,359.73,-34.94],"move_x":[805.28,0.0,0.0],"move_y":[0.0,479.64,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_083","group":"group_83","group_name":"Chi tiết 84 (Shell_083)","color":"#b8bec6","vertex_byte_offset":109632,"vertex_byte_length":96,"index_byte_offset":109728,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1785.0,16.0,265.0],"bounds_max":[1843.0,480.0,280.0],"center":[1814.0,248.0,272.5],"move_3d":[552.3,-342.04,-34.94],"move_x":[883.68,0.0,0.0],"move_y":[0.0,-456.05,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_084","group":"group_84","group_name":"Chi tiết 85 (Shell_084)","color":"#484848","vertex_byte_offset":109872,"vertex_byte_length":1152,"index_byte_offset":111024,"index_byte_length":1704,"vertex_count":96,"triangles":142,"bounds_min":[1810.5,19.5069,262.0],"bounds_max":[1817.4724,26.4931,280.0],"center":[1813.9862,23.0,271.0],"move_3d":[552.29,-784.34,-40.18],"move_x":[883.66,0.0,0.0],"move_y":[0.0,-1045.78,0.0],"move_z":[0.0,0.0,-45.92]},{"name":"Shell_085","group":"group_85","group_name":"Chi tiết 86 (Shell_085)","color":"#d2b48c","vertex_byte_offset":112728,"vertex_byte_length":96,"index_byte_offset":112824,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1855.0,380.0,265.0],"bounds_max":[1913.0,830.0,280.0],"center":[1884.0,605.0,272.5],"move_3d":[601.3,359.73,-34.94],"move_x":[962.08,0.0,0.0],"move_y":[0.0,479.64,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_086","group":"group_86","group_name":"Chi tiết 87 (Shell_086)","color":"#b8bec6","vertex_byte_offset":112968,"vertex_byte_length":96,"index_byte_offset":113064,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1925.0,16.0,265.0],"bounds_max":[1983.0,480.0,280.0],"center":[1954.0,248.0,272.5],"move_3d":[650.3,-342.04,-34.94],"move_x":[1040.48,0.0,0.0],"move_y":[0.0,-456.05,0.0],"move_z":[0.0,0.0,-39.93]},{"name":"Shell_087","group":"group_87","group_name":"Chi tiết 88 (Shell_087)","color":"#484848","vertex_byte_offset":113208,"vertex_byte_length":1152,"index_byte_offset":114360,"index_byte_length":1704,"vertex_count":96,"triangles":142,"bounds_min":[1950.5,19.5069,262.0],"bounds_max":[1957.4724,26.4931,280.0],"center":[1953.9862,23.0,271.0],"move_3d":[650.29,-784.34,-40.18],"move_x":[1040.46,0.0,0.0],"move_y":[0.0,-1045.78,0.0],"move_z":[0.0,0.0,-45.92]},{"name":"Shell_088","group":"group_88","group_name":"Chi tiết 89 (Shell_088)","color":"#f8f8f8","vertex_byte_offset":116064,"vertex_byte_length":96,"index_byte_offset":116160,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[34.0,6.0,18.0],"bounds_max":[1012.0,24.0,238.0],"center":[523.0,15.0,128.0],"move_3d":[-351.4,-800.06,-539.81],"move_x":[-562.24,0.0,0.0],"move_y":[0.0,-1066.75,0.0],"move_z":[0.0,0.0,-616.93]},{"name":"Shell_089","group":"group_89","group_name":"Chi tiết 90 (Shell_089)","color":"#ddcfb8","vertex_byte_offset":116304,"vertex_byte_length":96,"index_byte_offset":116400,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[48.0,24.0,30.0],"bounds_max":[63.0,736.0,195.0],"center":[55.5,380.0,112.5],"move_3d":[-678.65,-82.56,-593.97],"move_x":[-1085.84,0.0,0.0],"move_y":[0.0,-110.08,0.0],"move_z":[0.0,0.0,-678.82]},{"name":"Shell_090","group":"group_90","group_name":"Chi tiết 91 (Shell_090)","color":"#b8bec6","vertex_byte_offset":116544,"vertex_byte_length":96,"index_byte_offset":116640,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[983.0,24.0,30.0],"bounds_max":[998.0,736.0,195.0],"center":[990.5,380.0,112.5],"move_3d":[-24.15,-82.56,-593.97],"move_x":[-38.64,0.0,0.0],"move_y":[0.0,-110.08,0.0],"move_z":[0.0,0.0,-678.82]},{"name":"Shell_091","group":"group_91","group_name":"Chi tiết 92 (Shell_091)","color":"#b8bec6","vertex_byte_offset":116784,"vertex_byte_length":96,"index_byte_offset":116880,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[63.0,721.0,30.0],"bounds_max":[983.0,736.0,195.0],"center":[523.0,728.5,112.5],"move_3d":[-351.4,602.5,-593.97],"move_x":[-562.24,0.0,0.0],"move_y":[0.0,803.34,0.0],"move_z":[0.0,0.0,-678.82]},{"name":"Shell_092","group":"group_92","group_name":"Chi tiết 93 (Shell_092)","color":"#b8bec6","vertex_byte_offset":117024,"vertex_byte_length":96,"index_byte_offset":117120,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[48.0,24.0,32.0],"bounds_max":[998.0,736.0,38.0],"center":[523.0,380.0,35.0],"move_3d":[-351.4,-82.56,-864.74],"move_x":[-562.24,0.0,0.0],"move_y":[0.0,-110.08,0.0],"move_z":[0.0,0.0,-988.28]},{"name":"Shell_093","group":"group_93","group_name":"Chi tiết 94 (Shell_093)","color":"#484848","vertex_byte_offset":117264,"vertex_byte_length":96,"index_byte_offset":117360,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[37.0,50.0,43.0],"bounds_max":[48.0,725.0,61.0],"center":[42.5,387.5,52.0],"move_3d":[-687.75,-67.82,-805.35],"move_x":[-1100.4,0.0,0.0],"move_y":[0.0,-90.42,0.0],"move_z":[0.0,0.0,-920.4]},{"name":"Shell_094","group":"group_94","group_name":"Chi tiết 95 (Shell_094)","color":"#b8bec6","vertex_byte_offset":117504,"vertex_byte_length":1728,"index_byte_offset":119232,"index_byte_length":2640,"vertex_count":144,"triangles":220,"bounds_min":[36.0,706.0,43.0],"bounds_max":[48.0,724.0,61.0],"center":[42.0,715.0,52.0],"move_3d":[-688.1,575.97,-805.35],"move_x":[-1100.96,0.0,0.0],"move_y":[0.0,767.95,0.0],"move_z":[0.0,0.0,-920.4]},{"name":"Shell_095","group":"group_95","group_name":"Chi tiết 96 (Shell_095)","color":"#b8bec6","vertex_byte_offset":121872,"vertex_byte_length":96,"index_byte_offset":121968,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[998.0,50.0,43.0],"bounds_max":[1009.0,725.0,61.0],"center":[1003.5,387.5,52.0],"move_3d":[-15.05,-67.82,-805.35],"move_x":[-24.08,0.0,0.0],"move_y":[0.0,-90.42,0.0],"move_z":[0.0,0.0,-920.4]},{"name":"Shell_096","group":"group_96","group_name":"Chi tiết 97 (Shell_096)","color":"#b8bec6","vertex_byte_offset":122112,"vertex_byte_length":1728,"index_byte_offset":123840,"index_byte_length":2640,"vertex_count":144,"triangles":220,"bounds_min":[997.0,706.0,43.0],"bounds_max":[1009.0,724.0,61.0],"center":[1003.0,715.0,52.0],"move_3d":[-15.4,575.97,-805.35],"move_x":[-24.64,0.0,0.0],"move_y":[0.0,767.95,0.0],"move_z":[0.0,0.0,-920.4]},{"name":"Shell_097","group":"group_97","group_name":"Chi tiết 98 (Shell_097)","color":"#888888","vertex_byte_offset":126480,"vertex_byte_length":96,"index_byte_offset":126576,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[425.0,-16.0,149.0],"bounds_max":[621.0,-8.0,167.0],"center":[523.0,-12.0,158.0],"move_3d":[-351.4,-853.14,-434.99],"move_x":[-562.24,0.0,0.0],"move_y":[0.0,-1137.52,0.0],"move_z":[0.0,0.0,-497.13]},{"name":"Shell_098","group":"group_98","group_name":"Chi tiết 99 (Shell_098)","color":"#b8bec6","vertex_byte_offset":126720,"vertex_byte_length":96,"index_byte_offset":126816,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[434.0,-8.0,151.0],"bounds_max":[452.0,6.0,165.0],"center":[443.0,-1.0,158.0],"move_3d":[-407.4,-831.51,-434.99],"move_x":[-651.84,0.0,0.0],"move_y":[0.0,-1108.68,0.0],"move_z":[0.0,0.0,-497.13]},{"name":"Shell_099","group":"group_99","group_name":"Chi tiết 100 (Shell_099)","color":"#b8bec6","vertex_byte_offset":126960,"vertex_byte_length":96,"index_byte_offset":127056,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[594.0,-8.0,151.0],"bounds_max":[612.0,6.0,165.0],"center":[603.0,-1.0,158.0],"move_3d":[-295.4,-831.51,-434.99],"move_x":[-472.64,0.0,0.0],"move_y":[0.0,-1108.68,0.0],"move_z":[0.0,0.0,-497.13]},{"name":"Shell_100","group":"group_100","group_name":"Chi tiết 101 (Shell_100)","color":"#f8f8f8","vertex_byte_offset":127200,"vertex_byte_length":96,"index_byte_offset":127296,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1038.0,6.0,18.0],"bounds_max":[2016.0,24.0,238.0],"center":[1527.0,15.0,128.0],"move_3d":[351.4,-800.06,-539.81],"move_x":[562.24,0.0,0.0],"move_y":[0.0,-1066.75,0.0],"move_z":[0.0,0.0,-616.93]},{"name":"Shell_101","group":"group_101","group_name":"Chi tiết 102 (Shell_101)","color":"#ddcfb8","vertex_byte_offset":127440,"vertex_byte_length":96,"index_byte_offset":127536,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1052.0,24.0,30.0],"bounds_max":[1067.0,736.0,195.0],"center":[1059.5,380.0,112.5],"move_3d":[24.15,-82.56,-593.97],"move_x":[38.64,0.0,0.0],"move_y":[0.0,-110.08,0.0],"move_z":[0.0,0.0,-678.82]},{"name":"Shell_102","group":"group_102","group_name":"Chi tiết 103 (Shell_102)","color":"#b8bec6","vertex_byte_offset":127680,"vertex_byte_length":96,"index_byte_offset":127776,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1987.0,24.0,30.0],"bounds_max":[2002.0,736.0,195.0],"center":[1994.5,380.0,112.5],"move_3d":[678.65,-82.56,-593.97],"move_x":[1085.84,0.0,0.0],"move_y":[0.0,-110.08,0.0],"move_z":[0.0,0.0,-678.82]},{"name":"Shell_103","group":"group_103","group_name":"Chi tiết 104 (Shell_103)","color":"#b8bec6","vertex_byte_offset":127920,"vertex_byte_length":96,"index_byte_offset":128016,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1067.0,721.0,30.0],"bounds_max":[1987.0,736.0,195.0],"center":[1527.0,728.5,112.5],"move_3d":[351.4,602.5,-593.97],"move_x":[562.24,0.0,0.0],"move_y":[0.0,803.34,0.0],"move_z":[0.0,0.0,-678.82]},{"name":"Shell_104","group":"group_104","group_name":"Chi tiết 105 (Shell_104)","color":"#b8bec6","vertex_byte_offset":128160,"vertex_byte_length":96,"index_byte_offset":128256,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1052.0,24.0,32.0],"bounds_max":[2002.0,736.0,38.0],"center":[1527.0,380.0,35.0],"move_3d":[351.4,-82.56,-864.74],"move_x":[562.24,0.0,0.0],"move_y":[0.0,-110.08,0.0],"move_z":[0.0,0.0,-988.28]},{"name":"Shell_105","group":"group_105","group_name":"Chi tiết 106 (Shell_105)","color":"#484848","vertex_byte_offset":128400,"vertex_byte_length":96,"index_byte_offset":128496,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1041.0,50.0,43.0],"bounds_max":[1052.0,725.0,61.0],"center":[1046.5,387.5,52.0],"move_3d":[15.05,-67.82,-805.35],"move_x":[24.08,0.0,0.0],"move_y":[0.0,-90.42,0.0],"move_z":[0.0,0.0,-920.4]},{"name":"Shell_106","group":"group_106","group_name":"Chi tiết 107 (Shell_106)","color":"#b8bec6","vertex_byte_offset":128640,"vertex_byte_length":1728,"index_byte_offset":130368,"index_byte_length":2640,"vertex_count":144,"triangles":220,"bounds_min":[1040.0,706.0,43.0],"bounds_max":[1052.0,724.0,61.0],"center":[1046.0,715.0,52.0],"move_3d":[14.7,575.97,-805.35],"move_x":[23.52,0.0,0.0],"move_y":[0.0,767.95,0.0],"move_z":[0.0,0.0,-920.4]},{"name":"Shell_107","group":"group_107","group_name":"Chi tiết 108 (Shell_107)","color":"#b8bec6","vertex_byte_offset":133008,"vertex_byte_length":96,"index_byte_offset":133104,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[2002.0,50.0,43.0],"bounds_max":[2013.0,725.0,61.0],"center":[2007.5,387.5,52.0],"move_3d":[687.75,-67.82,-805.35],"move_x":[1100.4,0.0,0.0],"move_y":[0.0,-90.42,0.0],"move_z":[0.0,0.0,-920.4]},{"name":"Shell_108","group":"group_108","group_name":"Chi tiết 109 (Shell_108)","color":"#b8bec6","vertex_byte_offset":133248,"vertex_byte_length":1728,"index_byte_offset":134976,"index_byte_length":2640,"vertex_count":144,"triangles":220,"bounds_min":[2001.0,706.0,43.0],"bounds_max":[2013.0,724.0,61.0],"center":[2007.0,715.0,52.0],"move_3d":[687.4,575.97,-805.35],"move_x":[1099.84,0.0,0.0],"move_y":[0.0,767.95,0.0],"move_z":[0.0,0.0,-920.4]},{"name":"Shell_109","group":"group_109","group_name":"Chi tiết 110 (Shell_109)","color":"#888888","vertex_byte_offset":137616,"vertex_byte_length":96,"index_byte_offset":137712,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1429.0,-16.0,149.0],"bounds_max":[1625.0,-8.0,167.0],"center":[1527.0,-12.0,158.0],"move_3d":[351.4,-853.14,-434.99],"move_x":[562.24,0.0,0.0],"move_y":[0.0,-1137.52,0.0],"move_z":[0.0,0.0,-497.13]},{"name":"Shell_110","group":"group_110","group_name":"Chi tiết 111 (Shell_110)","color":"#b8bec6","vertex_byte_offset":137856,"vertex_byte_length":96,"index_byte_offset":137952,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1438.0,-8.0,151.0],"bounds_max":[1456.0,6.0,165.0],"center":[1447.0,-1.0,158.0],"move_3d":[295.4,-831.51,-434.99],"move_x":[472.64,0.0,0.0],"move_y":[0.0,-1108.68,0.0],"move_z":[0.0,0.0,-497.13]},{"name":"Shell_111","group":"group_111","group_name":"Chi tiết 112 (Shell_111)","color":"#b8bec6","vertex_byte_offset":138096,"vertex_byte_length":96,"index_byte_offset":138192,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1598.0,-8.0,151.0],"bounds_max":[1616.0,6.0,165.0],"center":[1607.0,-1.0,158.0],"move_3d":[407.4,-831.51,-434.99],"move_x":[651.84,0.0,0.0],"move_y":[0.0,-1108.68,0.0],"move_z":[0.0,0.0,-497.13]},{"name":"Shell_112","group":"group_112","group_name":"Chi tiết 113 (Shell_112)","color":"#484848","vertex_byte_offset":138336,"vertex_byte_length":96,"index_byte_offset":138432,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[1015.0,36.0,254.0],"bounds_max":[1035.0,835.0,257.0],"center":[1025.0,435.5,255.5],"move_3d":[0.0,26.54,-94.34],"move_x":[0.0,0.0,0.0],"move_y":[0.0,35.38,0.0],"move_z":[0.0,0.0,-107.81]},{"name":"Shell_113","group":"group_113","group_name":"Chi tiết 114 (Shell_113)","color":"#b8bec6","vertex_byte_offset":138576,"vertex_byte_length":1320,"index_byte_offset":139896,"index_byte_length":1824,"vertex_count":110,"triangles":152,"bounds_min":[1022.0,42.007,253.0],"bounds_max":[1027.972,47.993,257.0],"center":[1024.9861,45.0,255.0],"move_3d":[-0.01,-741.09,-96.08],"move_x":[-0.02,0.0,0.0],"move_y":[0.0,-988.12,0.0],"move_z":[0.0,0.0,-109.81]},{"name":"Shell_114","group":"group_114","group_name":"Chi tiết 115 (Shell_114)","color":"#b8bec6","vertex_byte_offset":141720,"vertex_byte_length":1320,"index_byte_offset":143040,"index_byte_length":1824,"vertex_count":110,"triangles":152,"bounds_min":[1022.0,822.007,253.0],"bounds_max":[1027.972,827.993,257.0],"center":[1024.9861,825.0,255.0],"move_3d":[-0.01,792.2,-96.08],"move_x":[-0.02,0.0,0.0],"move_y":[0.0,1056.26,0.0],"move_z":[0.0,0.0,-109.81]}];
+    const container = document.getElementById('container');
+    const canvas = document.getElementById('canvas3d');
+    const loadingEl = document.getElementById('loadingEl');
+    const loadStatus = document.getElementById('loadStatus');
+    const readoutEl = document.getElementById('readoutEl');
+    const explodeSlider = document.getElementById('explodeSlider');
+    const explodeVal = document.getElementById('explodeVal');
+    const spreadScale = document.getElementById('spreadScale');
+    const btnReset = document.getElementById('btnReset');
+    const btnAutoSpin = document.getElementById('btnAutoSpin');
+    const btnMode3D = document.getElementById('btnMode3D');
+    const btnModeX = document.getElementById('btnModeX');
+    const btnModeY = document.getElementById('btnModeY');
+    const btnModeZ = document.getElementById('btnModeZ');
+    const pills = document.querySelectorAll('.part-pill');
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(36, container.clientWidth / container.clientHeight, 0.01, 50000);
+    const maxDim = 2050;
+    camera.position.set(maxDim * 1.4, -maxDim * 1.8, maxDim * 1.2);
+    camera.up.set(0, 0, 1);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(1025, 422, 282.5);
+    controls.minDistance = maxDim * 0.1;
+    controls.maxDistance = maxDim * 10;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 2.0;
+
+    // Hệ thống ánh sáng PBR Studio
+    scene.add(new THREE.AmbientLight(0xffffff, 0.95));
+    const dLight1 = new THREE.DirectionalLight(0xfff5ea, 1.15);
+    dLight1.position.set(maxDim, -maxDim, maxDim * 1.5);
+    scene.add(dLight1);
+
+    const dLight2 = new THREE.DirectionalLight(0xa5c4e8, 0.4);
+    dLight2.position.set(-maxDim, maxDim, maxDim * 0.8);
+    scene.add(dLight2);
+
+    const bLight = new THREE.DirectionalLight(0xffffff, 0.35);
+    bLight.position.set(0, 0, -maxDim);
+    scene.add(bLight);
+
+    const modelPivot = new THREE.Group();
+    modelPivot.position.set(1025, 422, 282.5);
+    scene.add(modelPivot);
+
+    const guidesGroup = new THREE.Group();
+    guidesGroup.position.set(-1025, -422, -282.5);
+    modelPivot.add(guidesGroup);
+
+    let explodeMode = '3D';
+    let distanceMultiplier = 1.0;
+    const partMeshes = [];
+    const guideLines = [];
+    const rootGroup = new THREE.Group();
+    rootGroup.position.set(-1025, -422, -282.5);
+    modelPivot.add(rootGroup);
+
+    let currentExplode = 0;
+    let targetExplode = 0;
+    let activeGroup = 'all';
+
+    try {
+      
+      loadStatus.textContent = 'Đang tải dữ liệu 3D (model.bin)...';
+      let buffer = null;
+      try {
+        const res = await fetch('./model.bin');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        buffer = await res.arrayBuffer();
+      } catch (fErr) {
+        throw new Error('Không thể tải file model.bin: ' + fErr.message);
+      }
+        
+
+      rawParts.forEach((part) => {
+        const geo = new THREE.BufferGeometry();
+        const positions = new Float32Array(buffer, part.vertex_byte_offset, part.vertex_byte_length / 4);
+        const indices = new Uint32Array(buffer, part.index_byte_offset, part.index_byte_length / 4);
+        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geo.setIndex(new THREE.BufferAttribute(indices, 1));
+        geo.computeVertexNormals();
+
+        const initialColor = ('wood' === 'original') ? part.color : '#c29b6e';
+        const mat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(initialColor),
+          roughness: 0.7,
+          metalness: 0.02
+        });
+
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.userData = {
+          name: part.name,
+          originalColor: part.color,
+          group: part.group,
+          group_name: part.group_name,
+          move_3d: part.move_3d,
+          move_x: part.move_x,
+          move_y: part.move_y,
+          move_z: part.move_z,
+          center: part.center
+        };
+
+        // Viền nét CAD sắc sảo đồng bộ theo Theme
+        const edgeGeo = new THREE.EdgesGeometry(geo, 28);
+        const edgeMat = new THREE.LineBasicMaterial({
+          color: new THREE.Color(0x1e293b),
+          transparent: true,
+          opacity: 0.85
+        });
+        const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
+        mesh.add(edgeLines);
+
+        rootGroup.add(mesh);
+        partMeshes.push(mesh);
+
+        // Đường chỉ dẫn 3D Leader Guide Lines
+        const pStart = new THREE.Vector3(part.center[0], part.center[1], part.center[2]);
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([pStart, pStart.clone()]);
+        const lineMat = new THREE.LineDashedMaterial({
+          color: 0x0284c7,
+          dashSize: maxDim * 0.02,
+          gapSize: maxDim * 0.015,
+          transparent: true,
+          opacity: 0
+        });
+        const line = new THREE.Line(lineGeo, lineMat);
+        line.computeLineDistances();
+        guidesGroup.add(line);
+        guideLines.push({ line, pStart });
+      });
+
+      loadingEl.style.opacity = '0';
+      setTimeout(() => { loadingEl.style.display = 'none'; }, 400);
+
+      
+    } catch (err) {
+      loadStatus.textContent = 'Lỗi nạp mô hình 3D: ' + err.message;
+      console.error(err);
+    }
+
+    function getMoveVector(userData) {
+      if (explodeMode === 'X') return userData.move_x;
+      if (explodeMode === 'Y') return userData.move_y;
+      if (explodeMode === 'Z') return userData.move_z;
+      return userData.move_3d;
+    }
+
+    function updateExplode(progress) {
+      partMeshes.forEach((mesh, index) => {
+        const move = getMoveVector(mesh.userData);
+        const tx = move[0] * progress * distanceMultiplier;
+        const ty = move[1] * progress * distanceMultiplier;
+        const tz = move[2] * progress * distanceMultiplier;
+        mesh.position.set(tx, ty, tz);
+
+        const g = guideLines[index];
+        if (g) {
+          const pEnd = new THREE.Vector3(g.pStart.x + tx, g.pStart.y + ty, g.pStart.z + tz);
+          g.line.geometry.setFromPoints([g.pStart, pEnd]);
+          g.line.computeLineDistances();
+          g.line.material.opacity = progress > 0.05 ? Math.min(0.65, (progress - 0.05) * 1.5) : 0;
+        }
+      });
+      explodeVal.textContent = Math.round(progress * 100) + '%';
+      readoutEl.textContent = progress === 0 ? 'Assembled · ' + rawParts.length + ' chi tiết' : 'Exploded ' + Math.round(progress * 100) + '% (' + explodeMode + ' · ' + distanceMultiplier + 'x)';
+    }
+
+    explodeSlider.addEventListener('input', (e) => {
+      targetExplode = parseInt(e.target.value, 10) / 100;
+    });
+
+    spreadScale.addEventListener('change', (e) => {
+      distanceMultiplier = parseFloat(e.target.value);
+      updateExplode(currentExplode);
+    });
+
+    function setExplodeMode(mode, activeBtn) {
+      explodeMode = mode;
+      [btnMode3D, btnModeX, btnModeY, btnModeZ].forEach(b => b.classList.remove('active'));
+      activeBtn.classList.add('active');
+      updateExplode(currentExplode);
+    }
+
+    btnMode3D.addEventListener('click', () => setExplodeMode('3D', btnMode3D));
+    btnModeX.addEventListener('click', () => setExplodeMode('X', btnModeX));
+    btnModeY.addEventListener('click', () => setExplodeMode('Y', btnModeY));
+    btnModeZ.addEventListener('click', () => setExplodeMode('Z', btnModeZ));
+
+    // Bộ điều khiển Preset Vật liệu PBR
+    const PRESETS = {
+      sw_gray: { color: '#b8bec6', roughness: 0.45, metalness: 0.15 },
+      wood: { color: '#c29b6e', roughness: 0.70, metalness: 0.02 },
+      chrome: { color: '#e2e8f0', roughness: 0.12, metalness: 0.90 },
+      custom: { color: '#94a3b8', roughness: 0.40, metalness: 0.15 },
+      original: { roughness: 0.45, metalness: 0.15 }
+    };
+
+    const cboMaterial = document.getElementById('cboMaterialPreset');
+    const pickerColor = document.getElementById('pickerCustomColor');
+
+    function applyMaterialPreset(presetKey, customHex) {
+      partMeshes.forEach((mesh) => {
+        if (presetKey === 'original') {
+          mesh.material.color.set(mesh.userData.originalColor || '#b8bec6');
+          mesh.material.roughness = 0.45;
+          mesh.material.metalness = 0.15;
+        } else if (presetKey === 'custom') {
+          const hex = customHex || (pickerColor ? pickerColor.value : '#94a3b8');
+          mesh.material.color.set(hex);
+          mesh.material.roughness = 0.40;
+          mesh.material.metalness = 0.15;
+        } else {
+          const p = PRESETS[presetKey] || PRESETS.sw_gray;
+          mesh.material.color.set(p.color);
+          mesh.material.roughness = p.roughness;
+          mesh.material.metalness = p.metalness;
+        }
+        mesh.material.needsUpdate = true;
+      });
+    }
+
+    if (cboMaterial) {
+      cboMaterial.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val === 'custom') {
+          if (pickerColor) pickerColor.style.display = 'inline-block';
+          applyMaterialPreset('custom', pickerColor ? pickerColor.value : null);
+        } else {
+          if (pickerColor) pickerColor.style.display = 'none';
+          applyMaterialPreset(val, null);
+        }
+      });
+    }
+
+    if (pickerColor) {
+      pickerColor.addEventListener('input', (e) => {
+        if (cboMaterial && cboMaterial.value === 'custom') {
+          applyMaterialPreset('custom', e.target.value);
+        }
+      });
+    }
+
+    let showEdges = true;
+    const btnEdgesToggle = document.getElementById('btnEdgesToggle');
+    if (btnEdgesToggle) {
+      btnEdgesToggle.addEventListener('click', () => {
+        showEdges = !showEdges;
+        btnEdgesToggle.classList.toggle('active', showEdges);
+        partMeshes.forEach((mesh) => {
+          mesh.children.forEach((c) => {
+            if (c.isLineSegments) c.visible = showEdges;
+          });
+        });
+      });
+    }
+
+    pills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        pills.forEach((p) => p.classList.remove('active'));
+        pill.classList.add('active');
+        activeGroup = pill.getAttribute('data-group');
+
+        partMeshes.forEach((mesh) => {
+          const isMatch = activeGroup === 'all' || mesh.userData.group === activeGroup;
+          if (isMatch) {
+            mesh.visible = true;
+            mesh.material.opacity = 1.0;
+            mesh.material.transparent = false;
+          } else {
+            mesh.visible = true;
+            mesh.material.transparent = true;
+            mesh.material.opacity = 0.2;
+          }
+          mesh.children.forEach((c) => {
+            if (c.isLineSegments) {
+              c.visible = showEdges && isMatch;
+              c.material.opacity = isMatch ? 0.85 : 0.2;
+            }
+          });
+        });
+
+        if (activeGroup !== 'all' && targetExplode < 0.25) {
+          targetExplode = 0.5;
+          explodeSlider.value = 50;
+        }
+      });
+    });
+
+    btnReset.addEventListener('click', () => {
+      controls.reset();
+      camera.position.set(maxDim * 1.4, -maxDim * 1.8, maxDim * 1.2);
+      controls.target.set(1025, 422, 282.5);
+      modelPivot.rotation.set(0, 0, 0);
+      targetExplode = 0;
+      explodeSlider.value = 0;
+      activeGroup = 'all';
+      pills.forEach((p, i) => p.classList.toggle('active', i === 0));
+      showEdges = true;
+      if (btnEdgesToggle) btnEdgesToggle.classList.add('active');
+      partMeshes.forEach((m) => {
+        m.visible = true;
+        m.material.transparent = false;
+        m.material.opacity = 1.0;
+        m.children.forEach((c) => {
+          if (c.isLineSegments) {
+            c.visible = true;
+            c.material.opacity = 0.85;
+          }
+        });
+      });
+      autoSpin = true;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 2.0;
+      btnAutoSpin.classList.add('active');
+    });
+
+    let autoSpin = true;
+    btnAutoSpin.addEventListener('click', () => {
+      autoSpin = !autoSpin;
+      controls.autoRotate = autoSpin;
+      controls.autoRotateSpeed = 2.0;
+      btnAutoSpin.classList.toggle('active', autoSpin);
+    });
+
+    const btnSnapThumb = document.getElementById('btnSnapThumb');
+    if (btnSnapThumb) {
+      btnSnapThumb.addEventListener('click', () => {
+        if (autoSpin) {
+          autoSpin = false;
+          controls.autoRotate = false;
+          btnAutoSpin.classList.remove('active');
+        }
+        controls.update();
+        renderer.render(scene, camera);
+        const dataUrl = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.download = 'thumb.png';
+        a.href = dataUrl;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+    }
+
+    const btnRotateYZ = document.getElementById('btnRotateYZ');
+    if (btnRotateYZ) {
+      btnRotateYZ.addEventListener('click', () => {
+        modelPivot.rotation.x = (modelPivot.rotation.x + Math.PI / 2) % (Math.PI * 2);
+      });
+    }
+
+    const btnRotateXZ = document.getElementById('btnRotateXZ');
+    if (btnRotateXZ) {
+      btnRotateXZ.addEventListener('click', () => {
+        modelPivot.rotation.y = (modelPivot.rotation.y + Math.PI / 2) % (Math.PI * 2);
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (Math.abs(targetExplode - currentExplode) > 0.001) {
+        currentExplode += (targetExplode - currentExplode) * 0.12;
+        updateExplode(currentExplode);
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>

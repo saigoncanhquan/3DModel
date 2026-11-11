@@ -1,5 +1,14 @@
 [
     {
+        "name":  "IKEA_BRIMNES_Daybed_Frame",
+        "title":  "IKEA_BRIMNES_Daybed_Frame",
+        "path":  "./IKEA_BRIMNES_Daybed_Frame/index.html",
+        "thumb":  "./IKEA_BRIMNES_Daybed_Frame/thumb.jpg",
+        "fallback_thumb":  "./IKEA_BRIMNES_Daybed_Frame/thumb.svg",
+        "part_count":  115,
+        "date":  "2026-11-11 14:08"
+    },
+    {
         "name":  "PP-4",
         "title":  "PP-4",
         "path":  "./PP-4/index.html",
