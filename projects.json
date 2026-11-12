@@ -3,10 +3,10 @@
         "name":  "Ikea_Lagkapten-Alex",
         "title":  "Ikea Lagkapten-Alex",
         "path":  "./Ikea_Lagkapten-Alex/index.html",
-        "thumb":  "./Ikea_Lagkapten-Alex/thumb.png",
+        "thumb":  "./Ikea_Lagkapten-Alex/thumb.svg",
         "fallback_thumb":  "./Ikea_Lagkapten-Alex/thumb.svg",
         "part_count":  13,
-        "date":  "2026-11-12 08:46"
+        "date":  "2026-11-12 10:02"
     },
     {
         "name":  "IKEA_BRIMNES_Daybed_Frame",

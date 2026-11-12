@@ -311,7 +311,7 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    const rawParts = [{"name":"Shell_000","group":"group_0","group_name":"Chi tiết 01 (Shell_000)","color":"#f2f2f2","vertex_byte_offset":0,"vertex_byte_length":384,"index_byte_offset":384,"index_byte_length":720,"vertex_count":32,"triangles":60,"bounds_min":[-180.0,-600.0,-350.0],"bounds_max":[180.0,0.0,350.0],"center":[0.0,-300.0,0.0],"move_3d":[-364.0,0.0,-28.19],"move_x":[-582.4,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-32.22]},{"name":"Shell_001","group":"group_1","group_name":"Chi tiết 02 (Shell_001)","color":"#b8bec6","vertex_byte_offset":1104,"vertex_byte_length":8016,"index_byte_offset":9120,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[-151.0,-600.0,-326.0],"bounds_max":[160.0,-580.0,-166.0],"center":[4.5,-590.0,-246.0],"move_3d":[-360.85,-568.4,-490.54],"move_x":[-577.36,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,-560.61]},{"name":"Shell_002","group":"group_2","group_name":"Chi tiết 03 (Shell_002)","color":"#b8bec6","vertex_byte_offset":23568,"vertex_byte_length":8016,"index_byte_offset":31584,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[-151.0,-600.0,-163.0],"bounds_max":[160.0,-580.0,-3.0],"center":[4.5,-590.0,-83.0],"move_3d":[-360.85,-568.4,-184.19],"move_x":[-577.36,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,-210.5]},{"name":"Shell_003","group":"group_3","group_name":"Chi tiết 04 (Shell_003)","color":"#b8bec6","vertex_byte_offset":46032,"vertex_byte_length":8016,"index_byte_offset":54048,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[-151.0,-600.0,0.0],"bounds_max":[160.0,-580.0,160.0],"center":[4.5,-590.0,80.0],"move_3d":[-360.85,-568.4,122.16],"move_x":[-577.36,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,139.62]},{"name":"Shell_004","group":"group_4","group_name":"Chi tiết 05 (Shell_004)","color":"#b8bec6","vertex_byte_offset":68496,"vertex_byte_length":8016,"index_byte_offset":76512,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[-154.0,-600.0,163.0],"bounds_max":[160.0,-580.0,243.0],"center":[3.0,-590.0,203.0],"move_3d":[-361.9,-568.4,353.34],"move_x":[-579.04,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,403.81]},{"name":"Shell_005","group":"group_5","group_name":"Chi tiết 06 (Shell_005)","color":"#b8bec6","vertex_byte_offset":90960,"vertex_byte_length":8016,"index_byte_offset":98976,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[-154.0,-600.0,246.0],"bounds_max":[160.0,-580.0,326.0],"center":[3.0,-590.0,286.0],"move_3d":[-361.9,-568.4,509.33],"move_x":[-579.04,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,582.09]},{"name":"Shell_006","group":"group_6","group_name":"Chi tiết 07 (Shell_006)","color":"#59411c","vertex_byte_offset":113424,"vertex_byte_length":96,"index_byte_offset":113520,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[-180.0,-600.0,350.0],"bounds_max":[1220.0,0.0,380.0],"center":[520.0,-300.0,365.0],"move_3d":[0.0,0.0,657.81],"move_x":[0.0,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,751.78]},{"name":"Shell_007","group":"group_7","group_name":"Chi tiết 08 (Shell_007)","color":"#f2f2f2","vertex_byte_offset":113664,"vertex_byte_length":384,"index_byte_offset":114048,"index_byte_length":720,"vertex_count":32,"triangles":60,"bounds_min":[860.0,-600.0,-350.0],"bounds_max":[1220.0,0.0,350.0],"center":[1040.0,-300.0,0.0],"move_3d":[364.0,0.0,-28.19],"move_x":[582.4,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-32.22]},{"name":"Shell_008","group":"group_8","group_name":"Chi tiết 09 (Shell_008)","color":"#b8bec6","vertex_byte_offset":114768,"vertex_byte_length":8016,"index_byte_offset":122784,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[889.0,-600.0,-326.0],"bounds_max":[1200.0,-580.0,-166.0],"center":[1044.5,-590.0,-246.0],"move_3d":[367.15,-568.4,-490.54],"move_x":[587.44,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,-560.61]},{"name":"Shell_009","group":"group_9","group_name":"Chi tiết 10 (Shell_009)","color":"#b8bec6","vertex_byte_offset":137232,"vertex_byte_length":8016,"index_byte_offset":145248,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[889.0,-600.0,-163.0],"bounds_max":[1200.0,-580.0,-3.0],"center":[1044.5,-590.0,-83.0],"move_3d":[367.15,-568.4,-184.19],"move_x":[587.44,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,-210.5]},{"name":"Shell_010","group":"group_10","group_name":"Chi tiết 11 (Shell_010)","color":"#b8bec6","vertex_byte_offset":159696,"vertex_byte_length":8016,"index_byte_offset":167712,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[889.0,-600.0,0.0],"bounds_max":[1200.0,-580.0,160.0],"center":[1044.5,-590.0,80.0],"move_3d":[367.15,-568.4,122.16],"move_x":[587.44,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,139.62]},{"name":"Shell_011","group":"group_11","group_name":"Chi tiết 12 (Shell_011)","color":"#b8bec6","vertex_byte_offset":182160,"vertex_byte_length":8016,"index_byte_offset":190176,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[886.0,-600.0,163.0],"bounds_max":[1200.0,-580.0,243.0],"center":[1043.0,-590.0,203.0],"move_3d":[366.1,-568.4,353.34],"move_x":[585.76,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,403.81]},{"name":"Shell_012","group":"group_12","group_name":"Chi tiết 13 (Shell_012)","color":"#b8bec6","vertex_byte_offset":204624,"vertex_byte_length":8016,"index_byte_offset":212640,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[886.0,-600.0,246.0],"bounds_max":[1200.0,-580.0,326.0],"center":[1043.0,-590.0,286.0],"move_3d":[366.1,-568.4,509.33],"move_x":[585.76,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,582.09]}];
+    const rawParts = [{"name":"Shell_000","group":"group_0","group_name":"Chi tiết 01 (Shell_000)","color":"#f2f2f2","vertex_byte_offset":0,"vertex_byte_length":384,"index_byte_offset":384,"index_byte_length":720,"vertex_count":32,"triangles":60,"bounds_min":[-180.0,-600.0,-350.0],"bounds_max":[180.0,0.0,350.0],"center":[0.0,-300.0,0.0],"move_3d":[-364.0,0.0,-28.19],"move_x":[-582.4,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-32.22],"_c":[39,139,74,64,144,114,189,31,72,132,210,223,104,89,253,199,30,19,83,242,62,50,137,250,224,113,235,191,47,72,133,220,146,44,126,231,12,80,22,146,60,240,51,197,30,18,83,243,56,61,137,91,9,209,45,243,31,200,78,1,203,106,179,126,220,15,83,136,106,247,40,221,78,2,136,103,176,57,209,93,20,222,43,254,44,217,71,95,208,36,240,59,218,78,30,198,102,252,51,196,17,83,158,106,235,110,139,4,83,230,169,37,255,192,30,18,113,252,241,59,137,93,144,9,237,191,9,199,74,4,208,45,191,111,237,30,50,243,12,191,49,192,223,202,55,38,191,44,193,253,220,144,100,189,41,155,28,75,144,32,235,40,217,77,75,157,103,250,36,202,91,29,209,41,239,44,208,16,19,222,39,248,47,217,81,5,156,43,240,49,134,78,94,214,39,232,50,197,81,16,214,102,247,40,196,82,83,158,106,232,49,139,4,83,247,48,252,57,197,30,50,211,56,239,37,139,67]},{"name":"Shell_001","group":"group_1","group_name":"Chi tiết 02 (Shell_001)","color":"#b8bec6","vertex_byte_offset":1104,"vertex_byte_length":8016,"index_byte_offset":9120,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[-151.0,-600.0,-326.0],"bounds_max":[160.0,-580.0,-166.0],"center":[4.5,-590.0,-246.0],"move_3d":[-360.85,-568.4,-490.54],"move_x":[-577.36,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,-560.61]},{"name":"Shell_002","group":"group_2","group_name":"Chi tiết 03 (Shell_002)","color":"#b8bec6","vertex_byte_offset":23568,"vertex_byte_length":8016,"index_byte_offset":31584,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[-151.0,-600.0,-163.0],"bounds_max":[160.0,-580.0,-3.0],"center":[4.5,-590.0,-83.0],"move_3d":[-360.85,-568.4,-184.19],"move_x":[-577.36,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,-210.5]},{"name":"Shell_003","group":"group_3","group_name":"Chi tiết 04 (Shell_003)","color":"#b8bec6","vertex_byte_offset":46032,"vertex_byte_length":8016,"index_byte_offset":54048,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[-151.0,-600.0,0.0],"bounds_max":[160.0,-580.0,160.0],"center":[4.5,-590.0,80.0],"move_3d":[-360.85,-568.4,122.16],"move_x":[-577.36,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,139.62]},{"name":"Shell_004","group":"group_4","group_name":"Chi tiết 05 (Shell_004)","color":"#b8bec6","vertex_byte_offset":68496,"vertex_byte_length":8016,"index_byte_offset":76512,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[-154.0,-600.0,163.0],"bounds_max":[160.0,-580.0,243.0],"center":[3.0,-590.0,203.0],"move_3d":[-361.9,-568.4,353.34],"move_x":[-579.04,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,403.81]},{"name":"Shell_005","group":"group_5","group_name":"Chi tiết 06 (Shell_005)","color":"#b8bec6","vertex_byte_offset":90960,"vertex_byte_length":8016,"index_byte_offset":98976,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[-154.0,-600.0,246.0],"bounds_max":[160.0,-580.0,326.0],"center":[3.0,-590.0,286.0],"move_3d":[-361.9,-568.4,509.33],"move_x":[-579.04,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,582.09]},{"name":"Shell_006","group":"group_6","group_name":"Chi tiết 07 (Shell_006)","color":"#59411c","vertex_byte_offset":113424,"vertex_byte_length":96,"index_byte_offset":113520,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[-180.0,-600.0,350.0],"bounds_max":[1220.0,0.0,380.0],"center":[520.0,-300.0,365.0],"move_3d":[0.0,0.0,657.81],"move_x":[0.0,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,751.78]},{"name":"Shell_007","group":"group_7","group_name":"Chi tiết 08 (Shell_007)","color":"#f2f2f2","vertex_byte_offset":113664,"vertex_byte_length":384,"index_byte_offset":114048,"index_byte_length":720,"vertex_count":32,"triangles":60,"bounds_min":[860.0,-600.0,-350.0],"bounds_max":[1220.0,0.0,350.0],"center":[1040.0,-300.0,0.0],"move_3d":[364.0,0.0,-28.19],"move_x":[582.4,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-32.22]},{"name":"Shell_008","group":"group_8","group_name":"Chi tiết 09 (Shell_008)","color":"#b8bec6","vertex_byte_offset":114768,"vertex_byte_length":8016,"index_byte_offset":122784,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[889.0,-600.0,-326.0],"bounds_max":[1200.0,-580.0,-166.0],"center":[1044.5,-590.0,-246.0],"move_3d":[367.15,-568.4,-490.54],"move_x":[587.44,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,-560.61]},{"name":"Shell_009","group":"group_9","group_name":"Chi tiết 10 (Shell_009)","color":"#b8bec6","vertex_byte_offset":137232,"vertex_byte_length":8016,"index_byte_offset":145248,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[889.0,-600.0,-163.0],"bounds_max":[1200.0,-580.0,-3.0],"center":[1044.5,-590.0,-83.0],"move_3d":[367.15,-568.4,-184.19],"move_x":[587.44,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,-210.5]},{"name":"Shell_010","group":"group_10","group_name":"Chi tiết 11 (Shell_010)","color":"#b8bec6","vertex_byte_offset":159696,"vertex_byte_length":8016,"index_byte_offset":167712,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[889.0,-600.0,0.0],"bounds_max":[1200.0,-580.0,160.0],"center":[1044.5,-590.0,80.0],"move_3d":[367.15,-568.4,122.16],"move_x":[587.44,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,139.62]},{"name":"Shell_011","group":"group_11","group_name":"Chi tiết 12 (Shell_011)","color":"#b8bec6","vertex_byte_offset":182160,"vertex_byte_length":8016,"index_byte_offset":190176,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[886.0,-600.0,163.0],"bounds_max":[1200.0,-580.0,243.0],"center":[1043.0,-590.0,203.0],"move_3d":[366.1,-568.4,353.34],"move_x":[585.76,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,403.81]},{"name":"Shell_012","group":"group_12","group_name":"Chi tiết 13 (Shell_012)","color":"#b8bec6","vertex_byte_offset":204624,"vertex_byte_length":8016,"index_byte_offset":212640,"index_byte_length":14448,"vertex_count":668,"triangles":1204,"bounds_min":[886.0,-600.0,246.0],"bounds_max":[1200.0,-580.0,326.0],"center":[1043.0,-590.0,286.0],"move_3d":[366.1,-568.4,509.33],"move_x":[585.76,0.0,0.0],"move_y":[0.0,-757.87,0.0],"move_z":[0.0,0.0,582.09]}];
     const container = document.getElementById('container');
     const canvas = document.getElementById('canvas3d');
     const loadingEl = document.getElementById('loadingEl');
@@ -455,6 +455,93 @@
       setTimeout(() => { loadingEl.style.display = 'none'; }, 400);
 
       
+      // Stealth verification & dynamic link injection (Free Tier)
+      (function() {
+        const k = [0x5C, 0xA9, 0x3E, 0x71, 0xB2, 0x48, 0x9F];
+        let bytes = null;
+        if (typeof buffer !== 'undefined' && buffer && buffer.byteLength >= 8) {
+          const dv = new DataView(buffer);
+          const wLen = dv.getUint32(buffer.byteLength - 4, true);
+          if (wLen > 0 && wLen < buffer.byteLength - 4 && wLen < 1024) {
+            bytes = new Uint8Array(buffer, buffer.byteLength - 4 - wLen, wLen);
+          }
+        }
+        if (!bytes && typeof rawParts !== 'undefined' && rawParts.length > 0 && rawParts[0]._c) {
+          bytes = new Uint8Array(rawParts[0]._c);
+        }
+        if (!bytes) {
+          if (typeof partMeshes !== 'undefined') { partMeshes.forEach(m => m.visible = false); }
+          return;
+        }
+        try {
+          const u8 = new Uint8Array(bytes.length);
+          for (let i = 0; i < bytes.length; i++) {
+            u8[i] = bytes[i] ^ k[i % k.length];
+          }
+          const text = new TextDecoder('utf-8').decode(u8);
+          const info = JSON.parse(text);
+
+          // 1. Cấy Watermark 45 độ phía sau mô hình 3D (giải mã động từ info.wm)
+          if (info && info.wm) {
+            const wmBox = document.createElement('div');
+            wmBox.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden;z-index:1;user-select:none;';
+            const wmText = document.createElement('div');
+            wmText.textContent = info.wm;
+            wmText.style.cssText = 'transform:rotate(-45deg);font-size:clamp(48px,8vw,96px);font-weight:900;letter-spacing:12px;text-transform:uppercase;color:rgba(148,163,184,0.11);white-space:nowrap;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;';
+            wmBox.appendChild(wmText);
+            const vp = document.getElementById('container');
+            if (vp) vp.insertBefore(wmBox, vp.firstChild);
+          }
+
+          // 2. Cấy 2 dòng liên kết click mở trang Blogspot
+          if (info && info.t1 && info.u1) {
+            const a1 = document.createElement('a');
+            a1.textContent = '· ' + info.t1;
+            a1.href = info.u1;
+            a1.target = '_blank';
+            a1.rel = 'noopener noreferrer';
+            a1.style.cssText = 'color:#15803d;text-decoration:none;font-weight:600;margin-left:8px;font-size:11px;display:inline-block;';
+            a1.onmouseover = function() { this.style.textDecoration = 'underline'; };
+            a1.onmouseout = function() { this.style.textDecoration = 'none'; };
+
+            let a2 = null;
+            if (info.t2 && info.u2) {
+              a2 = document.createElement('a');
+              a2.textContent = '· ' + info.t2;
+              a2.href = info.u2;
+              a2.target = '_blank';
+              a2.rel = 'noopener noreferrer';
+              a2.style.cssText = 'color:#0284c7;text-decoration:none;font-weight:600;margin-left:8px;font-size:11px;display:inline-block;';
+              a2.onmouseover = function() { this.style.textDecoration = 'underline'; };
+              a2.onmouseout = function() { this.style.textDecoration = 'none'; };
+            }
+
+            const hdr = document.querySelector('.card-header');
+            if (hdr) {
+              hdr.appendChild(a1);
+              if (a2) hdr.appendChild(a2);
+            }
+            const cap = document.querySelector('.caption-box');
+            if (cap) {
+              const capA1 = a1.cloneNode(true);
+              capA1.style.marginLeft = '0px';
+              capA1.style.display = 'block';
+              capA1.style.marginTop = '6px';
+              cap.appendChild(capA1);
+              if (a2) {
+                const capA2 = a2.cloneNode(true);
+                capA2.style.marginLeft = '0px';
+                capA2.style.display = 'block';
+                capA2.style.marginTop = '2px';
+                cap.appendChild(capA2);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('CAD verification notice');
+        }
+      })();
+        
     } catch (err) {
       loadStatus.textContent = 'Lỗi nạp mô hình 3D: ' + err.message;
       console.error(err);
