@@ -1,5 +1,14 @@
 [
     {
+        "name":  "Raskog_V1_Render",
+        "title":  "Raskog V1_Render",
+        "path":  "./Raskog_V1_Render/index.html",
+        "thumb":  "./Raskog_V1_Render/thumb.svg",
+        "fallback_thumb":  "./Raskog_V1_Render/thumb.svg",
+        "part_count":  57,
+        "date":  "2026-11-13 08:15"
+    },
+    {
         "name":  "Ikea_Lagkapten-Alex",
         "title":  "Ikea Lagkapten-Alex",
         "path":  "./Ikea_Lagkapten-Alex/index.html",
