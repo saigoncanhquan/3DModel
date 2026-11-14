@@ -1,5 +1,14 @@
 [
     {
+        "name":  "ikeapuf_3dmodel",
+        "title":  "ikeapuf_3dmodel",
+        "path":  "./ikeapuf_3dmodel/index.html",
+        "thumb":  "./ikeapuf_3dmodel/thumb.svg",
+        "fallback_thumb":  "./ikeapuf_3dmodel/thumb.svg",
+        "part_count":  5,
+        "date":  "2026-11-14 09:22"
+    },
+    {
         "name":  "Raskog_V1_Render",
         "title":  "Raskog V1_Render",
         "path":  "./Raskog_V1_Render/index.html",
