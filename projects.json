@@ -1,5 +1,14 @@
 [
     {
+        "name":  "Ikea_Skogsta",
+        "title":  "Ikea Skogsta",
+        "path":  "./Ikea_Skogsta/index.html",
+        "thumb":  "./Ikea_Skogsta/thumb.png",
+        "fallback_thumb":  "./Ikea_Skogsta/thumb.svg",
+        "part_count":  10,
+        "date":  "2026-11-15 22:29"
+    },
+    {
         "name":  "ikeapuf_3dmodel",
         "title":  "ikeapuf_3dmodel",
         "path":  "./ikeapuf_3dmodel/index.html",
