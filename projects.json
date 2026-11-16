@@ -1,5 +1,14 @@
 [
     {
+        "name":  "EN2242_JO_02_IKEA_EKENASET_SOFA_-_MODEL",
+        "title":  "EN2242_JO_02_IKEA_EKENASET_SOFA - MODEL",
+        "path":  "./EN2242_JO_02_IKEA_EKENASET_SOFA_-_MODEL/index.html",
+        "thumb":  "./EN2242_JO_02_IKEA_EKENASET_SOFA_-_MODEL/thumb.svg",
+        "fallback_thumb":  "./EN2242_JO_02_IKEA_EKENASET_SOFA_-_MODEL/thumb.svg",
+        "part_count":  13,
+        "date":  "2026-11-16 13:42"
+    },
+    {
         "name":  "Ikea_Skogsta",
         "title":  "Ikea Skogsta",
         "path":  "./Ikea_Skogsta/index.html",

@@ -1,0 +1,120 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 250" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1120"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="250" rx="10" fill="url(#bgGrad)"/>
+  <g stroke="#0f172a" stroke-width="0.6" stroke-linejoin="round">
+    <polygon points="164.5,94.6 164.5,94.5 164.4,94.6" fill="#62656a"/>
+    <polygon points="162.7,68.1 164.1,74.7 164.1,74.6" fill="#515457"/>
+    <polygon points="158.6,74.8 155.8,73.4 158.7,75.0" fill="#707479"/>
+    <polygon points="154.6,68.7 153.6,64.2 153.6,64.2" fill="#666a6e"/>
+    <polygon points="160.5,63.1 161.4,63.6 160.5,63.1" fill="#626569"/>
+    <polygon points="162.2,66.7 162.3,66.7 163.0,65.9" fill="#acb1b9"/>
+    <polygon points="169.1,46.8 169.3,46.8 168.8,46.7" fill="#5d6064"/>
+    <polygon points="152.6,57.6 152.9,57.4 155.8,54.7" fill="#5f6266"/>
+    <polygon points="153.1,47.6 153.2,47.7 152.3,43.0" fill="#868b90"/>
+    <polygon points="160.3,30.6 160.0,30.5 160.5,30.9" fill="#000000"/>
+    <polygon points="153.4,30.1 153.2,30.0 151.2,31.8" fill="#000000"/>
+    <polygon points="161.1,32.3 161.1,32.8 161.1,32.4" fill="#000000"/>
+    <polygon points="160.1,34.3 160.3,34.2 160.2,34.0" fill="#000000"/>
+    <polygon points="159.2,33.0 159.2,33.0 157.5,34.6" fill="#000000"/>
+    <polygon points="100.0,120.4 100.0,120.4 100.0,120.4" fill="#80848a"/>
+    <polygon points="233.7,90.7 232.5,82.7 233.6,90.9" fill="#626569"/>
+    <polygon points="101.9,120.5 102.0,120.5 104.2,110.1" fill="#a9afb6"/>
+    <polygon points="100.3,120.6 103.7,108.9 103.0,108.6" fill="#9da2a9"/>
+    <polygon points="232.3,79.7 232.2,79.3 232.3,79.7" fill="#505357"/>
+    <polygon points="232.2,79.3 232.1,79.3 232.3,79.7" fill="#56585c"/>
+    <polygon points="231.7,84.2 231.6,84.7 231.6,84.7" fill="#787b81"/>
+    <polygon points="111.5,103.4 111.7,103.7 111.6,103.6" fill="#4c4e52"/>
+    <polygon points="113.0,99.2 112.9,99.2 112.7,99.3" fill="#82868c"/>
+    <polygon points="235.9,80.8 236.3,80.8 236.4,80.8" fill="#757575"/>
+    <polygon points="112.2,101.7 111.9,101.8 112.1,101.9" fill="#8b8f96"/>
+    <polygon points="131.2,59.4 131.2,59.4 131.2,59.4" fill="#000000"/>
+    <polygon points="304.3,164.0 307.0,165.4 307.0,165.3" fill="#55575b"/>
+    <polygon points="213.8,97.9 214.0,98.5 217.0,94.9" fill="#969aa1"/>
+    <polygon points="300.8,152.6 300.7,152.5 302.0,156.9" fill="#595c5f"/>
+    <polygon points="212.3,100.8 209.1,103.9 209.5,103.8" fill="#777777"/>
+    <polygon points="302.7,149.8 302.6,149.7 303.9,154.1" fill="#797d82"/>
+    <polygon points="238.7,81.2 299.0,111.2 299.1,111.2" fill="#585858"/>
+    <polygon points="99.0,81.0 99.0,81.2 99.0,81.0" fill="#000000"/>
+    <polygon points="101.5,80.0 101.9,79.6 101.5,79.7" fill="#000000"/>
+    <polygon points="180.5,142.9 180.6,143.0 180.7,142.9" fill="#6e7176"/>
+    <polygon points="184.3,139.5 184.3,140.0 184.3,139.9" fill="#777b80"/>
+    <polygon points="194.4,116.4 194.0,115.9 191.2,119.8" fill="#a5aab1"/>
+    <polygon points="186.3,147.2 185.9,147.1 186.1,147.1" fill="#4d4d4d"/>
+    <polygon points="302.6,125.4 302.7,125.2 302.7,125.3" fill="#727272"/>
+    <polygon points="297.0,132.9 297.8,132.1 297.6,132.2" fill="#5d6064"/>
+    <polygon points="297.8,134.5 298.1,133.4 298.0,133.6" fill="#777b80"/>
+    <polygon points="299.4,111.5 299.5,111.5 299.1,111.2" fill="#676767"/>
+    <polygon points="177.0,135.5 176.9,135.6 177.3,135.6" fill="#7b7f84"/>
+    <polygon points="174.7,135.1 175.1,135.1 174.7,134.9" fill="#82868b"/>
+    <polygon points="180.2,129.0 178.0,131.5 178.0,131.5" fill="#afb5bc"/>
+    <polygon points="301.4,117.1 301.3,117.0 301.2,117.5" fill="#808080"/>
+    <polygon points="176.9,131.5 176.9,131.7 177.3,131.6" fill="#b6bcc3"/>
+    <polygon points="299.7,113.0 299.7,113.4 299.9,113.3" fill="#aaaaaa"/>
+    <polygon points="296.8,132.2 297.6,132.6 296.8,132.2" fill="#73767b"/>
+    <polygon points="180.4,135.0 180.4,135.2 180.5,135.1" fill="#6e6e6e"/>
+    <polygon points="181.2,136.5 180.9,136.3 180.9,136.6" fill="#909090"/>
+    <polygon points="174.5,132.6 174.8,132.5 174.7,132.5" fill="#616161"/>
+    <polygon points="177.7,130.5 177.6,130.5 177.5,130.8" fill="#6c6c6c"/>
+    <polygon points="302.7,125.9 301.2,119.5 301.2,119.6" fill="#525559"/>
+    <polygon points="296.6,123.2 293.9,121.8 296.7,123.4" fill="#75797e"/>
+    <polygon points="179.9,112.5 181.0,115.2 181.1,114.6" fill="#696969"/>
+    <polygon points="93.6,60.8 97.5,55.9 97.5,55.9" fill="#5c5c5c"/>
+    <polygon points="296.7,132.3 245.9,179.3 296.7,132.3" fill="#999ea4"/>
+    <polygon points="99.7,55.1 99.6,55.4 100.0,55.2" fill="#a2a2a2"/>
+    <polygon points="93.2,61.8 93.0,62.2 93.1,62.0" fill="#6e6e6e"/>
+    <polygon points="93.2,61.8 93.3,61.7 93.2,61.8" fill="#757575"/>
+    <polygon points="298.1,99.8 297.6,99.9 298.1,99.8" fill="#63666a"/>
+    <polygon points="94.2,61.1 94.3,60.9 94.1,61.1" fill="#8d8d8d"/>
+    <polygon points="270.8,146.2 274.0,143.1 273.8,142.6" fill="#939393"/>
+    <polygon points="295.7,113.8 295.2,110.4 295.2,110.4" fill="#888c92"/>
+    <polygon points="180.1,136.0 163.5,101.1 179.9,135.9" fill="#5c5f63"/>
+    <polygon points="296.6,110.9 300.9,106.7 296.5,110.7" fill="#8b9096"/>
+    <polygon points="296.7,111.1 296.7,111.2 296.7,111.3" fill="#707479"/>
+    <polygon points="250.1,177.3 250.1,177.4 250.3,177.3" fill="#6a6a6a"/>
+    <polygon points="247.3,180.9 298.4,133.7 247.3,180.8" fill="#7e8288"/>
+    <polygon points="253.4,174.3 253.4,174.3 253.4,174.2" fill="#747474"/>
+    <polygon points="265.8,146.4 262.7,149.7 263.1,150.2" fill="#b9b9b9"/>
+    <polygon points="236.2,220.0 236.3,219.9 236.2,219.9" fill="#a8adb4"/>
+    <polygon points="245.7,169.9 249.1,177.1 246.0,169.9" fill="#848484"/>
+    <polygon points="243.1,169.4 243.2,169.5 243.2,169.3" fill="#757575"/>
+    <polygon points="250.0,167.8 249.9,167.6 249.6,167.6" fill="#a2a2a2"/>
+    <polygon points="249.6,167.4 249.6,167.4 249.6,167.6" fill="#aaaaaa"/>
+    <polygon points="161.9,85.1 162.2,84.8 101.9,54.9" fill="#a9a9a9"/>
+    <polygon points="243.1,167.0 243.4,167.2 243.5,166.9" fill="#bbbbbb"/>
+    <polygon points="245.4,179.3 245.4,179.3 245.4,179.3" fill="#85898f"/>
+    <polygon points="251.8,156.1 251.6,156.6 252.1,157.6" fill="#707479"/>
+    <polygon points="245.8,166.0 245.9,165.9 245.7,166.0" fill="#53565a"/>
+    <polygon points="169.7,93.4 168.2,91.3 168.1,91.9" fill="#767676"/>
+    <polygon points="166.8,89.6 166.9,89.5 166.8,89.1" fill="#7a7a7a"/>
+    <polygon points="163.4,85.3 163.1,85.1 162.9,85.2" fill="#a9a9a9"/>
+    <polygon points="165.6,87.5 165.7,87.7 165.8,87.5" fill="#9f9f9f"/>
+    <polygon points="162.5,96.3 162.0,96.6 162.3,96.5" fill="#8f8f8f"/>
+    <polygon points="163.7,87.5 159.4,93.2 163.8,87.7" fill="#c4c4c4"/>
+    <polygon points="156.1,96.2 155.7,96.1 155.7,96.3" fill="#9c9c9c"/>
+    <polygon points="160.2,94.6 160.2,94.9 160.4,94.6" fill="#bdbdbd"/>
+    <polygon points="156.4,94.7 156.3,95.0 156.8,94.9" fill="#bebebe"/>
+    <polygon points="169.1,89.1 169.4,89.1 169.6,88.9" fill="#878c92"/>
+    <polygon points="162.4,96.8 162.5,96.6 162.3,96.4" fill="#75797e"/>
+    <polygon points="256.0,143.2 255.8,143.5 255.9,143.3" fill="#999ea5"/>
+    <polygon points="163.4,98.3 163.4,98.5 163.7,98.5" fill="#9ca1a7"/>
+    <polygon points="163.9,99.4 163.6,99.0 163.6,99.3" fill="#999ea4"/>
+    <polygon points="240.7,151.2 240.7,151.3 241.0,151.5" fill="#7c8085"/>
+    <polygon points="245.5,150.0 245.4,150.1 245.6,150.0" fill="#a8aeb5"/>
+    <polygon points="241.7,132.2 243.0,134.5 243.1,133.9" fill="#65686c"/>
+    <polygon points="163.8,100.7 224.2,130.9 224.2,130.6" fill="#767a7f"/>
+    <polygon points="237.4,125.0 236.0,122.9 236.0,123.1" fill="#66696d"/>
+    <polygon points="233.3,119.0 233.5,119.0 233.0,118.8" fill="#686c70"/>
+    <polygon points="235.3,123.6 235.1,123.7 235.2,124.1" fill="#8f949a"/>
+    <polygon points="231.1,119.8 231.4,120.0 231.6,119.8" fill="#a5aab1"/>
+    <polygon points="230.8,130.9 230.7,131.1 231.2,130.9" fill="#80848a"/>
+    <polygon points="225.9,131.3 225.8,131.5 226.2,131.6" fill="#81858b"/>
+    <polygon points="226.2,127.2 226.3,126.9 225.9,127.0" fill="#b3b9c1"/>
+    <polygon points="227.2,129.6 227.2,129.3 226.7,129.5" fill="#b1b7bf"/>
+  </g>
+  <text x="16" y="24" fill="#38bdf8" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" font-size="11" font-weight="700" letter-spacing="1">UNTUBE 3D CAD</text>
+</svg>
