@@ -1,5 +1,14 @@
 [
     {
+        "name":  "Cross_Locked_Symmetric_Stool_-_Rectangular",
+        "title":  "Cross Locked Symmetric Stool - Rectangular",
+        "path":  "./Cross_Locked_Symmetric_Stool_-_Rectangular/index.html",
+        "thumb":  "./Cross_Locked_Symmetric_Stool_-_Rectangular/thumb.jpg",
+        "fallback_thumb":  "./Cross_Locked_Symmetric_Stool_-_Rectangular/thumb.svg",
+        "part_count":  3,
+        "date":  "2026-11-17 19:35"
+    },
+    {
         "name":  "EN2242_JO_02_IKEA_EKENASET_SOFA_-_MODEL",
         "title":  "EN2242_JO_02_IKEA_EKENASET_SOFA - MODEL",
         "path":  "./EN2242_JO_02_IKEA_EKENASET_SOFA_-_MODEL/index.html",
