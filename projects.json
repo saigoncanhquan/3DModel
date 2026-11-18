@@ -1,5 +1,14 @@
 [
     {
+        "name":  "Twisted_tree_roots",
+        "title":  "Twisted tree roots",
+        "path":  "./Twisted_tree_roots/index.html",
+        "thumb":  "./Twisted_tree_roots/thumb.jpeg",
+        "fallback_thumb":  "./Twisted_tree_roots/thumb.svg",
+        "part_count":  2,
+        "date":  "2026-11-18 16:21"
+    },
+    {
         "name":  "Cross_Locked_Symmetric_Stool_-_Rectangular",
         "title":  "Cross Locked Symmetric Stool - Rectangular",
         "path":  "./Cross_Locked_Symmetric_Stool_-_Rectangular/index.html",

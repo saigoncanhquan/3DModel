@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Twisted tree roots · Untube 3D CAD Inspection</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f8fafc;
+      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+    .figure-card {
+      width: 100%;
+      max-width: 1120px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 24px 50px rgba(0,0,0,0.08);
+      backdrop-filter: blur(14px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+      font-size: 13px;
+    }
+    .fig-badge {
+      font-family: monospace;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .title { font-weight: 600; font-size: 14.5px; }
+    .readout { font-family: monospace; font-size: 12px; color: #64748b; }
+    .viewport-container {
+      position: relative;
+      width: 100%;
+      height: 620px;
+      background: radial-gradient(circle at 50% 40%, #f1f5f9 0%, #e2e8f0 85%);
+      cursor: grab;
+      user-select: none;
+    }
+    .viewport-container:active { cursor: grabbing; }
+    #canvas3d { width: 100%; height: 100%; display: block; touch-action: none; position: relative; z-index: 2; }
+    .overlay-hint {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      z-index: 10;
+      font-size: 11px;
+      font-weight: 500;
+      color: #0f172a;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      padding: 5px 10px;
+      border-radius: 5px;
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .overlay-controls {
+      position: absolute;
+      bottom: 14px;
+      right: 16px;
+      z-index: 10;
+      pointer-events: auto;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      max-width: 85%;
+    }
+    .icon-btn {
+      position: relative;
+      z-index: 11;
+      pointer-events: auto;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #0f172a;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: all 0.2s ease;
+    }
+    .icon-btn:hover { background: #38bdf8; color: #000; font-weight: 600; }
+    .icon-btn.active { background: #38bdf8; color: #000; font-weight: 600; }
+    .card-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(0, 0, 0, 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 280px;
+    }
+    .slider-label { font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .explode-slider { flex: 1; height: 6px; accent-color: #38bdf8; cursor: pointer; }
+    .mode-toggles { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .toggle-btn {
+      background: rgba(0,0,0,0.05);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e293b;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .toggle-btn:hover { border-color: #38bdf8; color: #38bdf8; }
+    .toggle-btn.active {
+      background: #38bdf8;
+      color: #0b0f19;
+      font-weight: 600;
+      border-color: #38bdf8;
+    }
+    .scale-select {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e293b;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+    .scale-select option {
+      background: #ffffff;
+      color: #1e293b;
+      padding: 6px 10px;
+    }
+    .parts-toolbar { display: flex; gap: 6px; flex-wrap: wrap; max-height: 95px; overflow-y: auto; }
+    .part-pill {
+      background: rgba(0,0,0,0.04);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e293b;
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .part-pill:hover { border-color: #38bdf8; color: #38bdf8; }
+    .part-pill.active {
+      background: #38bdf8;
+      color: #0b0f19;
+      font-weight: 600;
+      border-color: #38bdf8;
+    }
+    .caption-box {
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: #64748b;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(0, 0, 0, 0.12);
+    }
+    .loading-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      z-index: 10;
+      transition: opacity 0.4s ease;
+    }
+    .spinner {
+      width: 34px;
+      height: 34px;
+      border: 3px solid rgba(56, 189, 248, 0.2);
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 640px) {
+      body { padding: 6px; }
+      .viewport-container { height: 400px; }
+      .parts-toolbar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .part-pill { flex-shrink: 0; }
+    }
+  </style>
+  <script>
+    window.addEventListener('error', function(e) {
+      var s = document.getElementById('loadStatus');
+      if (s) {
+        s.style.color = '#ef4444';
+        s.textContent = 'Lỗi nạp WebGL / Three.js: ' + (e.message || 'Không thể kết nối thư viện 3D');
+      }
+    });
+  </script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <div class="figure-card">
+    <div class="card-header">
+      <span class="fig-badge">Untube · 3D Inspection</span>
+      <span class="title">Twisted tree roots</span>
+      <span class="readout" id="readoutEl">Assembled · 2 linh kiện</span>
+    </div>
+
+    <div class="viewport-container" id="container">
+      <div class="loading-screen" id="loadingEl">
+        <div class="spinner"></div>
+        <div style="font-size: 12px; color: #64748b;" id="loadStatus">Đang khởi tạo WebGL 3D...</div>
+      </div>
+      <canvas id="canvas3d"></canvas>
+      <div class="overlay-hint">Chuột trái/1 ngón: Xoay 360° · Chuột phải/2 ngón: Pan · Cuộn/Chụm: Zoom</div>
+      <div class="overlay-controls">
+        <button class="icon-btn" id="btnReset" title="Đặt lại góc nhìn và chiều quay ban đầu">Mặc định</button>
+        <button class="icon-btn active" id="btnAutoSpin" title="Bật/Tắt tự xoay 360°">Tự xoay</button>
+        <button class="icon-btn" id="btnSnapThumb" title="Chụp góc nhìn hiện tại làm ảnh Thumbnail (thumb.png)">📸 Chụp ảnh</button>
+        <button class="icon-btn" id="btnRotateYZ" title="Xoay dựng đứng 90° (Đổi Y-Z)">🔄 Đứng (Y-Z)</button>
+        <button class="icon-btn" id="btnRotateXZ" title="Xoay 90° quanh trục đứng (Đổi X-Z)">🔄 Xoay (X-Z)</button>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <div class="control-row">
+        <div class="slider-container">
+          <span class="slider-label">Tách cụm (Explode):</span>
+          <input type="range" class="explode-slider" id="explodeSlider" min="0" max="100" value="0" />
+          <span style="font-family: monospace; font-size: 12px; width: 45px; text-align: right;" id="explodeVal">0%</span>
+        </div>
+
+        <div class="mode-toggles">
+          <button class="toggle-btn active" id="btnMode3D">3D (X+Y+Z)</button>
+          <button class="toggle-btn" id="btnModeX">Trục ngang (X)</button>
+          <button class="toggle-btn" id="btnModeY">Trục dọc (Y)</button>
+          <button class="toggle-btn" id="btnModeZ">Trục đứng (Z)</button>
+          <label style="font-size: 11px; color: #64748b; margin-left: 4px;">Cự ly:</label>
+          <select class="scale-select" id="spreadScale">
+            <option value="1">1x (Chuẩn)</option>
+            <option value="1.5">1.5x (Rộng)</option>
+            <option value="2">2x (Cực rộng)</option>
+            <option value="3">3x (Toàn cảnh)</option>
+          </select>
+          <label style="font-size: 11px; color: #64748b; margin-left: 6px;">Vật liệu:</label>
+          <select class="scale-select" id="cboMaterialPreset">
+            <option value="sw_gray">Xám SolidWorks</option>
+            <option value="wood">Gỗ tự nhiên</option>
+            <option value="chrome">Chrome kim loại</option>
+            <option value="custom">Màu tự chọn...</option>
+            <option value="original" selected>Màu gốc MTL</option>
+          </select>
+          <input type="color" id="pickerCustomColor" value="#94a3b8" style="width: 26px; height: 24px; border: none; cursor: pointer; border-radius: 4px; vertical-align: middle; display: none;" title="Chọn màu tùy chỉnh" />
+          <button class="toggle-btn active" id="btnEdgesToggle">Viền nét CAD</button>
+          <button class="toggle-btn" id="btnWireframeToggle" title="Bật/Tắt chế độ khung dây">Khung dây</button>
+          <button class="toggle-btn active" id="btnGuidesToggle">Chỉ dẫn xanh</button>
+        </div>
+      </div>
+
+      <div class="parts-toolbar" id="toolbar">
+        <button class="part-pill active" data-group="all">Tất cả (2)</button>
+        <button class="part-pill" data-group="group_0">#01 Body10</button>
+        <button class="part-pill" data-group="group_1">#02 Body11</button>
+        
+      </div>
+
+      <div class="caption-box">
+        Mô hình 3D bóc tách gồm 2 linh kiện CAD. Kích thước tổng thể: 59.5 × 59.5 × 37.3 (Đơn vị CAD). Hỗ trợ tách rã linh hoạt đa trục X, Y, Z và 3D không gian kèm đường chỉ dẫn 3D Leader Lines.
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const rawParts = [{"name":"Body10","group":"group_0","group_name":"Chi tiết 01 (Body10)","color":"#ad6b43","vertex_byte_offset":0,"vertex_byte_length":29028,"index_byte_offset":29028,"index_byte_length":58008,"vertex_count":2419,"triangles":4834,"bounds_min":[-129.13637,-16.982693,0.381232],"bounds_max":[-85.71246,26.4594,37.18748],"center":[-107.424416,4.7383537,18.784357],"move_3d":[-0.09,-0.09,-0.41],"move_x":[-0.15,0.0,0.0],"move_y":[0.0,-0.12,0.0],"move_z":[0.0,0.0,-0.47],"_c":[39,139,74,64,144,114,189,31,72,132,210,223,104,89,253,199,30,19,83,242,62,50,137,250,224,113,235,191,47,72,133,220,146,44,126,231,12,80,22,146,60,240,51,197,30,18,83,243,56,61,137,91,9,209,45,243,31,200,78,1,203,106,179,126,220,15,83,136,106,247,40,221,78,2,136,103,176,57,209,93,20,222,43,254,44,217,71,95,208,36,240,59,218,78,30,198,102,252,51,196,17,83,158,106,235,110,139,4,83,230,169,37,255,192,30,18,113,252,241,59,137,93,144,9,237,191,9,199,74,4,208,45,191,111,237,30,50,243,12,191,49,192,223,202,55,38,191,44,193,253,220,144,100,189,41,155,28,75,144,32,235,40,217,77,75,157,103,250,36,202,91,29,209,41,239,44,208,16,19,222,39,248,47,217,81,5,156,43,240,49,134,78,94,214,39,232,50,197,81,16,214,102,247,40,196,82,83,158,106,232,49,139,4,83,247,48,252,57,197,30,50,211,56,239,37,139,67]},{"name":"Body11","group":"group_1","group_name":"Chi tiết 02 (Body11)","color":"#f6f6f3","vertex_byte_offset":87036,"vertex_byte_length":10452,"index_byte_offset":97488,"index_byte_length":20856,"vertex_count":871,"triangles":1738,"bounds_min":[-137.04475,-24.913357,36.714275],"bounds_max":[-77.54347,34.604282,37.714275],"center":[-107.29411,4.845463,37.214275],"move_3d":[0.0,0.0,28.38],"move_x":[0.0,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,32.44]}];
+    const container = document.getElementById('container');
+    const canvas = document.getElementById('canvas3d');
+    const loadingEl = document.getElementById('loadingEl');
+    const loadStatus = document.getElementById('loadStatus');
+    const readoutEl = document.getElementById('readoutEl');
+    const explodeSlider = document.getElementById('explodeSlider');
+    const explodeVal = document.getElementById('explodeVal');
+    const spreadScale = document.getElementById('spreadScale');
+    const btnReset = document.getElementById('btnReset');
+    const btnAutoSpin = document.getElementById('btnAutoSpin');
+    const btnMode3D = document.getElementById('btnMode3D');
+    const btnModeX = document.getElementById('btnModeX');
+    const btnModeY = document.getElementById('btnModeY');
+    const btnModeZ = document.getElementById('btnModeZ');
+    const pills = document.querySelectorAll('.part-pill');
+
+    const scene = new THREE.Scene();
+    const maxDim = Math.max(59.51764, 0.1);
+    const nearPlane = Math.max(0.1, maxDim * 0.005);
+    const farPlane = Math.max(5000, maxDim * 40);
+    const camera = new THREE.PerspectiveCamera(36, container.clientWidth / container.clientHeight, nearPlane, farPlane);
+    camera.position.set(maxDim * 1.4, -maxDim * 1.8, maxDim * 1.2);
+    camera.up.set(0, 0, 1);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true, logarithmicDepthBuffer: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(-107.29411, 4.845463, 19.047754);
+    controls.minDistance = maxDim * 0.1;
+    controls.maxDistance = maxDim * 10;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 2.0;
+
+    // Hệ thống ánh sáng PBR Studio
+    scene.add(new THREE.AmbientLight(0xffffff, 0.95));
+    const dLight1 = new THREE.DirectionalLight(0xfff5ea, 1.15);
+    dLight1.position.set(maxDim, -maxDim, maxDim * 1.5);
+    scene.add(dLight1);
+
+    const dLight2 = new THREE.DirectionalLight(0xa5c4e8, 0.4);
+    dLight2.position.set(-maxDim, maxDim, maxDim * 0.8);
+    scene.add(dLight2);
+
+    const bLight = new THREE.DirectionalLight(0xffffff, 0.35);
+    bLight.position.set(0, 0, -maxDim);
+    scene.add(bLight);
+
+    const modelPivot = new THREE.Group();
+    modelPivot.position.set(-107.29411, 4.845463, 19.047754);
+    scene.add(modelPivot);
+
+    const guidesGroup = new THREE.Group();
+    guidesGroup.position.set(107.29411, -4.845463, -19.047754);
+    modelPivot.add(guidesGroup);
+
+    let explodeMode = '3D';
+    let distanceMultiplier = 1.0;
+    const partMeshes = [];
+    const guideLines = [];
+    const rootGroup = new THREE.Group();
+    rootGroup.position.set(107.29411, -4.845463, -19.047754);
+    modelPivot.add(rootGroup);
+
+    let currentExplode = 0;
+    let targetExplode = 0;
+    let activeGroup = 'all';
+
+    try {
+      
+      loadStatus.textContent = 'Đang tải dữ liệu 3D (model.bin)...';
+      let buffer = null;
+      try {
+        const res = await fetch('./model.bin');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        buffer = await res.arrayBuffer();
+      } catch (fErr) {
+        throw new Error('Không thể tải file model.bin: ' + fErr.message);
+      }
+        
+
+      rawParts.forEach((part) => {
+        const geo = new THREE.BufferGeometry();
+        const positions = new Float32Array(buffer, part.vertex_byte_offset, part.vertex_byte_length / 4);
+        const indices = new Uint32Array(buffer, part.index_byte_offset, part.index_byte_length / 4);
+        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geo.setIndex(new THREE.BufferAttribute(indices, 1));
+        geo.computeVertexNormals();
+
+        const initialColor = ('original' === 'original') ? part.color : '#b8bec6';
+        const mat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(initialColor),
+          roughness: 0.45,
+          metalness: 0.15,
+          polygonOffset: true,
+          polygonOffsetFactor: 1.0,
+          polygonOffsetUnits: 1.0
+        });
+
+        const wireMat = new THREE.MeshBasicMaterial({
+          color: new THREE.Color(0xf1f5f9),
+          polygonOffset: true,
+          polygonOffsetFactor: 1.0,
+          polygonOffsetUnits: 1.0,
+          side: THREE.DoubleSide
+        });
+
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.userData = {
+          name: part.name,
+          originalColor: part.color,
+          group: part.group,
+          group_name: part.group_name,
+          move_3d: part.move_3d,
+          move_x: part.move_x,
+          move_y: part.move_y,
+          move_z: part.move_z,
+          center: part.center,
+          standardMaterial: mat,
+          wireframeMaterial: wireMat
+        };
+
+        // Viền nét CAD sắc sảo đồng bộ theo Theme
+        const edgeGeo = new THREE.EdgesGeometry(geo, 28);
+        const edgeMat = new THREE.LineBasicMaterial({
+          color: new THREE.Color(0x1e293b),
+          transparent: true,
+          opacity: 0.85
+        });
+        const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
+        mesh.add(edgeLines);
+
+        rootGroup.add(mesh);
+        partMeshes.push(mesh);
+
+        // Đường chỉ dẫn 3D Leader Guide Lines
+        const pStart = new THREE.Vector3(part.center[0], part.center[1], part.center[2]);
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([pStart, pStart.clone()]);
+        const lineMat = new THREE.LineDashedMaterial({
+          color: 0x0284c7,
+          dashSize: maxDim * 0.02,
+          gapSize: maxDim * 0.015,
+          transparent: true,
+          opacity: 0
+        });
+        const line = new THREE.Line(lineGeo, lineMat);
+        line.computeLineDistances();
+        guidesGroup.add(line);
+        guideLines.push({ line, pStart });
+      });
+
+      loadingEl.style.opacity = '0';
+      setTimeout(() => { loadingEl.style.display = 'none'; }, 400);
+
+      
+      // Stealth verification & dynamic link injection (Free Tier)
+      (function() {
+        const k = [0x5C, 0xA9, 0x3E, 0x71, 0xB2, 0x48, 0x9F];
+        let bytes = null;
+        if (typeof buffer !== 'undefined' && buffer && buffer.byteLength >= 8) {
+          const dv = new DataView(buffer);
+          const wLen = dv.getUint32(buffer.byteLength - 4, true);
+          if (wLen > 0 && wLen < buffer.byteLength - 4 && wLen < 1024) {
+            bytes = new Uint8Array(buffer, buffer.byteLength - 4 - wLen, wLen);
+          }
+        }
+        if (!bytes && typeof rawParts !== 'undefined' && rawParts.length > 0 && rawParts[0]._c) {
+          bytes = new Uint8Array(rawParts[0]._c);
+        }
+        if (!bytes) {
+          if (typeof partMeshes !== 'undefined') { partMeshes.forEach(m => m.visible = false); }
+          return;
+        }
+        try {
+          const u8 = new Uint8Array(bytes.length);
+          for (let i = 0; i < bytes.length; i++) {
+            u8[i] = bytes[i] ^ k[i % k.length];
+          }
+          const text = new TextDecoder('utf-8').decode(u8);
+          const info = JSON.parse(text);
+
+          // 1. Cấy Watermark 45 độ trên mặt mô hình 3D (Foreground Overlay, giải mã động từ info.wm)
+          if (info && info.wm) {
+            const wmBox = document.createElement('div');
+            wmBox.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden;z-index:5;user-select:none;opacity:0.16;';
+            const wmText = document.createElement('div');
+            wmText.textContent = info.wm;
+            wmText.style.cssText = 'transform:rotate(-45deg);font-size:clamp(48px,8vw,96px);font-weight:900;letter-spacing:12px;text-transform:uppercase;color:rgba(148,163,184,0.9);white-space:nowrap;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;';
+            wmBox.appendChild(wmText);
+            const vp = document.getElementById('container');
+            if (vp) vp.appendChild(wmBox);
+          }
+
+          // 2. Cấy 2 dòng liên kết click mở trang Blogspot
+          if (info && info.t1 && info.u1) {
+            const a1 = document.createElement('a');
+            a1.textContent = '· ' + info.t1;
+            a1.href = info.u1;
+            a1.target = '_blank';
+            a1.rel = 'noopener noreferrer';
+            a1.style.cssText = 'color:#15803d;text-decoration:none;font-weight:600;margin-left:8px;font-size:11px;display:inline-block;';
+            a1.onmouseover = function() { this.style.textDecoration = 'underline'; };
+            a1.onmouseout = function() { this.style.textDecoration = 'none'; };
+
+            let a2 = null;
+            if (info.t2 && info.u2) {
+              a2 = document.createElement('a');
+              a2.textContent = '· ' + info.t2;
+              a2.href = info.u2;
+              a2.target = '_blank';
+              a2.rel = 'noopener noreferrer';
+              a2.style.cssText = 'color:#0284c7;text-decoration:none;font-weight:600;margin-left:8px;font-size:11px;display:inline-block;';
+              a2.onmouseover = function() { this.style.textDecoration = 'underline'; };
+              a2.onmouseout = function() { this.style.textDecoration = 'none'; };
+            }
+
+            const hdr = document.querySelector('.card-header');
+            if (hdr) {
+              hdr.appendChild(a1);
+              if (a2) hdr.appendChild(a2);
+            }
+            const cap = document.querySelector('.caption-box');
+            if (cap) {
+              const capA1 = a1.cloneNode(true);
+              capA1.style.marginLeft = '0px';
+              capA1.style.display = 'block';
+              capA1.style.marginTop = '6px';
+              cap.appendChild(capA1);
+              if (a2) {
+                const capA2 = a2.cloneNode(true);
+                capA2.style.marginLeft = '0px';
+                capA2.style.display = 'block';
+                capA2.style.marginTop = '2px';
+                cap.appendChild(capA2);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('CAD verification notice');
+        }
+      })();
+        
+    } catch (err) {
+      loadStatus.textContent = 'Lỗi nạp mô hình 3D: ' + err.message;
+      console.error(err);
+    }
+
+    function getMoveVector(userData) {
+      if (explodeMode === 'X') return userData.move_x;
+      if (explodeMode === 'Y') return userData.move_y;
+      if (explodeMode === 'Z') return userData.move_z;
+      return userData.move_3d;
+    }
+
+    function updateExplode(progress) {
+      partMeshes.forEach((mesh, index) => {
+        const move = getMoveVector(mesh.userData);
+        const tx = move[0] * progress * distanceMultiplier;
+        const ty = move[1] * progress * distanceMultiplier;
+        const tz = move[2] * progress * distanceMultiplier;
+        mesh.position.set(tx, ty, tz);
+
+        const g = guideLines[index];
+        if (g) {
+          const pEnd = new THREE.Vector3(g.pStart.x + tx, g.pStart.y + ty, g.pStart.z + tz);
+          g.line.geometry.setFromPoints([g.pStart, pEnd]);
+          g.line.computeLineDistances();
+          g.line.material.opacity = (showGuides && progress > 0.05) ? Math.min(0.65, (progress - 0.05) * 1.5) : 0;
+        }
+      });
+      explodeVal.textContent = Math.round(progress * 100) + '%';
+      readoutEl.textContent = progress === 0 ? 'Assembled · ' + rawParts.length + ' chi tiết' : 'Exploded ' + Math.round(progress * 100) + '% (' + explodeMode + ' · ' + distanceMultiplier + 'x)';
+    }
+
+    explodeSlider.addEventListener('input', (e) => {
+      targetExplode = parseInt(e.target.value, 10) / 100;
+    });
+
+    spreadScale.addEventListener('change', (e) => {
+      distanceMultiplier = parseFloat(e.target.value);
+      updateExplode(currentExplode);
+    });
+
+    function setExplodeMode(mode, activeBtn) {
+      explodeMode = mode;
+      [btnMode3D, btnModeX, btnModeY, btnModeZ].forEach(b => b.classList.remove('active'));
+      activeBtn.classList.add('active');
+      updateExplode(currentExplode);
+    }
+
+    btnMode3D.addEventListener('click', () => setExplodeMode('3D', btnMode3D));
+    btnModeX.addEventListener('click', () => setExplodeMode('X', btnModeX));
+    btnModeY.addEventListener('click', () => setExplodeMode('Y', btnModeY));
+    btnModeZ.addEventListener('click', () => setExplodeMode('Z', btnModeZ));
+
+    // Bộ điều khiển Preset Vật liệu PBR
+    const PRESETS = {
+      sw_gray: { color: '#b8bec6', roughness: 0.45, metalness: 0.15 },
+      wood: { color: '#c29b6e', roughness: 0.70, metalness: 0.02 },
+      chrome: { color: '#e2e8f0', roughness: 0.12, metalness: 0.90 },
+      custom: { color: '#94a3b8', roughness: 0.40, metalness: 0.15 },
+      original: { roughness: 0.45, metalness: 0.15 }
+    };
+
+    const cboMaterial = document.getElementById('cboMaterialPreset');
+    const pickerColor = document.getElementById('pickerCustomColor');
+
+    function applyMaterialPreset(presetKey, customHex) {
+      partMeshes.forEach((mesh) => {
+        const targetMat = mesh.userData.standardMaterial || mesh.material;
+        if (presetKey === 'original') {
+          targetMat.color.set(mesh.userData.originalColor || '#b8bec6');
+          targetMat.roughness = 0.45;
+          targetMat.metalness = 0.15;
+        } else if (presetKey === 'custom') {
+          const hex = customHex || (pickerColor ? pickerColor.value : '#94a3b8');
+          targetMat.color.set(hex);
+          targetMat.roughness = 0.40;
+          targetMat.metalness = 0.15;
+        } else {
+          const p = PRESETS[presetKey] || PRESETS.sw_gray;
+          targetMat.color.set(p.color);
+          targetMat.roughness = p.roughness;
+          targetMat.metalness = p.metalness;
+        }
+        targetMat.needsUpdate = true;
+      });
+    }
+
+    if (cboMaterial) {
+      cboMaterial.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val === 'custom') {
+          if (pickerColor) pickerColor.style.display = 'inline-block';
+          applyMaterialPreset('custom', pickerColor ? pickerColor.value : null);
+        } else {
+          if (pickerColor) pickerColor.style.display = 'none';
+          applyMaterialPreset(val, null);
+        }
+      });
+    }
+
+    if (pickerColor) {
+      pickerColor.addEventListener('input', (e) => {
+        if (cboMaterial && cboMaterial.value === 'custom') {
+          applyMaterialPreset('custom', e.target.value);
+        }
+      });
+    }
+
+    let showEdges = true;
+    let isWireframe = false;
+
+    function updateWireframeDisplay() {
+      partMeshes.forEach((mesh) => {
+        const isMatch = activeGroup === 'all' || mesh.userData.group === activeGroup;
+        if (isWireframe) {
+          // Chế độ khung dây CAD triệt tiêu nét khuất (Hidden-Line Removed Wireframe):
+          // Mặt khối tô màu cùng màu nền (MeshBasicMaterial) để che chắn toàn bộ các đường nét ẩn bên dưới mặt
+          mesh.material = mesh.userData.wireframeMaterial;
+          mesh.material.visible = isMatch;
+          mesh.material.transparent = false;
+          mesh.material.opacity = 1.0;
+          mesh.children.forEach((c) => {
+            if (c.isLineSegments) {
+              c.visible = isMatch;
+              c.material.opacity = isMatch ? 0.95 : 0.2;
+              c.material.color.set(0x1e293b);
+            }
+          });
+        } else {
+          // Chế độ khối đặc PBR có đổ bóng
+          mesh.material = mesh.userData.standardMaterial;
+          mesh.material.visible = true;
+          mesh.material.transparent = !isMatch;
+          mesh.material.opacity = isMatch ? 1.0 : 0.2;
+          mesh.children.forEach((c) => {
+            if (c.isLineSegments) {
+              c.visible = showEdges && isMatch;
+              c.material.opacity = isMatch ? 0.85 : 0.2;
+              c.material.color.set(0x1e293b);
+            }
+          });
+        }
+        mesh.material.needsUpdate = true;
+      });
+    }
+
+    const btnEdgesToggle = document.getElementById('btnEdgesToggle');
+    if (btnEdgesToggle) {
+      btnEdgesToggle.addEventListener('click', () => {
+        showEdges = !showEdges;
+        btnEdgesToggle.classList.toggle('active', showEdges);
+        updateWireframeDisplay();
+      });
+    }
+
+    let showGuides = true;
+    const btnGuidesToggle = document.getElementById('btnGuidesToggle');
+    if (btnGuidesToggle) {
+      btnGuidesToggle.addEventListener('click', () => {
+        showGuides = !showGuides;
+        btnGuidesToggle.classList.toggle('active', showGuides);
+        guidesGroup.visible = showGuides;
+        updateExplode(currentExplode);
+      });
+    }
+
+    const btnWireframeToggle = document.getElementById('btnWireframeToggle');
+    if (btnWireframeToggle) {
+      btnWireframeToggle.addEventListener('click', () => {
+        isWireframe = !isWireframe;
+        btnWireframeToggle.classList.toggle('active', isWireframe);
+        updateWireframeDisplay();
+      });
+    }
+
+    pills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        pills.forEach((p) => p.classList.remove('active'));
+        pill.classList.add('active');
+        activeGroup = pill.getAttribute('data-group');
+        updateWireframeDisplay();
+      });
+    });
+
+    btnReset.addEventListener('click', () => {
+      controls.reset();
+      camera.position.set(maxDim * 1.4, -maxDim * 1.8, maxDim * 1.2);
+      controls.target.set(-107.29411, 4.845463, 19.047754);
+      modelPivot.rotation.set(0, 0, 0);
+      targetExplode = 0;
+      explodeSlider.value = 0;
+      activeGroup = 'all';
+      pills.forEach((p, i) => p.classList.toggle('active', i === 0));
+      showEdges = true;
+      if (btnEdgesToggle) btnEdgesToggle.classList.add('active');
+      showGuides = true;
+      if (btnGuidesToggle) btnGuidesToggle.classList.add('active');
+      guidesGroup.visible = true;
+      isWireframe = false;
+      if (btnWireframeToggle) btnWireframeToggle.classList.remove('active');
+      updateWireframeDisplay();
+      autoSpin = true;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 2.0;
+      btnAutoSpin.classList.add('active');
+    });
+
+    let autoSpin = true;
+    btnAutoSpin.addEventListener('click', () => {
+      autoSpin = !autoSpin;
+      controls.autoRotate = autoSpin;
+      controls.autoRotateSpeed = 2.0;
+      btnAutoSpin.classList.toggle('active', autoSpin);
+    });
+
+    const btnSnapThumb = document.getElementById('btnSnapThumb');
+    if (btnSnapThumb) {
+      btnSnapThumb.addEventListener('click', () => {
+        if (autoSpin) {
+          autoSpin = false;
+          controls.autoRotate = false;
+          btnAutoSpin.classList.remove('active');
+        }
+        controls.update();
+        renderer.render(scene, camera);
+        const dataUrl = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.download = 'thumb.png';
+        a.href = dataUrl;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+    }
+
+    const btnRotateYZ = document.getElementById('btnRotateYZ');
+    if (btnRotateYZ) {
+      btnRotateYZ.addEventListener('click', () => {
+        modelPivot.rotation.x = (modelPivot.rotation.x + Math.PI / 2) % (Math.PI * 2);
+      });
+    }
+
+    const btnRotateXZ = document.getElementById('btnRotateXZ');
+    if (btnRotateXZ) {
+      btnRotateXZ.addEventListener('click', () => {
+        modelPivot.rotation.y = (modelPivot.rotation.y + Math.PI / 2) % (Math.PI * 2);
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (Math.abs(targetExplode - currentExplode) > 0.001) {
+        currentExplode += (targetExplode - currentExplode) * 0.12;
+        updateExplode(currentExplode);
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
