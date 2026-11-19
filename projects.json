@@ -1,5 +1,14 @@
 [
     {
+        "name":  "pullup",
+        "title":  "pullup",
+        "path":  "./pullup/index.html",
+        "thumb":  "./pullup/thumb.jpg",
+        "fallback_thumb":  "./pullup/thumb.svg",
+        "part_count":  20,
+        "date":  "2026-11-19 10:02"
+    },
+    {
         "name":  "Twisted_tree_roots",
         "title":  "Twisted tree roots",
         "path":  "./Twisted_tree_roots/index.html",
