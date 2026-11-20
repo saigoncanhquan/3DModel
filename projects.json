@@ -1,5 +1,14 @@
 [
     {
+        "name":  "Expato",
+        "title":  "Expato",
+        "path":  "./Expato/index.html",
+        "thumb":  "./Expato/thumb.png",
+        "fallback_thumb":  "./Expato/thumb.svg",
+        "part_count":  63,
+        "date":  "2026-11-20 09:31"
+    },
+    {
         "name":  "pullup",
         "title":  "pullup",
         "path":  "./pullup/index.html",

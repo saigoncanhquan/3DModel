@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expato · Untube 3D CAD Inspection</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f8fafc;
+      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+    .figure-card {
+      width: 100%;
+      max-width: 1120px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 24px 50px rgba(0,0,0,0.08);
+      backdrop-filter: blur(14px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+      font-size: 13px;
+    }
+    .fig-badge {
+      font-family: monospace;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .title { font-weight: 600; font-size: 14.5px; }
+    .readout { font-family: monospace; font-size: 12px; color: #64748b; }
+    .viewport-container {
+      position: relative;
+      width: 100%;
+      height: 620px;
+      background: radial-gradient(circle at 50% 40%, #f1f5f9 0%, #e2e8f0 85%);
+      cursor: grab;
+      user-select: none;
+    }
+    .viewport-container:active { cursor: grabbing; }
+    #canvas3d { width: 100%; height: 100%; display: block; touch-action: none; position: relative; z-index: 2; }
+    .overlay-hint {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      z-index: 10;
+      font-size: 11px;
+      font-weight: 500;
+      color: #0f172a;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      padding: 5px 10px;
+      border-radius: 5px;
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .overlay-controls {
+      position: absolute;
+      bottom: 14px;
+      right: 16px;
+      z-index: 10;
+      pointer-events: auto;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      max-width: 85%;
+    }
+    .icon-btn {
+      position: relative;
+      z-index: 11;
+      pointer-events: auto;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #0f172a;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: all 0.2s ease;
+    }
+    .icon-btn:hover { background: #38bdf8; color: #000; font-weight: 600; }
+    .icon-btn.active { background: #38bdf8; color: #000; font-weight: 600; }
+    .card-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(0, 0, 0, 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 280px;
+    }
+    .slider-label { font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .explode-slider { flex: 1; height: 6px; accent-color: #38bdf8; cursor: pointer; }
+    .mode-toggles { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .toggle-btn {
+      background: rgba(0,0,0,0.05);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e293b;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .toggle-btn:hover { border-color: #38bdf8; color: #38bdf8; }
+    .toggle-btn.active {
+      background: #38bdf8;
+      color: #0b0f19;
+      font-weight: 600;
+      border-color: #38bdf8;
+    }
+    .scale-select {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e293b;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+    .scale-select option {
+      background: #ffffff;
+      color: #1e293b;
+      padding: 6px 10px;
+    }
+    .parts-toolbar { display: flex; gap: 6px; flex-wrap: wrap; max-height: 95px; overflow-y: auto; }
+    .part-pill {
+      background: rgba(0,0,0,0.04);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e293b;
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .part-pill:hover { border-color: #38bdf8; color: #38bdf8; }
+    .part-pill.active {
+      background: #38bdf8;
+      color: #0b0f19;
+      font-weight: 600;
+      border-color: #38bdf8;
+    }
+    .caption-box {
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: #64748b;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(0, 0, 0, 0.12);
+    }
+    .loading-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      z-index: 10;
+      transition: opacity 0.4s ease;
+    }
+    .spinner {
+      width: 34px;
+      height: 34px;
+      border: 3px solid rgba(56, 189, 248, 0.2);
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 640px) {
+      body { padding: 6px; }
+      .viewport-container { height: 400px; }
+      .parts-toolbar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .part-pill { flex-shrink: 0; }
+    }
+  </style>
+  <script>
+    window.addEventListener('error', function(e) {
+      var s = document.getElementById('loadStatus');
+      if (s) {
+        s.style.color = '#ef4444';
+        s.textContent = 'Lỗi nạp WebGL / Three.js: ' + (e.message || 'Không thể kết nối thư viện 3D');
+      }
+    });
+  </script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <div class="figure-card">
+    <div class="card-header">
+      <span class="fig-badge">Untube · 3D Inspection</span>
+      <span class="title">Expato</span>
+      <span class="readout" id="readoutEl">Assembled · 63 linh kiện</span>
+    </div>
+
+    <div class="viewport-container" id="container">
+      <div class="loading-screen" id="loadingEl">
+        <div class="spinner"></div>
+        <div style="font-size: 12px; color: #64748b;" id="loadStatus">Đang khởi tạo WebGL 3D...</div>
+      </div>
+      <canvas id="canvas3d"></canvas>
+      <div class="overlay-hint">Chuột trái/1 ngón: Xoay 360° · Chuột phải/2 ngón: Pan · Cuộn/Chụm: Zoom</div>
+      <div class="overlay-controls">
+        <button class="icon-btn" id="btnReset" title="Đặt lại góc nhìn và chiều quay ban đầu">Mặc định</button>
+        <button class="icon-btn active" id="btnAutoSpin" title="Bật/Tắt tự xoay 360°">Tự xoay</button>
+        <button class="icon-btn" id="btnSnapThumb" title="Chụp góc nhìn hiện tại làm ảnh Thumbnail (thumb.png)">📸 Chụp ảnh</button>
+        <button class="icon-btn" id="btnRotateYZ" title="Xoay dựng đứng 90° (Đổi Y-Z)">🔄 Đứng (Y-Z)</button>
+        <button class="icon-btn" id="btnRotateXZ" title="Xoay 90° quanh trục đứng (Đổi X-Z)">🔄 Xoay (X-Z)</button>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <div class="control-row">
+        <div class="slider-container">
+          <span class="slider-label">Tách cụm (Explode):</span>
+          <input type="range" class="explode-slider" id="explodeSlider" min="0" max="100" value="0" />
+          <span style="font-family: monospace; font-size: 12px; width: 45px; text-align: right;" id="explodeVal">0%</span>
+        </div>
+
+        <div class="mode-toggles">
+          <button class="toggle-btn active" id="btnMode3D">3D (X+Y+Z)</button>
+          <button class="toggle-btn" id="btnModeX">Trục ngang (X)</button>
+          <button class="toggle-btn" id="btnModeY">Trục dọc (Y)</button>
+          <button class="toggle-btn" id="btnModeZ">Trục đứng (Z)</button>
+          <label style="font-size: 11px; color: #64748b; margin-left: 4px;">Cự ly:</label>
+          <select class="scale-select" id="spreadScale">
+            <option value="1">1x (Chuẩn)</option>
+            <option value="1.5">1.5x (Rộng)</option>
+            <option value="2">2x (Cực rộng)</option>
+            <option value="3">3x (Toàn cảnh)</option>
+          </select>
+          <label style="font-size: 11px; color: #64748b; margin-left: 6px;">Vật liệu:</label>
+          <select class="scale-select" id="cboMaterialPreset">
+            <option value="sw_gray">Xám SolidWorks</option>
+            <option value="wood">Gỗ tự nhiên</option>
+            <option value="chrome">Chrome kim loại</option>
+            <option value="custom">Màu tự chọn...</option>
+            <option value="original" selected>Màu gốc MTL</option>
+          </select>
+          <input type="color" id="pickerCustomColor" value="#94a3b8" style="width: 26px; height: 24px; border: none; cursor: pointer; border-radius: 4px; vertical-align: middle; display: none;" title="Chọn màu tùy chỉnh" />
+          <button class="toggle-btn active" id="btnEdgesToggle">Viền nét CAD</button>
+          <button class="toggle-btn" id="btnWireframeToggle" title="Bật/Tắt chế độ khung dây">Khung dây</button>
+          <button class="toggle-btn active" id="btnGuidesToggle">Chỉ dẫn xanh</button>
+        </div>
+      </div>
+
+      <div class="parts-toolbar" id="toolbar">
+        <button class="part-pill active" data-group="all">Tất cả (63)</button>
+        <button class="part-pill" data-group="group_0">#01 Shell_000</button>
+        <button class="part-pill" data-group="group_1">#02 Shell_001</button>
+        <button class="part-pill" data-group="group_2">#03 Shell_002</button>
+        <button class="part-pill" data-group="group_3">#04 Shell_003</button>
+        <button class="part-pill" data-group="group_4">#05 Shell_004</button>
+        <button class="part-pill" data-group="group_5">#06 Shell_005</button>
+        <button class="part-pill" data-group="group_6">#07 Shell_006</button>
+        <button class="part-pill" data-group="group_7">#08 Shell_007</button>
+        <button class="part-pill" data-group="group_8">#09 Shell_008</button>
+        <button class="part-pill" data-group="group_9">#10 Shell_009</button>
+        <button class="part-pill" data-group="group_10">#11 Shell_010</button>
+        <button class="part-pill" data-group="group_11">#12 Shell_011</button>
+        <button class="part-pill" data-group="group_12">#13 Shell_012</button>
+        <button class="part-pill" data-group="group_13">#14 Shell_013</button>
+        <button class="part-pill" data-group="group_14">#15 Shell_014</button>
+        <button class="part-pill" data-group="group_15">#16 Shell_015</button>
+        <button class="part-pill" data-group="group_16">#17 Shell_016</button>
+        <button class="part-pill" data-group="group_17">#18 Shell_017</button>
+        <button class="part-pill" data-group="group_18">#19 Shell_018</button>
+        <button class="part-pill" data-group="group_19">#20 Shell_019</button>
+        <button class="part-pill" data-group="group_20">#21 Shell_020</button>
+        <button class="part-pill" data-group="group_21">#22 Shell_021</button>
+        <button class="part-pill" data-group="group_22">#23 Shell_022</button>
+        <button class="part-pill" data-group="group_23">#24 Shell_023</button>
+        <button class="part-pill" data-group="group_24">#25 Shell_024</button>
+        <button class="part-pill" data-group="group_25">#26 Shell_025</button>
+        <button class="part-pill" data-group="group_26">#27 Shell_026</button>
+        <button class="part-pill" data-group="group_27">#28 Shell_027</button>
+        <button class="part-pill" data-group="group_28">#29 Shell_028</button>
+        <button class="part-pill" data-group="group_29">#30 Shell_029</button>
+        <button class="part-pill" data-group="group_30">#31 Shell_030</button>
+        <button class="part-pill" data-group="group_31">#32 Shell_031</button>
+        <button class="part-pill" data-group="group_32">#33 Shell_032</button>
+        <button class="part-pill" data-group="group_33">#34 Shell_033</button>
+        <button class="part-pill" data-group="group_34">#35 Shell_034</button>
+        <button class="part-pill" data-group="group_35">#36 Shell_035</button>
+        <button class="part-pill" data-group="group_36">#37 Shell_036</button>
+        <button class="part-pill" data-group="group_37">#38 Shell_037</button>
+        <button class="part-pill" data-group="group_38">#39 Shell_038</button>
+        <button class="part-pill" data-group="group_39">#40 Shell_039</button>
+        <button class="part-pill" data-group="group_40">#41 Shell_040</button>
+        <button class="part-pill" data-group="group_41">#42 Shell_041</button>
+        <button class="part-pill" data-group="group_42">#43 Shell_042</button>
+        <button class="part-pill" data-group="group_43">#44 Shell_043</button>
+        <button class="part-pill" data-group="group_44">#45 Shell_044</button>
+        <button class="part-pill" data-group="group_45">#46 Shell_045</button>
+        <button class="part-pill" data-group="group_46">#47 Shell_046</button>
+        <button class="part-pill" data-group="group_47">#48 Shell_047</button>
+        <button class="part-pill" data-group="group_48">#49 Shell_048</button>
+        <button class="part-pill" data-group="group_49">#50 Shell_049</button>
+        <button class="part-pill" data-group="group_50">#51 Shell_050</button>
+        <button class="part-pill" data-group="group_51">#52 Shell_051</button>
+        <button class="part-pill" data-group="group_52">#53 Shell_052</button>
+        <button class="part-pill" data-group="group_53">#54 Shell_053</button>
+        <button class="part-pill" data-group="group_54">#55 Shell_054</button>
+        <button class="part-pill" data-group="group_55">#56 Shell_055</button>
+        <button class="part-pill" data-group="group_56">#57 Shell_056</button>
+        <button class="part-pill" data-group="group_57">#58 Shell_057</button>
+        <button class="part-pill" data-group="group_58">#59 Shell_058</button>
+        <button class="part-pill" data-group="group_59">#60 Shell_059</button>
+        <button class="part-pill" data-group="group_60">#61 Shell_060</button>
+        <button class="part-pill" data-group="group_61">#62 Shell_061</button>
+        <button class="part-pill" data-group="group_62">#63 Shell_062</button>
+        
+      </div>
+
+      <div class="caption-box">
+        Mô hình 3D bóc tách gồm 63 linh kiện CAD. Kích thước tổng thể: 4602.8 × 2106.0 × 1234.9 (Đơn vị CAD). Hỗ trợ tách rã linh hoạt đa trục X, Y, Z và 3D không gian kèm đường chỉ dẫn 3D Leader Lines.
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const rawParts = [{"name":"Shell_000","group":"group_0","group_name":"Chi tiết 01 (Shell_000)","color":"#cad1ee","vertex_byte_offset":0,"vertex_byte_length":164376,"index_byte_offset":164376,"index_byte_length":311052,"vertex_count":13698,"triangles":25921,"bounds_min":[-2220.0,-1005.976,116.4117],"bounds_max":[2290.0,1005.9802,882.5726],"center":[35.0,0.002105713,499.49213],"move_3d":[2.36,0.0,-406.52],"move_x":[3.78,0.0,0.0],"move_y":[0.0,0.01,0.0],"move_z":[0.0,0.0,-464.59]},{"name":"Shell_001","group":"group_1","group_name":"Chi tiết 02 (Shell_001)","color":"#b8bec6","vertex_byte_offset":475428,"vertex_byte_length":107616,"index_byte_offset":583044,"index_byte_length":209364,"vertex_count":8968,"triangles":17447,"bounds_min":[-1065.0,-693.7958,652.2015],"bounds_max":[1290.0,693.8373,1228.2177],"center":[112.5,0.020751953,940.2096],"move_3d":[56.61,0.04,1203.32],"move_x":[90.58,0.0,0.0],"move_y":[0.0,0.05,0.0],"move_z":[0.0,0.0,1375.23]},{"name":"Shell_002","group":"group_2","group_name":"Chi tiết 03 (Shell_002)","color":"#b8bec6","vertex_byte_offset":792408,"vertex_byte_length":36048,"index_byte_offset":828456,"index_byte_length":69192,"vertex_count":3004,"triangles":5766,"bounds_min":[-1699.3706,735.0,-4.3786],"bounds_max":[-1000.6139,1009.0,694.3937],"center":[-1349.9922,872.0,345.00754],"move_3d":[-967.13,1600.87,-970.81],"move_x":[-1547.41,0.0,0.0],"move_y":[0.0,2134.49,0.0],"move_z":[0.0,0.0,-1109.5]},{"name":"Shell_003","group":"group_3","group_name":"Chi tiết 04 (Shell_003)","color":"#b8bec6","vertex_byte_offset":897648,"vertex_byte_length":4800,"index_byte_offset":902448,"index_byte_length":8208,"vertex_count":400,"triangles":684,"bounds_min":[-1589.0,1011.0,106.0],"bounds_max":[-1111.0,1024.0,584.0],"center":[-1350.0,1017.5,345.0],"move_3d":[-967.14,1867.98,-970.84],"move_x":[-1547.42,0.0,0.0],"move_y":[0.0,2490.64,0.0],"move_z":[0.0,0.0,-1109.53]},{"name":"Shell_004","group":"group_4","group_name":"Chi tiết 05 (Shell_004)","color":"#b8bec6","vertex_byte_offset":910656,"vertex_byte_length":7104,"index_byte_offset":917760,"index_byte_length":12096,"vertex_count":592,"triangles":1008,"bounds_min":[-1531.0,1022.0,164.0],"bounds_max":[-1169.0,1031.0,526.0],"center":[-1350.0,1026.5,345.0],"move_3d":[-967.14,1884.51,-970.84],"move_x":[-1547.42,0.0,0.0],"move_y":[0.0,2512.67,0.0],"move_z":[0.0,0.0,-1109.53]},{"name":"Shell_005","group":"group_5","group_name":"Chi tiết 06 (Shell_005)","color":"#b8bec6","vertex_byte_offset":929856,"vertex_byte_length":9408,"index_byte_offset":939264,"index_byte_length":16128,"vertex_count":784,"triangles":1344,"bounds_min":[-1594.0,1012.0,101.0],"bounds_max":[-1106.0,1036.0,589.0],"center":[-1350.0,1024.0,345.0],"move_3d":[-967.14,1879.92,-970.84],"move_x":[-1547.42,0.0,0.0],"move_y":[0.0,2506.55,0.0],"move_z":[0.0,0.0,-1109.53]},{"name":"Shell_006","group":"group_6","group_name":"Chi tiết 07 (Shell_006)","color":"#b8bec6","vertex_byte_offset":955392,"vertex_byte_length":120,"index_byte_offset":955512,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[-1311.2904,1023.0,209.7303],"bounds_max":[-1151.2373,1036.0,341.8819],"center":[-1231.2639,1029.5,275.8061],"move_3d":[-884.02,1890.01,-1223.59],"move_x":[-1414.44,0.0,0.0],"move_y":[0.0,2520.02,0.0],"move_z":[0.0,0.0,-1398.39]},{"name":"Shell_007","group":"group_7","group_name":"Chi tiết 08 (Shell_007)","color":"#b8bec6","vertex_byte_offset":955704,"vertex_byte_length":120,"index_byte_offset":955824,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[-1423.0886,1023.0,121.4475],"bounds_max":[-1336.9255,1036.0,298.9012],"center":[-1380.0071,1029.5,210.17436],"move_3d":[-988.14,1890.01,-1463.33],"move_x":[-1581.03,0.0,0.0],"move_y":[0.0,2520.02,0.0],"move_z":[0.0,0.0,-1672.37]},{"name":"Shell_008","group":"group_8","group_name":"Chi tiết 09 (Shell_008)","color":"#b8bec6","vertex_byte_offset":956016,"vertex_byte_length":120,"index_byte_offset":956136,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[-1576.4594,1023.0,317.0128],"bounds_max":[-1393.8259,1036.0,348.7531],"center":[-1485.1426,1029.5,332.88293],"move_3d":[-1061.74,1890.01,-1015.1],"move_x":[-1698.78,0.0,0.0],"move_y":[0.0,2520.02,0.0],"move_z":[0.0,0.0,-1160.11]},{"name":"Shell_009","group":"group_9","group_name":"Chi tiết 10 (Shell_009)","color":"#b8bec6","vertex_byte_offset":956328,"vertex_byte_length":120,"index_byte_offset":956448,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[-1445.1455,1023.0,378.0324],"bounds_max":[-1363.6581,1036.0,560.1177],"center":[-1404.4019,1029.5,469.07504],"move_3d":[-1005.22,1890.01,-517.62],"move_x":[-1608.35,0.0,0.0],"move_y":[0.0,2520.02,0.0],"move_z":[0.0,0.0,-591.57]},{"name":"Shell_010","group":"group_10","group_name":"Chi tiết 11 (Shell_010)","color":"#b8bec6","vertex_byte_offset":956640,"vertex_byte_length":120,"index_byte_offset":956760,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[-1330.9945,1023.0,372.5313],"bounds_max":[-1165.7904,1036.0,499.5167],"center":[-1248.3925,1029.5,436.024],"move_3d":[-896.01,1890.01,-638.35],"move_x":[-1433.62,0.0,0.0],"move_y":[0.0,2520.02,0.0],"move_z":[0.0,0.0,-729.54]},{"name":"Shell_011","group":"group_11","group_name":"Chi tiết 12 (Shell_011)","color":"#b8bec6","vertex_byte_offset":956952,"vertex_byte_length":2592,"index_byte_offset":959544,"index_byte_length":4368,"vertex_count":216,"triangles":364,"bounds_min":[-1415.0,1036.0,280.0],"bounds_max":[-1285.0,1048.0,410.0],"center":[-1350.0,1042.0,345.0],"move_3d":[-967.14,1912.96,-970.84],"move_x":[-1547.42,0.0,0.0],"move_y":[0.0,2550.61,0.0],"move_z":[0.0,0.0,-1109.53]},{"name":"Shell_012","group":"group_12","group_name":"Chi tiết 13 (Shell_012)","color":"#b8bec6","vertex_byte_offset":963912,"vertex_byte_length":1824,"index_byte_offset":965736,"index_byte_length":3024,"vertex_count":152,"triangles":252,"bounds_min":[-1382.0,1048.0,313.0],"bounds_max":[-1318.0,1053.0,377.0],"center":[-1350.0,1050.5,345.0],"move_3d":[-967.14,1928.57,-970.84],"move_x":[-1547.42,0.0,0.0],"move_y":[0.0,2571.42,0.0],"move_z":[0.0,0.0,-1109.53]},{"name":"Shell_013","group":"group_13","group_name":"Chi tiết 14 (Shell_013)","color":"#b8bec6","vertex_byte_offset":968760,"vertex_byte_length":38196,"index_byte_offset":1006956,"index_byte_length":73536,"vertex_count":3183,"triangles":6128,"bounds_min":[983.3959,684.0,-6.6455],"bounds_max":[1716.6149,1009.0,726.6512],"center":[1350.0054,846.5,360.00284],"move_3d":[922.87,1554.05,-916.04],"move_x":[1476.59,0.0,0.0],"move_y":[0.0,2072.07,0.0],"move_z":[0.0,0.0,-1046.9]},{"name":"Shell_014","group":"group_14","group_name":"Chi tiết 15 (Shell_014)","color":"#b8bec6","vertex_byte_offset":1080492,"vertex_byte_length":4800,"index_byte_offset":1085292,"index_byte_length":8208,"vertex_count":400,"triangles":684,"bounds_min":[1111.0,1011.0,121.0],"bounds_max":[1589.0,1024.0,599.0],"center":[1350.0,1017.5,360.0],"move_3d":[922.86,1867.98,-916.05],"move_x":[1476.58,0.0,0.0],"move_y":[0.0,2490.64,0.0],"move_z":[0.0,0.0,-1046.91]},{"name":"Shell_015","group":"group_15","group_name":"Chi tiết 16 (Shell_015)","color":"#b8bec6","vertex_byte_offset":1093500,"vertex_byte_length":7104,"index_byte_offset":1100604,"index_byte_length":12096,"vertex_count":592,"triangles":1008,"bounds_min":[1169.0,1022.0,179.0],"bounds_max":[1531.0,1031.0,541.0],"center":[1350.0,1026.5,360.0],"move_3d":[922.86,1884.51,-916.05],"move_x":[1476.58,0.0,0.0],"move_y":[0.0,2512.67,0.0],"move_z":[0.0,0.0,-1046.91]},{"name":"Shell_016","group":"group_16","group_name":"Chi tiết 17 (Shell_016)","color":"#b8bec6","vertex_byte_offset":1112700,"vertex_byte_length":9408,"index_byte_offset":1122108,"index_byte_length":16128,"vertex_count":784,"triangles":1344,"bounds_min":[1106.0,1012.0,116.0],"bounds_max":[1594.0,1036.0,604.0],"center":[1350.0,1024.0,360.0],"move_3d":[922.86,1879.92,-916.05],"move_x":[1476.58,0.0,0.0],"move_y":[0.0,2506.55,0.0],"move_z":[0.0,0.0,-1046.91]},{"name":"Shell_017","group":"group_17","group_name":"Chi tiết 18 (Shell_017)","color":"#b8bec6","vertex_byte_offset":1138236,"vertex_byte_length":120,"index_byte_offset":1138356,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[1388.7096,1023.0,224.7303],"bounds_max":[1548.7627,1036.0,356.8819],"center":[1468.7361,1029.5,290.8061],"move_3d":[1005.98,1890.01,-1168.8],"move_x":[1609.56,0.0,0.0],"move_y":[0.0,2520.02,0.0],"move_z":[0.0,0.0,-1335.77]},{"name":"Shell_018","group":"group_18","group_name":"Chi tiết 19 (Shell_018)","color":"#b8bec6","vertex_byte_offset":1138548,"vertex_byte_length":120,"index_byte_offset":1138668,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[1276.9114,1023.0,136.4475],"bounds_max":[1363.0745,1036.0,313.9012],"center":[1319.9929,1029.5,225.17435],"move_3d":[901.86,1890.01,-1408.53],"move_x":[1442.97,0.0,0.0],"move_y":[0.0,2520.02,0.0],"move_z":[0.0,0.0,-1609.75]},{"name":"Shell_019","group":"group_19","group_name":"Chi tiết 20 (Shell_019)","color":"#b8bec6","vertex_byte_offset":1138860,"vertex_byte_length":120,"index_byte_offset":1138980,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[1123.5406,1023.0,332.0128],"bounds_max":[1306.1741,1036.0,363.7531],"center":[1214.8574,1029.5,347.88293],"move_3d":[828.26,1890.01,-960.31],"move_x":[1325.22,0.0,0.0],"move_y":[0.0,2520.02,0.0],"move_z":[0.0,0.0,-1097.5]},{"name":"Shell_020","group":"group_20","group_name":"Chi tiết 21 (Shell_020)","color":"#b8bec6","vertex_byte_offset":1139172,"vertex_byte_length":120,"index_byte_offset":1139292,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[1254.8545,1023.0,393.0324],"bounds_max":[1336.3419,1036.0,575.1177],"center":[1295.5981,1029.5,484.07504],"move_3d":[884.78,1890.01,-462.83],"move_x":[1415.65,0.0,0.0],"move_y":[0.0,2520.02,0.0],"move_z":[0.0,0.0,-528.95]},{"name":"Shell_021","group":"group_21","group_name":"Chi tiết 22 (Shell_021)","color":"#b8bec6","vertex_byte_offset":1139484,"vertex_byte_length":120,"index_byte_offset":1139604,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[1369.0055,1023.0,387.5313],"bounds_max":[1534.2096,1036.0,514.5167],"center":[1451.6075,1029.5,451.02402],"move_3d":[993.99,1890.01,-583.56],"move_x":[1590.38,0.0,0.0],"move_y":[0.0,2520.02,0.0],"move_z":[0.0,0.0,-666.92]},{"name":"Shell_022","group":"group_22","group_name":"Chi tiết 23 (Shell_022)","color":"#b8bec6","vertex_byte_offset":1139796,"vertex_byte_length":2592,"index_byte_offset":1142388,"index_byte_length":4368,"vertex_count":216,"triangles":364,"bounds_min":[1285.0,1036.0,295.0],"bounds_max":[1415.0,1048.0,425.0],"center":[1350.0,1042.0,360.0],"move_3d":[922.86,1912.96,-916.05],"move_x":[1476.58,0.0,0.0],"move_y":[0.0,2550.61,0.0],"move_z":[0.0,0.0,-1046.91]},{"name":"Shell_023","group":"group_23","group_name":"Chi tiết 24 (Shell_023)","color":"#b8bec6","vertex_byte_offset":1146756,"vertex_byte_length":1824,"index_byte_offset":1148580,"index_byte_length":3024,"vertex_count":152,"triangles":252,"bounds_min":[1318.0,1048.0,328.0],"bounds_max":[1382.0,1053.0,392.0],"center":[1350.0,1050.5,360.0],"move_3d":[922.86,1928.57,-916.05],"move_x":[1476.58,0.0,0.0],"move_y":[0.0,2571.42,0.0],"move_z":[0.0,0.0,-1046.91]},{"name":"Shell_024","group":"group_24","group_name":"Chi tiết 25 (Shell_024)","color":"#b8bec6","vertex_byte_offset":1151604,"vertex_byte_length":12732,"index_byte_offset":1164336,"index_byte_length":23616,"vertex_count":1061,"triangles":1968,"bounds_min":[-2208.0,493.0083,514.0084],"bounds_max":[-1585.0,789.6217,755.9998],"center":[-1896.5,641.315,635.00415],"move_3d":[-1349.69,1177.36,88.48],"move_x":[-2159.5,0.0,0.0],"move_y":[0.0,1569.82,0.0],"move_z":[0.0,0.0,101.12]},{"name":"Shell_025","group":"group_25","group_name":"Chi tiết 26 (Shell_025)","color":"#b8bec6","vertex_byte_offset":1187952,"vertex_byte_length":9120,"index_byte_offset":1197072,"index_byte_length":16668,"vertex_count":760,"triangles":1389,"bounds_min":[-2207.0,508.0077,532.0058],"bounds_max":[-1595.0,785.4825,757.9824],"center":[-1901.0,646.7451,644.99414],"move_3d":[-1352.84,1187.33,124.97],"move_x":[-2164.54,0.0,0.0],"move_y":[0.0,1583.11,0.0],"move_z":[0.0,0.0,142.82]},{"name":"Shell_026","group":"group_26","group_name":"Chi tiết 27 (Shell_026)","color":"#b8bec6","vertex_byte_offset":1213740,"vertex_byte_length":12636,"index_byte_offset":1226376,"index_byte_length":23412,"vertex_count":1053,"triangles":1951,"bounds_min":[232.0,892.3654,394.1946],"bounds_max":[843.0,983.2386,643.1436],"center":[537.5,937.802,518.6691],"move_3d":[354.11,1721.67,-336.47],"move_x":[566.58,0.0,0.0],"move_y":[0.0,2295.56,0.0],"move_z":[0.0,0.0,-384.53]},{"name":"Shell_027","group":"group_27","group_name":"Chi tiết 28 (Shell_027)","color":"#b8bec6","vertex_byte_offset":1249788,"vertex_byte_length":36084,"index_byte_offset":1285872,"index_byte_length":69216,"vertex_count":3007,"triangles":5768,"bounds_min":[-1699.3759,-1009.0,-4.3837],"bounds_max":[-1000.609,-735.0,694.3983],"center":[-1349.9924,-872.0,345.0073],"move_3d":[-967.13,-1600.87,-970.81],"move_x":[-1547.41,0.0,0.0],"move_y":[0.0,-2134.49,0.0],"move_z":[0.0,0.0,-1109.5]},{"name":"Shell_028","group":"group_28","group_name":"Chi tiết 29 (Shell_028)","color":"#b8bec6","vertex_byte_offset":1355088,"vertex_byte_length":4800,"index_byte_offset":1359888,"index_byte_length":8208,"vertex_count":400,"triangles":684,"bounds_min":[-1589.0,-1024.0,106.0],"bounds_max":[-1111.0,-1011.0,584.0],"center":[-1350.0,-1017.5,345.0],"move_3d":[-967.14,-1867.98,-970.84],"move_x":[-1547.42,0.0,0.0],"move_y":[0.0,-2490.64,0.0],"move_z":[0.0,0.0,-1109.53]},{"name":"Shell_029","group":"group_29","group_name":"Chi tiết 30 (Shell_029)","color":"#b8bec6","vertex_byte_offset":1368096,"vertex_byte_length":7104,"index_byte_offset":1375200,"index_byte_length":12096,"vertex_count":592,"triangles":1008,"bounds_min":[-1531.0,-1031.0,164.0],"bounds_max":[-1169.0,-1022.0,526.0],"center":[-1350.0,-1026.5,345.0],"move_3d":[-967.14,-1884.51,-970.84],"move_x":[-1547.42,0.0,0.0],"move_y":[0.0,-2512.67,0.0],"move_z":[0.0,0.0,-1109.53]},{"name":"Shell_030","group":"group_30","group_name":"Chi tiết 31 (Shell_030)","color":"#b8bec6","vertex_byte_offset":1387296,"vertex_byte_length":9408,"index_byte_offset":1396704,"index_byte_length":16128,"vertex_count":784,"triangles":1344,"bounds_min":[-1594.0,-1036.0,101.0],"bounds_max":[-1106.0,-1012.0,589.0],"center":[-1350.0,-1024.0,345.0],"move_3d":[-967.14,-1879.92,-970.84],"move_x":[-1547.42,0.0,0.0],"move_y":[0.0,-2506.55,0.0],"move_z":[0.0,0.0,-1109.53]},{"name":"Shell_031","group":"group_31","group_name":"Chi tiết 32 (Shell_031)","color":"#b8bec6","vertex_byte_offset":1412832,"vertex_byte_length":120,"index_byte_offset":1412952,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[-1310.9061,-1036.0,350.8659],"bounds_max":[-1154.1841,-1023.0,482.6192],"center":[-1232.5452,-1029.5,416.74255],"move_3d":[-884.92,-1890.01,-708.78],"move_x":[-1415.87,0.0,0.0],"move_y":[0.0,-2520.02,0.0],"move_z":[0.0,0.0,-810.03]},{"name":"Shell_032","group":"group_32","group_name":"Chi tiết 33 (Shell_032)","color":"#b8bec6","vertex_byte_offset":1413144,"vertex_byte_length":120,"index_byte_offset":1413264,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[-1424.7097,-1036.0,392.7761],"bounds_max":[-1340.5459,-1023.0,565.4773],"center":[-1382.6278,-1029.5,479.1267],"move_3d":[-989.98,-1890.01,-480.91],"move_x":[-1583.96,0.0,0.0],"move_y":[0.0,-2520.02,0.0],"move_z":[0.0,0.0,-549.61]},{"name":"Shell_033","group":"group_33","group_name":"Chi tiết 34 (Shell_033)","color":"#b8bec6","vertex_byte_offset":1413456,"vertex_byte_length":120,"index_byte_offset":1413576,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[-1577.9558,-1036.0,340.2392],"bounds_max":[-1392.8047,-1023.0,370.4421],"center":[-1485.3802,-1029.5,355.34064],"move_3d":[-1061.9,-1890.01,-933.07],"move_x":[-1699.05,0.0,0.0],"move_y":[0.0,-2520.02,0.0],"move_z":[0.0,0.0,-1066.36]},{"name":"Shell_034","group":"group_34","group_name":"Chi tiết 35 (Shell_034)","color":"#b8bec6","vertex_byte_offset":1413768,"vertex_byte_length":120,"index_byte_offset":1413888,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[-1443.2798,-1036.0,126.8145],"bounds_max":[-1361.4736,-1023.0,311.66],"center":[-1402.3767,-1029.5,219.23724],"move_3d":[-1003.8,-1890.01,-1430.22],"move_x":[-1606.08,0.0,0.0],"move_y":[0.0,-2520.02,0.0],"move_z":[0.0,0.0,-1634.54]},{"name":"Shell_035","group":"group_35","group_name":"Chi tiết 36 (Shell_035)","color":"#b8bec6","vertex_byte_offset":1414080,"vertex_byte_length":120,"index_byte_offset":1414200,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[-1329.3883,-1036.0,193.0134],"bounds_max":[-1162.9424,-1023.0,318.4151],"center":[-1246.1653,-1029.5,255.71425],"move_3d":[-894.45,-1890.01,-1296.98],"move_x":[-1431.12,0.0,0.0],"move_y":[0.0,-2520.02,0.0],"move_z":[0.0,0.0,-1482.26]},{"name":"Shell_036","group":"group_36","group_name":"Chi tiết 37 (Shell_036)","color":"#b8bec6","vertex_byte_offset":1414392,"vertex_byte_length":2592,"index_byte_offset":1416984,"index_byte_length":4368,"vertex_count":216,"triangles":364,"bounds_min":[-1415.0,-1048.0,280.0],"bounds_max":[-1285.0,-1036.0,410.0],"center":[-1350.0,-1042.0,345.0],"move_3d":[-967.14,-1912.96,-970.84],"move_x":[-1547.42,0.0,0.0],"move_y":[0.0,-2550.61,0.0],"move_z":[0.0,0.0,-1109.53]},{"name":"Shell_037","group":"group_37","group_name":"Chi tiết 38 (Shell_037)","color":"#b8bec6","vertex_byte_offset":1421352,"vertex_byte_length":1824,"index_byte_offset":1423176,"index_byte_length":3024,"vertex_count":152,"triangles":252,"bounds_min":[-1382.0,-1053.0,313.0],"bounds_max":[-1318.0,-1048.0,377.0],"center":[-1350.0,-1050.5,345.0],"move_3d":[-967.14,-1928.57,-970.84],"move_x":[-1547.42,0.0,0.0],"move_y":[0.0,-2571.42,0.0],"move_z":[0.0,0.0,-1109.53]},{"name":"Shell_038","group":"group_38","group_name":"Chi tiết 39 (Shell_038)","color":"#b8bec6","vertex_byte_offset":1426200,"vertex_byte_length":38172,"index_byte_offset":1464372,"index_byte_length":73536,"vertex_count":3181,"triangles":6128,"bounds_min":[983.4138,-1009.0,-6.6538],"bounds_max":[1716.5985,-684.0,726.658],"center":[1350.0061,-846.5,360.0021],"move_3d":[922.87,-1554.05,-916.04],"move_x":[1476.59,0.0,0.0],"move_y":[0.0,-2072.07,0.0],"move_z":[0.0,0.0,-1046.9]},{"name":"Shell_039","group":"group_39","group_name":"Chi tiết 40 (Shell_039)","color":"#b8bec6","vertex_byte_offset":1537908,"vertex_byte_length":4800,"index_byte_offset":1542708,"index_byte_length":8208,"vertex_count":400,"triangles":684,"bounds_min":[1111.0,-1024.0,121.0],"bounds_max":[1589.0,-1011.0,599.0],"center":[1350.0,-1017.5,360.0],"move_3d":[922.86,-1867.98,-916.05],"move_x":[1476.58,0.0,0.0],"move_y":[0.0,-2490.64,0.0],"move_z":[0.0,0.0,-1046.91]},{"name":"Shell_040","group":"group_40","group_name":"Chi tiết 41 (Shell_040)","color":"#b8bec6","vertex_byte_offset":1550916,"vertex_byte_length":7104,"index_byte_offset":1558020,"index_byte_length":12096,"vertex_count":592,"triangles":1008,"bounds_min":[1169.0,-1031.0,179.0],"bounds_max":[1531.0,-1022.0,541.0],"center":[1350.0,-1026.5,360.0],"move_3d":[922.86,-1884.51,-916.05],"move_x":[1476.58,0.0,0.0],"move_y":[0.0,-2512.67,0.0],"move_z":[0.0,0.0,-1046.91]},{"name":"Shell_041","group":"group_41","group_name":"Chi tiết 42 (Shell_041)","color":"#b8bec6","vertex_byte_offset":1570116,"vertex_byte_length":9408,"index_byte_offset":1579524,"index_byte_length":16128,"vertex_count":784,"triangles":1344,"bounds_min":[1106.0,-1036.0,116.0],"bounds_max":[1594.0,-1012.0,604.0],"center":[1350.0,-1024.0,360.0],"move_3d":[922.86,-1879.92,-916.05],"move_x":[1476.58,0.0,0.0],"move_y":[0.0,-2506.55,0.0],"move_z":[0.0,0.0,-1046.91]},{"name":"Shell_042","group":"group_42","group_name":"Chi tiết 43 (Shell_042)","color":"#b8bec6","vertex_byte_offset":1595652,"vertex_byte_length":120,"index_byte_offset":1595772,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[1389.0939,-1036.0,365.8659],"bounds_max":[1545.8159,-1023.0,497.6192],"center":[1467.4548,-1029.5,431.74255],"move_3d":[1005.08,-1890.01,-653.99],"move_x":[1608.13,0.0,0.0],"move_y":[0.0,-2520.02,0.0],"move_z":[0.0,0.0,-747.42]},{"name":"Shell_043","group":"group_43","group_name":"Chi tiết 44 (Shell_043)","color":"#b8bec6","vertex_byte_offset":1595964,"vertex_byte_length":120,"index_byte_offset":1596084,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[1275.2903,-1036.0,407.7761],"bounds_max":[1359.4541,-1023.0,580.4773],"center":[1317.3722,-1029.5,494.1267],"move_3d":[900.02,-1890.01,-426.11],"move_x":[1440.04,0.0,0.0],"move_y":[0.0,-2520.02,0.0],"move_z":[0.0,0.0,-486.99]},{"name":"Shell_044","group":"group_44","group_name":"Chi tiết 45 (Shell_044)","color":"#b8bec6","vertex_byte_offset":1596276,"vertex_byte_length":120,"index_byte_offset":1596396,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[1122.0442,-1036.0,355.2392],"bounds_max":[1307.1953,-1023.0,385.4421],"center":[1214.6198,-1029.5,370.34064],"move_3d":[828.1,-1890.01,-878.28],"move_x":[1324.95,0.0,0.0],"move_y":[0.0,-2520.02,0.0],"move_z":[0.0,0.0,-1003.74]},{"name":"Shell_045","group":"group_45","group_name":"Chi tiết 46 (Shell_045)","color":"#b8bec6","vertex_byte_offset":1596588,"vertex_byte_length":120,"index_byte_offset":1596708,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[1256.7202,-1036.0,141.8145],"bounds_max":[1338.5264,-1023.0,326.66],"center":[1297.6233,-1029.5,234.23724],"move_3d":[886.2,-1890.01,-1375.43],"move_x":[1417.92,0.0,0.0],"move_y":[0.0,-2520.02,0.0],"move_z":[0.0,0.0,-1571.92]},{"name":"Shell_046","group":"group_46","group_name":"Chi tiết 47 (Shell_046)","color":"#b8bec6","vertex_byte_offset":1596900,"vertex_byte_length":120,"index_byte_offset":1597020,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[1370.6117,-1036.0,208.0134],"bounds_max":[1537.0576,-1023.0,333.4151],"center":[1453.8347,-1029.5,270.71423],"move_3d":[995.55,-1890.01,-1242.19],"move_x":[1592.88,0.0,0.0],"move_y":[0.0,-2520.02,0.0],"move_z":[0.0,0.0,-1419.64]},{"name":"Shell_047","group":"group_47","group_name":"Chi tiết 48 (Shell_047)","color":"#b8bec6","vertex_byte_offset":1597212,"vertex_byte_length":2592,"index_byte_offset":1599804,"index_byte_length":4368,"vertex_count":216,"triangles":364,"bounds_min":[1285.0,-1048.0,295.0],"bounds_max":[1415.0,-1036.0,425.0],"center":[1350.0,-1042.0,360.0],"move_3d":[922.86,-1912.96,-916.05],"move_x":[1476.58,0.0,0.0],"move_y":[0.0,-2550.61,0.0],"move_z":[0.0,0.0,-1046.91]},{"name":"Shell_048","group":"group_48","group_name":"Chi tiết 49 (Shell_048)","color":"#b8bec6","vertex_byte_offset":1604172,"vertex_byte_length":1824,"index_byte_offset":1605996,"index_byte_length":3024,"vertex_count":152,"triangles":252,"bounds_min":[1318.0,-1053.0,328.0],"bounds_max":[1382.0,-1048.0,392.0],"center":[1350.0,-1050.5,360.0],"move_3d":[922.86,-1928.57,-916.05],"move_x":[1476.58,0.0,0.0],"move_y":[0.0,-2571.42,0.0],"move_z":[0.0,0.0,-1046.91]},{"name":"Shell_049","group":"group_49","group_name":"Chi tiết 50 (Shell_049)","color":"#b8bec6","vertex_byte_offset":1609020,"vertex_byte_length":12780,"index_byte_offset":1621800,"index_byte_length":23724,"vertex_count":1065,"triangles":1977,"bounds_min":[-2208.0,-789.801,514.0061],"bounds_max":[-1585.0,-493.0061,756.0],"center":[-1896.5,-641.40356,635.00305],"move_3d":[-1349.69,-1177.52,88.47],"move_x":[-2159.5,0.0,0.0],"move_y":[0.0,-1570.03,0.0],"move_z":[0.0,0.0,101.11]},{"name":"Shell_050","group":"group_50","group_name":"Chi tiết 51 (Shell_050)","color":"#b8bec6","vertex_byte_offset":1645524,"vertex_byte_length":9084,"index_byte_offset":1654608,"index_byte_length":16596,"vertex_count":757,"triangles":1383,"bounds_min":[-2207.0,-785.4837,532.0043],"bounds_max":[-1595.0,-508.0096,757.9835],"center":[-1901.0,-646.74664,644.9939],"move_3d":[-1352.84,-1187.33,124.97],"move_x":[-2164.54,0.0,0.0],"move_y":[0.0,-1583.11,0.0],"move_z":[0.0,0.0,142.82]},{"name":"Shell_051","group":"group_51","group_name":"Chi tiết 52 (Shell_051)","color":"#b8bec6","vertex_byte_offset":1671204,"vertex_byte_length":12612,"index_byte_offset":1683816,"index_byte_length":23364,"vertex_count":1051,"triangles":1947,"bounds_min":[232.0,-983.2277,394.1917],"bounds_max":[843.0,-892.3624,643.1079],"center":[537.5,-937.79504,518.6498],"move_3d":[354.11,-1721.66,-336.54],"move_x":[566.58,0.0,0.0],"move_y":[0.0,-2295.54,0.0],"move_z":[0.0,0.0,-384.61]},{"name":"Shell_052","group":"group_52","group_name":"Chi tiết 53 (Shell_052)","color":"#b8bec6","vertex_byte_offset":1707180,"vertex_byte_length":240,"index_byte_offset":1707420,"index_byte_length":432,"vertex_count":20,"triangles":36,"bounds_min":[-2231.0,-512.0,271.0],"bounds_max":[-2220.0,512.0,430.0],"center":[-2225.5,0.0,350.5],"move_3d":[-1579.99,0.0,-950.75],"move_x":[-2527.98,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-1086.57]},{"name":"Shell_053","group":"group_53","group_name":"Chi tiết 54 (Shell_053)","color":"#b8bec6","vertex_byte_offset":1707852,"vertex_byte_length":96,"index_byte_offset":1707948,"index_byte_length":144,"vertex_count":8,"triangles":12,"bounds_min":[-2238.0,-441.0,332.0],"bounds_max":[-2232.0,441.0,346.0],"center":[-2235.0,0.0,339.0],"move_3d":[-1586.64,0.0,-992.76],"move_x":[-2538.62,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-1134.58]},{"name":"Shell_054","group":"group_54","group_name":"Chi tiết 55 (Shell_054)","color":"#b8bec6","vertex_byte_offset":1708092,"vertex_byte_length":10560,"index_byte_offset":1718652,"index_byte_length":17856,"vertex_count":880,"triangles":1488,"bounds_min":[-2269.751,-839.0093,182.0],"bounds_max":[-1670.4843,839.0093,221.0],"center":[-1970.1177,0.0,201.5],"move_3d":[-1401.22,0.0,-1495.01],"move_x":[-2241.95,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-1708.58]},{"name":"Shell_055","group":"group_55","group_name":"Chi tiết 56 (Shell_055)","color":"#b8bec6","vertex_byte_offset":1736508,"vertex_byte_length":192,"index_byte_offset":1736700,"index_byte_length":336,"vertex_count":16,"triangles":28,"bounds_min":[2290.0,-728.0,245.0],"bounds_max":[2313.0,728.0,443.0],"center":[2301.5,0.0,344.0],"move_3d":[1588.91,0.0,-974.49],"move_x":[2542.26,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-1113.7]},{"name":"Shell_056","group":"group_56","group_name":"Chi tiết 57 (Shell_056)","color":"#b8bec6","vertex_byte_offset":1737036,"vertex_byte_length":120,"index_byte_offset":1737156,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[2290.0,182.0,690.0],"bounds_max":[2299.0,729.0,744.0],"center":[2294.5,455.5,717.0],"move_3d":[1584.01,836.23,387.99],"move_x":[2534.42,0.0,0.0],"move_y":[0.0,1114.98,0.0],"move_z":[0.0,0.0,443.42]},{"name":"Shell_057","group":"group_57","group_name":"Chi tiết 58 (Shell_057)","color":"#b8bec6","vertex_byte_offset":1737348,"vertex_byte_length":120,"index_byte_offset":1737468,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[2290.0,-729.0,690.0],"bounds_max":[2299.0,-182.0,744.0],"center":[2294.5,-455.5,717.0],"move_3d":[1584.01,-836.23,387.99],"move_x":[2534.42,0.0,0.0],"move_y":[0.0,-1114.98,0.0],"move_z":[0.0,0.0,443.42]},{"name":"Shell_058","group":"group_58","group_name":"Chi tiết 59 (Shell_058)","color":"#b8bec6","vertex_byte_offset":1737660,"vertex_byte_length":4320,"index_byte_offset":1741980,"index_byte_length":7392,"vertex_count":360,"triangles":616,"bounds_min":[2314.0,358.0,298.0],"bounds_max":[2333.0,466.0,406.0],"center":[2323.5,412.0,352.0],"move_3d":[1604.31,756.37,-945.27],"move_x":[2566.9,0.0,0.0],"move_y":[0.0,1008.5,0.0],"move_z":[0.0,0.0,-1080.31]},{"name":"Shell_059","group":"group_59","group_name":"Chi tiết 60 (Shell_059)","color":"#b8bec6","vertex_byte_offset":1749372,"vertex_byte_length":4320,"index_byte_offset":1753692,"index_byte_length":7392,"vertex_count":360,"triangles":616,"bounds_min":[2314.0,-466.0,298.0],"bounds_max":[2333.0,-358.0,406.0],"center":[2323.5,-412.0,352.0],"move_3d":[1604.31,-756.37,-945.27],"move_x":[2566.9,0.0,0.0],"move_y":[0.0,-1008.5,0.0],"move_z":[0.0,0.0,-1080.31]},{"name":"Shell_060","group":"group_60","group_name":"Chi tiết 61 (Shell_060)","color":"#b8bec6","vertex_byte_offset":1761084,"vertex_byte_length":120,"index_byte_offset":1761204,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[1822.0,578.0,814.0],"bounds_max":[2088.0,634.0,1108.0],"center":[1955.0,606.0,961.0],"move_3d":[1346.36,1112.53,1279.26],"move_x":[2154.18,0.0,0.0],"move_y":[0.0,1483.37,0.0],"move_z":[0.0,0.0,1462.02]},{"name":"Shell_061","group":"group_61","group_name":"Chi tiết 62 (Shell_061)","color":"#b8bec6","vertex_byte_offset":1761396,"vertex_byte_length":120,"index_byte_offset":1761516,"index_byte_length":192,"vertex_count":10,"triangles":16,"bounds_min":[1822.0,-634.0,814.0],"bounds_max":[2088.0,-578.0,1108.0],"center":[1955.0,-606.0,961.0],"move_3d":[1346.36,-1112.53,1279.26],"move_x":[2154.18,0.0,0.0],"move_y":[0.0,-1483.37,0.0],"move_z":[0.0,0.0,1462.02]},{"name":"Shell_062","group":"group_62","group_name":"Chi tiết 63 (Shell_062)","color":"#b8bec6","vertex_byte_offset":1761708,"vertex_byte_length":27516,"index_byte_offset":1789224,"index_byte_length":51816,"vertex_count":2293,"triangles":4318,"bounds_min":[1724.1685,-842.0,1065.0267],"bounds_max":[2170.5837,842.0,1141.1747],"center":[1947.3761,0.0,1103.1007],"move_3d":[1341.03,0.0,1798.33],"move_x":[2145.64,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,2055.23]}];
+    const container = document.getElementById('container');
+    const canvas = document.getElementById('canvas3d');
+    const loadingEl = document.getElementById('loadingEl');
+    const loadStatus = document.getElementById('loadStatus');
+    const readoutEl = document.getElementById('readoutEl');
+    const explodeSlider = document.getElementById('explodeSlider');
+    const explodeVal = document.getElementById('explodeVal');
+    const spreadScale = document.getElementById('spreadScale');
+    const btnReset = document.getElementById('btnReset');
+    const btnAutoSpin = document.getElementById('btnAutoSpin');
+    const btnMode3D = document.getElementById('btnMode3D');
+    const btnModeX = document.getElementById('btnModeX');
+    const btnModeY = document.getElementById('btnModeY');
+    const btnModeZ = document.getElementById('btnModeZ');
+    const pills = document.querySelectorAll('.part-pill');
+
+    const scene = new THREE.Scene();
+    const maxDim = Math.max(4602.751, 0.1);
+    const nearPlane = Math.max(0.1, maxDim * 0.005);
+    const farPlane = Math.max(5000, maxDim * 40);
+    const camera = new THREE.PerspectiveCamera(36, container.clientWidth / container.clientHeight, nearPlane, farPlane);
+    camera.position.set(maxDim * 1.4, -maxDim * 1.8, maxDim * 1.2);
+    camera.up.set(0, 0, 1);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true, logarithmicDepthBuffer: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(31.624512, 0, 610.7819);
+    controls.minDistance = maxDim * 0.1;
+    controls.maxDistance = maxDim * 10;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 2.0;
+
+    // Hệ thống ánh sáng PBR Studio
+    scene.add(new THREE.AmbientLight(0xffffff, 0.95));
+    const dLight1 = new THREE.DirectionalLight(0xfff5ea, 1.15);
+    dLight1.position.set(maxDim, -maxDim, maxDim * 1.5);
+    scene.add(dLight1);
+
+    const dLight2 = new THREE.DirectionalLight(0xa5c4e8, 0.4);
+    dLight2.position.set(-maxDim, maxDim, maxDim * 0.8);
+    scene.add(dLight2);
+
+    const bLight = new THREE.DirectionalLight(0xffffff, 0.35);
+    bLight.position.set(0, 0, -maxDim);
+    scene.add(bLight);
+
+    const modelPivot = new THREE.Group();
+    modelPivot.position.set(31.624512, 0, 610.7819);
+    scene.add(modelPivot);
+
+    const guidesGroup = new THREE.Group();
+    guidesGroup.position.set(-31.624512, -0, -610.7819);
+    modelPivot.add(guidesGroup);
+
+    let explodeMode = '3D';
+    let distanceMultiplier = 1.0;
+    const partMeshes = [];
+    const guideLines = [];
+    const rootGroup = new THREE.Group();
+    rootGroup.position.set(-31.624512, -0, -610.7819);
+    modelPivot.add(rootGroup);
+
+    let currentExplode = 0;
+    let targetExplode = 0;
+    let activeGroup = 'all';
+
+    try {
+      
+      loadStatus.textContent = 'Đang tải dữ liệu 3D (model.bin)...';
+      let buffer = null;
+      try {
+        const res = await fetch('./model.bin');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        buffer = await res.arrayBuffer();
+      } catch (fErr) {
+        throw new Error('Không thể tải file model.bin: ' + fErr.message);
+      }
+        
+
+      rawParts.forEach((part) => {
+        const geo = new THREE.BufferGeometry();
+        const positions = new Float32Array(buffer, part.vertex_byte_offset, part.vertex_byte_length / 4);
+        const indices = new Uint32Array(buffer, part.index_byte_offset, part.index_byte_length / 4);
+        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geo.setIndex(new THREE.BufferAttribute(indices, 1));
+        geo.computeVertexNormals();
+
+        const initialColor = ('original' === 'original') ? part.color : '#b8bec6';
+        const mat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(initialColor),
+          roughness: 0.45,
+          metalness: 0.15,
+          polygonOffset: true,
+          polygonOffsetFactor: 1.0,
+          polygonOffsetUnits: 1.0
+        });
+
+        const wireMat = new THREE.MeshBasicMaterial({
+          color: new THREE.Color(0xf1f5f9),
+          polygonOffset: true,
+          polygonOffsetFactor: 1.0,
+          polygonOffsetUnits: 1.0,
+          side: THREE.DoubleSide
+        });
+
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.userData = {
+          name: part.name,
+          originalColor: part.color,
+          group: part.group,
+          group_name: part.group_name,
+          move_3d: part.move_3d,
+          move_x: part.move_x,
+          move_y: part.move_y,
+          move_z: part.move_z,
+          center: part.center,
+          standardMaterial: mat,
+          wireframeMaterial: wireMat
+        };
+
+        // Viền nét CAD sắc sảo đồng bộ theo Theme
+        const edgeGeo = new THREE.EdgesGeometry(geo, 28);
+        const edgeMat = new THREE.LineBasicMaterial({
+          color: new THREE.Color(0x1e293b),
+          transparent: true,
+          opacity: 0.85
+        });
+        const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
+        mesh.add(edgeLines);
+
+        rootGroup.add(mesh);
+        partMeshes.push(mesh);
+
+        // Đường chỉ dẫn 3D Leader Guide Lines
+        const pStart = new THREE.Vector3(part.center[0], part.center[1], part.center[2]);
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([pStart, pStart.clone()]);
+        const lineMat = new THREE.LineDashedMaterial({
+          color: 0x0284c7,
+          dashSize: maxDim * 0.02,
+          gapSize: maxDim * 0.015,
+          transparent: true,
+          opacity: 0
+        });
+        const line = new THREE.Line(lineGeo, lineMat);
+        line.computeLineDistances();
+        guidesGroup.add(line);
+        guideLines.push({ line, pStart });
+      });
+
+      loadingEl.style.opacity = '0';
+      setTimeout(() => { loadingEl.style.display = 'none'; }, 400);
+
+      
+    } catch (err) {
+      loadStatus.textContent = 'Lỗi nạp mô hình 3D: ' + err.message;
+      console.error(err);
+    }
+
+    function getMoveVector(userData) {
+      if (explodeMode === 'X') return userData.move_x;
+      if (explodeMode === 'Y') return userData.move_y;
+      if (explodeMode === 'Z') return userData.move_z;
+      return userData.move_3d;
+    }
+
+    function updateExplode(progress) {
+      partMeshes.forEach((mesh, index) => {
+        const move = getMoveVector(mesh.userData);
+        const tx = move[0] * progress * distanceMultiplier;
+        const ty = move[1] * progress * distanceMultiplier;
+        const tz = move[2] * progress * distanceMultiplier;
+        mesh.position.set(tx, ty, tz);
+
+        const g = guideLines[index];
+        if (g) {
+          const pEnd = new THREE.Vector3(g.pStart.x + tx, g.pStart.y + ty, g.pStart.z + tz);
+          g.line.geometry.setFromPoints([g.pStart, pEnd]);
+          g.line.computeLineDistances();
+          g.line.material.opacity = (showGuides && progress > 0.05) ? Math.min(0.65, (progress - 0.05) * 1.5) : 0;
+        }
+      });
+      explodeVal.textContent = Math.round(progress * 100) + '%';
+      readoutEl.textContent = progress === 0 ? 'Assembled · ' + rawParts.length + ' chi tiết' : 'Exploded ' + Math.round(progress * 100) + '% (' + explodeMode + ' · ' + distanceMultiplier + 'x)';
+    }
+
+    explodeSlider.addEventListener('input', (e) => {
+      targetExplode = parseInt(e.target.value, 10) / 100;
+    });
+
+    spreadScale.addEventListener('change', (e) => {
+      distanceMultiplier = parseFloat(e.target.value);
+      updateExplode(currentExplode);
+    });
+
+    function setExplodeMode(mode, activeBtn) {
+      explodeMode = mode;
+      [btnMode3D, btnModeX, btnModeY, btnModeZ].forEach(b => b.classList.remove('active'));
+      activeBtn.classList.add('active');
+      updateExplode(currentExplode);
+    }
+
+    btnMode3D.addEventListener('click', () => setExplodeMode('3D', btnMode3D));
+    btnModeX.addEventListener('click', () => setExplodeMode('X', btnModeX));
+    btnModeY.addEventListener('click', () => setExplodeMode('Y', btnModeY));
+    btnModeZ.addEventListener('click', () => setExplodeMode('Z', btnModeZ));
+
+    // Bộ điều khiển Preset Vật liệu PBR
+    const PRESETS = {
+      sw_gray: { color: '#b8bec6', roughness: 0.45, metalness: 0.15 },
+      wood: { color: '#c29b6e', roughness: 0.70, metalness: 0.02 },
+      chrome: { color: '#e2e8f0', roughness: 0.12, metalness: 0.90 },
+      custom: { color: '#94a3b8', roughness: 0.40, metalness: 0.15 },
+      original: { roughness: 0.45, metalness: 0.15 }
+    };
+
+    const cboMaterial = document.getElementById('cboMaterialPreset');
+    const pickerColor = document.getElementById('pickerCustomColor');
+
+    function applyMaterialPreset(presetKey, customHex) {
+      partMeshes.forEach((mesh) => {
+        const targetMat = mesh.userData.standardMaterial || mesh.material;
+        if (presetKey === 'original') {
+          targetMat.color.set(mesh.userData.originalColor || '#b8bec6');
+          targetMat.roughness = 0.45;
+          targetMat.metalness = 0.15;
+        } else if (presetKey === 'custom') {
+          const hex = customHex || (pickerColor ? pickerColor.value : '#94a3b8');
+          targetMat.color.set(hex);
+          targetMat.roughness = 0.40;
+          targetMat.metalness = 0.15;
+        } else {
+          const p = PRESETS[presetKey] || PRESETS.sw_gray;
+          targetMat.color.set(p.color);
+          targetMat.roughness = p.roughness;
+          targetMat.metalness = p.metalness;
+        }
+        targetMat.needsUpdate = true;
+      });
+    }
+
+    if (cboMaterial) {
+      cboMaterial.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val === 'custom') {
+          if (pickerColor) pickerColor.style.display = 'inline-block';
+          applyMaterialPreset('custom', pickerColor ? pickerColor.value : null);
+        } else {
+          if (pickerColor) pickerColor.style.display = 'none';
+          applyMaterialPreset(val, null);
+        }
+      });
+    }
+
+    if (pickerColor) {
+      pickerColor.addEventListener('input', (e) => {
+        if (cboMaterial && cboMaterial.value === 'custom') {
+          applyMaterialPreset('custom', e.target.value);
+        }
+      });
+    }
+
+    let showEdges = true;
+    let isWireframe = false;
+
+    function updateWireframeDisplay() {
+      partMeshes.forEach((mesh) => {
+        const isMatch = activeGroup === 'all' || mesh.userData.group === activeGroup;
+        if (isWireframe) {
+          // Chế độ khung dây CAD triệt tiêu nét khuất (Hidden-Line Removed Wireframe):
+          // Mặt khối tô màu cùng màu nền (MeshBasicMaterial) để che chắn toàn bộ các đường nét ẩn bên dưới mặt
+          mesh.material = mesh.userData.wireframeMaterial;
+          mesh.material.visible = isMatch;
+          mesh.material.transparent = false;
+          mesh.material.opacity = 1.0;
+          mesh.children.forEach((c) => {
+            if (c.isLineSegments) {
+              c.visible = isMatch;
+              c.material.opacity = isMatch ? 0.95 : 0.2;
+              c.material.color.set(0x1e293b);
+            }
+          });
+        } else {
+          // Chế độ khối đặc PBR có đổ bóng
+          mesh.material = mesh.userData.standardMaterial;
+          mesh.material.visible = true;
+          mesh.material.transparent = !isMatch;
+          mesh.material.opacity = isMatch ? 1.0 : 0.2;
+          mesh.children.forEach((c) => {
+            if (c.isLineSegments) {
+              c.visible = showEdges && isMatch;
+              c.material.opacity = isMatch ? 0.85 : 0.2;
+              c.material.color.set(0x1e293b);
+            }
+          });
+        }
+        mesh.material.needsUpdate = true;
+      });
+    }
+
+    const btnEdgesToggle = document.getElementById('btnEdgesToggle');
+    if (btnEdgesToggle) {
+      btnEdgesToggle.addEventListener('click', () => {
+        showEdges = !showEdges;
+        btnEdgesToggle.classList.toggle('active', showEdges);
+        updateWireframeDisplay();
+      });
+    }
+
+    let showGuides = true;
+    const btnGuidesToggle = document.getElementById('btnGuidesToggle');
+    if (btnGuidesToggle) {
+      btnGuidesToggle.addEventListener('click', () => {
+        showGuides = !showGuides;
+        btnGuidesToggle.classList.toggle('active', showGuides);
+        guidesGroup.visible = showGuides;
+        updateExplode(currentExplode);
+      });
+    }
+
+    const btnWireframeToggle = document.getElementById('btnWireframeToggle');
+    if (btnWireframeToggle) {
+      btnWireframeToggle.addEventListener('click', () => {
+        isWireframe = !isWireframe;
+        btnWireframeToggle.classList.toggle('active', isWireframe);
+        updateWireframeDisplay();
+      });
+    }
+
+    pills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        pills.forEach((p) => p.classList.remove('active'));
+        pill.classList.add('active');
+        activeGroup = pill.getAttribute('data-group');
+        updateWireframeDisplay();
+      });
+    });
+
+    btnReset.addEventListener('click', () => {
+      controls.reset();
+      camera.position.set(maxDim * 1.4, -maxDim * 1.8, maxDim * 1.2);
+      controls.target.set(31.624512, 0, 610.7819);
+      modelPivot.rotation.set(0, 0, 0);
+      targetExplode = 0;
+      explodeSlider.value = 0;
+      activeGroup = 'all';
+      pills.forEach((p, i) => p.classList.toggle('active', i === 0));
+      showEdges = true;
+      if (btnEdgesToggle) btnEdgesToggle.classList.add('active');
+      showGuides = true;
+      if (btnGuidesToggle) btnGuidesToggle.classList.add('active');
+      guidesGroup.visible = true;
+      isWireframe = false;
+      if (btnWireframeToggle) btnWireframeToggle.classList.remove('active');
+      updateWireframeDisplay();
+      autoSpin = true;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 2.0;
+      btnAutoSpin.classList.add('active');
+    });
+
+    let autoSpin = true;
+    btnAutoSpin.addEventListener('click', () => {
+      autoSpin = !autoSpin;
+      controls.autoRotate = autoSpin;
+      controls.autoRotateSpeed = 2.0;
+      btnAutoSpin.classList.toggle('active', autoSpin);
+    });
+
+    const btnSnapThumb = document.getElementById('btnSnapThumb');
+    if (btnSnapThumb) {
+      btnSnapThumb.addEventListener('click', () => {
+        if (autoSpin) {
+          autoSpin = false;
+          controls.autoRotate = false;
+          btnAutoSpin.classList.remove('active');
+        }
+        controls.update();
+        renderer.render(scene, camera);
+        const dataUrl = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.download = 'thumb.png';
+        a.href = dataUrl;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+    }
+
+    const btnRotateYZ = document.getElementById('btnRotateYZ');
+    if (btnRotateYZ) {
+      btnRotateYZ.addEventListener('click', () => {
+        modelPivot.rotation.x = (modelPivot.rotation.x + Math.PI / 2) % (Math.PI * 2);
+      });
+    }
+
+    const btnRotateXZ = document.getElementById('btnRotateXZ');
+    if (btnRotateXZ) {
+      btnRotateXZ.addEventListener('click', () => {
+        modelPivot.rotation.y = (modelPivot.rotation.y + Math.PI / 2) % (Math.PI * 2);
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (Math.abs(targetExplode - currentExplode) > 0.001) {
+        currentExplode += (targetExplode - currentExplode) * 0.12;
+        updateExplode(currentExplode);
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
