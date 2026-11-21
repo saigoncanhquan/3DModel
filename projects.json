@@ -1,5 +1,14 @@
 [
     {
+        "name":  "ice_bubbles_table",
+        "title":  "ice bubbles table",
+        "path":  "./ice_bubbles_table/index.html",
+        "thumb":  "./ice_bubbles_table/thumb.png",
+        "fallback_thumb":  "./ice_bubbles_table/thumb.svg",
+        "part_count":  25,
+        "date":  "2026-11-21 08:11"
+    },
+    {
         "name":  "Expato",
         "title":  "Expato",
         "path":  "./Expato/index.html",

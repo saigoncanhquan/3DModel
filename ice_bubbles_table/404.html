@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ice bubbles table · Untube 3D CAD Inspection</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #f8fafc;
+      color: #1e293b;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow-x: hidden;
+    }
+    .figure-card {
+      width: 100%;
+      max-width: 1120px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 24px 50px rgba(0,0,0,0.08);
+      backdrop-filter: blur(14px);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+      font-size: 13px;
+    }
+    .fig-badge {
+      font-family: monospace;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .title { font-weight: 600; font-size: 14.5px; }
+    .readout { font-family: monospace; font-size: 12px; color: #64748b; }
+    .viewport-container {
+      position: relative;
+      width: 100%;
+      height: 620px;
+      background: radial-gradient(circle at 50% 40%, #f1f5f9 0%, #e2e8f0 85%);
+      cursor: grab;
+      user-select: none;
+    }
+    .viewport-container:active { cursor: grabbing; }
+    #canvas3d { width: 100%; height: 100%; display: block; touch-action: none; position: relative; z-index: 2; }
+    .overlay-hint {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      z-index: 10;
+      font-size: 11px;
+      font-weight: 500;
+      color: #0f172a;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      padding: 5px 10px;
+      border-radius: 5px;
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .overlay-controls {
+      position: absolute;
+      bottom: 14px;
+      right: 16px;
+      z-index: 10;
+      pointer-events: auto;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      max-width: 85%;
+    }
+    .icon-btn {
+      position: relative;
+      z-index: 11;
+      pointer-events: auto;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #0f172a;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      transition: all 0.2s ease;
+    }
+    .icon-btn:hover { background: #38bdf8; color: #000; font-weight: 600; }
+    .icon-btn.active { background: #38bdf8; color: #000; font-weight: 600; }
+    .card-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(0, 0, 0, 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .control-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 280px;
+    }
+    .slider-label { font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .explode-slider { flex: 1; height: 6px; accent-color: #38bdf8; cursor: pointer; }
+    .mode-toggles { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .toggle-btn {
+      background: rgba(0,0,0,0.05);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e293b;
+      font-size: 11px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .toggle-btn:hover { border-color: #38bdf8; color: #38bdf8; }
+    .toggle-btn.active {
+      background: #38bdf8;
+      color: #0b0f19;
+      font-weight: 600;
+      border-color: #38bdf8;
+    }
+    .scale-select {
+      background: #ffffff;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e293b;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      outline: none;
+      cursor: pointer;
+    }
+    .scale-select option {
+      background: #ffffff;
+      color: #1e293b;
+      padding: 6px 10px;
+    }
+    .parts-toolbar { display: flex; gap: 6px; flex-wrap: wrap; max-height: 95px; overflow-y: auto; }
+    .part-pill {
+      background: rgba(0,0,0,0.04);
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      color: #1e293b;
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .part-pill:hover { border-color: #38bdf8; color: #38bdf8; }
+    .part-pill.active {
+      background: #38bdf8;
+      color: #0b0f19;
+      font-weight: 600;
+      border-color: #38bdf8;
+    }
+    .caption-box {
+      font-size: 11.5px;
+      line-height: 1.5;
+      color: #64748b;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(0, 0, 0, 0.12);
+    }
+    .loading-screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f8fafc;
+      z-index: 10;
+      transition: opacity 0.4s ease;
+    }
+    .spinner {
+      width: 34px;
+      height: 34px;
+      border: 3px solid rgba(56, 189, 248, 0.2);
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 640px) {
+      body { padding: 6px; }
+      .viewport-container { height: 400px; }
+      .parts-toolbar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .part-pill { flex-shrink: 0; }
+    }
+  </style>
+  <script>
+    window.addEventListener('error', function(e) {
+      var s = document.getElementById('loadStatus');
+      if (s) {
+        s.style.color = '#ef4444';
+        s.textContent = 'Lỗi nạp WebGL / Three.js: ' + (e.message || 'Không thể kết nối thư viện 3D');
+      }
+    });
+  </script>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <div class="figure-card">
+    <div class="card-header">
+      <span class="fig-badge">Untube · 3D Inspection</span>
+      <span class="title">ice bubbles table</span>
+      <span class="readout" id="readoutEl">Assembled · 25 linh kiện</span>
+    </div>
+
+    <div class="viewport-container" id="container">
+      <div class="loading-screen" id="loadingEl">
+        <div class="spinner"></div>
+        <div style="font-size: 12px; color: #64748b;" id="loadStatus">Đang khởi tạo WebGL 3D...</div>
+      </div>
+      <canvas id="canvas3d"></canvas>
+      <div class="overlay-hint">Chuột trái/1 ngón: Xoay 360° · Chuột phải/2 ngón: Pan · Cuộn/Chụm: Zoom</div>
+      <div class="overlay-controls">
+        <button class="icon-btn" id="btnReset" title="Đặt lại góc nhìn và chiều quay ban đầu">Mặc định</button>
+        <button class="icon-btn active" id="btnAutoSpin" title="Bật/Tắt tự xoay 360°">Tự xoay</button>
+        <button class="icon-btn" id="btnSnapThumb" title="Chụp góc nhìn hiện tại làm ảnh Thumbnail (thumb.png)">📸 Chụp ảnh</button>
+        <button class="icon-btn" id="btnRotateYZ" title="Xoay dựng đứng 90° (Đổi Y-Z)">🔄 Đứng (Y-Z)</button>
+        <button class="icon-btn" id="btnRotateXZ" title="Xoay 90° quanh trục đứng (Đổi X-Z)">🔄 Xoay (X-Z)</button>
+      </div>
+    </div>
+
+    <div class="card-footer">
+      <div class="control-row">
+        <div class="slider-container">
+          <span class="slider-label">Tách cụm (Explode):</span>
+          <input type="range" class="explode-slider" id="explodeSlider" min="0" max="100" value="0" />
+          <span style="font-family: monospace; font-size: 12px; width: 45px; text-align: right;" id="explodeVal">0%</span>
+        </div>
+
+        <div class="mode-toggles">
+          <button class="toggle-btn active" id="btnMode3D">3D (X+Y+Z)</button>
+          <button class="toggle-btn" id="btnModeX">Trục ngang (X)</button>
+          <button class="toggle-btn" id="btnModeY">Trục dọc (Y)</button>
+          <button class="toggle-btn" id="btnModeZ">Trục đứng (Z)</button>
+          <label style="font-size: 11px; color: #64748b; margin-left: 4px;">Cự ly:</label>
+          <select class="scale-select" id="spreadScale">
+            <option value="1">1x (Chuẩn)</option>
+            <option value="1.5">1.5x (Rộng)</option>
+            <option value="2">2x (Cực rộng)</option>
+            <option value="3">3x (Toàn cảnh)</option>
+          </select>
+          <label style="font-size: 11px; color: #64748b; margin-left: 6px;">Vật liệu:</label>
+          <select class="scale-select" id="cboMaterialPreset">
+            <option value="sw_gray">Xám SolidWorks</option>
+            <option value="wood" selected>Gỗ tự nhiên</option>
+            <option value="chrome">Chrome kim loại</option>
+            <option value="custom">Màu tự chọn...</option>
+            <option value="original">Màu gốc MTL</option>
+          </select>
+          <input type="color" id="pickerCustomColor" value="#94a3b8" style="width: 26px; height: 24px; border: none; cursor: pointer; border-radius: 4px; vertical-align: middle; display: none;" title="Chọn màu tùy chỉnh" />
+          <button class="toggle-btn active" id="btnEdgesToggle">Viền nét CAD</button>
+          <button class="toggle-btn" id="btnWireframeToggle" title="Bật/Tắt chế độ khung dây">Khung dây</button>
+          <button class="toggle-btn active" id="btnGuidesToggle">Chỉ dẫn xanh</button>
+        </div>
+      </div>
+
+      <div class="parts-toolbar" id="toolbar">
+        <button class="part-pill active" data-group="all">Tất cả (25)</button>
+        <button class="part-pill" data-group="group_0">#01 Подставка</button>
+        <button class="part-pill" data-group="group_1">#02 Уровень 1</button>
+        <button class="part-pill" data-group="group_2">#03 Супинатор 2</button>
+        <button class="part-pill" data-group="group_3">#04 Супинатор 1</button>
+        <button class="part-pill" data-group="group_4">#05 Уровень 2</button>
+        <button class="part-pill" data-group="group_5">#06 Body28</button>
+        <button class="part-pill" data-group="group_6">#07 Body29</button>
+        <button class="part-pill" data-group="group_7">#08 Body32</button>
+        <button class="part-pill" data-group="group_8">#09 Body33</button>
+        <button class="part-pill" data-group="group_9">#10 Body34</button>
+        <button class="part-pill" data-group="group_10">#11 Body35</button>
+        <button class="part-pill" data-group="group_11">#12 Body36</button>
+        <button class="part-pill" data-group="group_12">#13 Body37</button>
+        <button class="part-pill" data-group="group_13">#14 Body38</button>
+        <button class="part-pill" data-group="group_14">#15 Body39</button>
+        <button class="part-pill" data-group="group_15">#16 Body40</button>
+        <button class="part-pill" data-group="group_16">#17 Body41</button>
+        <button class="part-pill" data-group="group_17">#18 Body44</button>
+        <button class="part-pill" data-group="group_18">#19 Body45</button>
+        <button class="part-pill" data-group="group_19">#20 Body46</button>
+        <button class="part-pill" data-group="group_20">#21 Body47</button>
+        <button class="part-pill" data-group="group_21">#22 Body48</button>
+        <button class="part-pill" data-group="group_22">#23 Body49</button>
+        <button class="part-pill" data-group="group_23">#24 Body50</button>
+        <button class="part-pill" data-group="group_24">#25 Body51</button>
+        
+      </div>
+
+      <div class="caption-box">
+        Mô hình 3D bóc tách gồm 25 linh kiện CAD. Kích thước tổng thể: 110.2 × 51.0 × 33.4 (Đơn vị CAD). Hỗ trợ tách rã linh hoạt đa trục X, Y, Z và 3D không gian kèm đường chỉ dẫn 3D Leader Lines.
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const rawParts = [{"name":"Подставка","group":"group_0","group_name":"Chi tiết 01 (Подставка)","color":"#af7047","vertex_byte_offset":0,"vertex_byte_length":22392,"index_byte_offset":22392,"index_byte_length":44736,"vertex_count":1866,"triangles":3728,"bounds_min":[-44.599743,-15.807951,-4.0],"bounds_max":[43.196877,13.592644,0.0],"center":[-0.7014332,-1.1076536,-2.0],"move_3d":[-0.25,1.25,44.95],"move_x":[-0.4,0.0,0.0],"move_y":[0.0,1.66,0.0],"move_z":[0.0,0.0,51.37]},{"name":"Уровень 1","group":"group_1","group_name":"Chi tiết 02 (Уровень 1)","color":"#191919","vertex_byte_offset":67128,"vertex_byte_length":76716,"index_byte_offset":143844,"index_byte_length":153384,"vertex_count":6393,"triangles":12782,"bounds_min":[-51.875847,-23.722546,-25.0],"bounds_max":[51.191414,20.135813,-24.5],"center":[-0.3422165,-1.7933664,-24.75],"move_3d":[0.0,0.0,-28.62],"move_x":[0.0,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-32.71]},{"name":"Супинатор 2","group":"group_2","group_name":"Chi tiết 03 (Супинатор 2)","color":"#84694b","vertex_byte_offset":297228,"vertex_byte_length":19248,"index_byte_offset":316476,"index_byte_length":38448,"vertex_count":1604,"triangles":3204,"bounds_min":[-30.90982,-5.800102,-32.0],"bounds_max":[-24.286995,0.800102,-25.039434],"center":[-27.598408,-2.5,-28.519718],"move_3d":[-19.08,-1.28,-40.81],"move_x":[-30.52,0.0,0.0],"move_y":[0.0,-1.71,0.0],"move_z":[0.0,0.0,-46.64]},{"name":"Супинатор 1","group":"group_3","group_name":"Chi tiết 04 (Супинатор 1)","color":"#b8bec6","vertex_byte_offset":354924,"vertex_byte_length":17676,"index_byte_offset":372600,"index_byte_length":35304,"vertex_count":1473,"triangles":2942,"bounds_min":[27.094168,-5.697283,-31.964397],"bounds_max":[33.51065,0.697283,-24.999699],"center":[30.30241,-2.5,-28.482048],"move_3d":[21.45,-1.28,-40.69],"move_x":[34.33,0.0,0.0],"move_y":[0.0,-1.71,0.0],"move_z":[0.0,0.0,-46.5]},{"name":"Уровень 2","group":"group_4","group_name":"Chi tiết 05 (Уровень 2)","color":"#191919","vertex_byte_offset":407904,"vertex_byte_length":82992,"index_byte_offset":490896,"index_byte_length":165936,"vertex_count":6916,"triangles":13828,"bounds_min":[-55.455296,-27.3021,-32.6],"bounds_max":[54.765182,23.714216,-32.1],"center":[-0.34505653,-1.7939415,-32.35],"move_3d":[0.0,0.0,-53.2],"move_x":[0.0,0.0,0.0],"move_y":[0.0,0.0,0.0],"move_z":[0.0,0.0,-60.8]},{"name":"Body28","group":"group_5","group_name":"Chi tiết 06 (Body28)","color":"#b3b3b3","vertex_byte_offset":656832,"vertex_byte_length":1512,"index_byte_offset":658344,"index_byte_length":2976,"vertex_count":126,"triangles":248,"bounds_min":[-35.520084,-10.305023,-21.924248],"bounds_max":[-15.931762,6.943189,-21.624247],"center":[-25.725924,-1.680917,-21.774246],"move_3d":[-17.77,0.21,-19.0],"move_x":[-28.43,0.0,0.0],"move_y":[0.0,0.27,0.0],"move_z":[0.0,0.0,-21.71]},{"name":"Body29","group":"group_6","group_name":"Chi tiết 07 (Body29)","color":"#b8bec6","vertex_byte_offset":661320,"vertex_byte_length":1608,"index_byte_offset":662928,"index_byte_length":3168,"vertex_count":134,"triangles":264,"bounds_min":[11.029863,-11.894449,-21.924248],"bounds_max":[39.39409,8.023545,-21.624247],"center":[25.211975,-1.935452,-21.774246],"move_3d":[17.89,-0.26,-19.0],"move_x":[28.62,0.0,0.0],"move_y":[0.0,-0.34,0.0],"move_z":[0.0,0.0,-21.71]},{"name":"Body32","group":"group_7","group_name":"Chi tiết 08 (Body32)","color":"#b8bec6","vertex_byte_offset":666096,"vertex_byte_length":2184,"index_byte_offset":668280,"index_byte_length":4320,"vertex_count":182,"triangles":360,"bounds_min":[11.409208,-15.481208,-16.924248],"bounds_max":[42.54685,10.90704,-16.624247],"center":[26.978027,-2.287084,-16.774246],"move_3d":[19.13,-0.89,-2.83],"move_x":[30.6,0.0,0.0],"move_y":[0.0,-1.19,0.0],"move_z":[0.0,0.0,-3.23]},{"name":"Body33","group":"group_8","group_name":"Chi tiết 09 (Body33)","color":"#b8bec6","vertex_byte_offset":672600,"vertex_byte_length":1632,"index_byte_offset":674232,"index_byte_length":3216,"vertex_count":136,"triangles":268,"bounds_min":[-35.094208,-9.289904,-16.924248],"bounds_max":[-18.326488,5.490921,-16.624247],"center":[-26.710348,-1.8994913,-16.774246],"move_3d":[-18.46,-0.19,-2.83],"move_x":[-29.53,0.0,0.0],"move_y":[0.0,-0.26,0.0],"move_z":[0.0,0.0,-3.23]},{"name":"Body34","group":"group_9","group_name":"Chi tiết 10 (Body34)","color":"#b8bec6","vertex_byte_offset":677448,"vertex_byte_length":1728,"index_byte_offset":679176,"index_byte_length":3408,"vertex_count":144,"triangles":284,"bounds_min":[18.897017,-9.62934,-14.424247],"bounds_max":[36.546566,4.869279,-14.124247],"center":[27.72179,-2.3800306,-14.274246],"move_3d":[19.65,-1.06,5.26],"move_x":[31.43,0.0,0.0],"move_y":[0.0,-1.42,0.0],"move_z":[0.0,0.0,6.01]},{"name":"Body35","group":"group_10","group_name":"Chi tiết 11 (Body35)","color":"#b8bec6","vertex_byte_offset":682584,"vertex_byte_length":2016,"index_byte_offset":684600,"index_byte_length":3984,"vertex_count":168,"triangles":332,"bounds_min":[-34.707153,-8.684913,-14.424247],"bounds_max":[-19.698172,4.616281,-14.124247],"center":[-27.202663,-2.0343158,-14.274246],"move_3d":[-18.8,-0.44,5.26],"move_x":[-30.08,0.0,0.0],"move_y":[0.0,-0.58,0.0],"move_z":[0.0,0.0,6.01]},{"name":"Body36","group":"group_11","group_name":"Chi tiết 12 (Body36)","color":"#b8bec6","vertex_byte_offset":688584,"vertex_byte_length":1872,"index_byte_offset":690456,"index_byte_length":3696,"vertex_count":156,"triangles":308,"bounds_min":[-37.217854,-11.022727,-11.924247],"bounds_max":[-18.089638,6.695044,-11.624247],"center":[-27.653746,-2.1638415,-11.774246],"move_3d":[-19.12,-0.67,13.34],"move_x":[-30.59,0.0,0.0],"move_y":[0.0,-0.9,0.0],"move_z":[0.0,0.0,15.25]},{"name":"Body37","group":"group_12","group_name":"Chi tiết 13 (Body37)","color":"#b8bec6","vertex_byte_offset":694152,"vertex_byte_length":1824,"index_byte_offset":695976,"index_byte_length":3600,"vertex_count":152,"triangles":300,"bounds_min":[20.997786,-8.735305,-11.924247],"bounds_max":[35.586258,3.878733,-11.624247],"center":[28.292023,-2.428286,-11.774246],"move_3d":[20.05,-1.15,13.34],"move_x":[32.07,0.0,0.0],"move_y":[0.0,-1.53,0.0],"move_z":[0.0,0.0,15.25]},{"name":"Body38","group":"group_13","group_name":"Chi tiết 14 (Body38)","color":"#b8bec6","vertex_byte_offset":699576,"vertex_byte_length":1680,"index_byte_offset":701256,"index_byte_length":3312,"vertex_count":140,"triangles":276,"bounds_min":[17.770227,-12.815183,-9.424247],"bounds_max":[39.64311,7.900265,-9.124247],"center":[28.706669,-2.4574587,-9.274246],"move_3d":[20.34,-1.2,21.43],"move_x":[32.54,0.0,0.0],"move_y":[0.0,-1.61,0.0],"move_z":[0.0,0.0,24.49]},{"name":"Body39","group":"group_14","group_name":"Chi tiết 15 (Body39)","color":"#b8bec6","vertex_byte_offset":704568,"vertex_byte_length":1776,"index_byte_offset":706344,"index_byte_length":3504,"vertex_count":148,"triangles":292,"bounds_min":[-33.599888,-7.299234,-9.424247],"bounds_max":[-22.444744,2.742961,-9.124247],"center":[-28.022316,-2.2781365,-9.274246],"move_3d":[-19.37,-0.88,21.43],"move_x":[-31.0,0.0,0.0],"move_y":[0.0,-1.17,0.0],"move_z":[0.0,0.0,24.49]},{"name":"Body40","group":"group_15","group_name":"Chi tiết 16 (Body40)","color":"#b8bec6","vertex_byte_offset":709848,"vertex_byte_length":1560,"index_byte_offset":711408,"index_byte_length":3072,"vertex_count":130,"triangles":256,"bounds_min":[24.374882,-6.824261,-6.924247],"bounds_max":[33.663597,1.871994,-6.624247],"center":[29.01924,-2.4761336,-6.774247],"move_3d":[20.56,-1.24,29.51],"move_x":[32.89,0.0,0.0],"move_y":[0.0,-1.65,0.0],"move_z":[0.0,0.0,33.73]},{"name":"Body41","group":"group_16","group_name":"Chi tiết 17 (Body41)","color":"#b8bec6","vertex_byte_offset":714480,"vertex_byte_length":1656,"index_byte_offset":716136,"index_byte_length":3264,"vertex_count":138,"triangles":272,"bounds_min":[-32.82744,-6.467475,-6.924247],"bounds_max":[-23.800608,1.727311,-6.624247],"center":[-28.314022,-2.370082,-6.774247],"move_3d":[-19.58,-1.05,29.51],"move_x":[-31.33,0.0,0.0],"move_y":[0.0,-1.39,0.0],"move_z":[0.0,0.0,33.73]},{"name":"Body44","group":"group_17","group_name":"Chi tiết 18 (Body44)","color":"#84694b","vertex_byte_offset":719400,"vertex_byte_length":13560,"index_byte_offset":732960,"index_byte_length":27072,"vertex_count":1130,"triangles":2256,"bounds_min":[-30.668247,-5.593808,-25.04533],"bounds_max":[-24.435186,0.593808,-4.0],"center":[-27.551716,-2.5,-14.522665],"move_3d":[-19.04,-1.28,4.45],"move_x":[-30.47,0.0,0.0],"move_y":[0.0,-1.71,0.0],"move_z":[0.0,0.0,5.09]},{"name":"Body45","group":"group_18","group_name":"Chi tiết 19 (Body45)","color":"#b8bec6","vertex_byte_offset":760032,"vertex_byte_length":14088,"index_byte_offset":774120,"index_byte_length":28128,"vertex_count":1174,"triangles":2344,"bounds_min":[27.0,-5.890045,-25.011143],"bounds_max":[33.76862,0.890045,-4.0],"center":[30.38431,-2.5,-14.505571],"move_3d":[21.51,-1.28,4.51],"move_x":[34.42,0.0,0.0],"move_y":[0.0,-1.71,0.0],"move_z":[0.0,0.0,5.15]},{"name":"Body46","group":"group_19","group_name":"Chi tiết 20 (Body46)","color":"#b3b3b3","vertex_byte_offset":802248,"vertex_byte_length":2136,"index_byte_offset":804384,"index_byte_length":4224,"vertex_count":178,"triangles":352,"bounds_min":[-46.39267,-14.130947,-19.424248],"bounds_max":[45.34088,15.871808,-19.124247],"center":[-0.52589417,0.87043047,-19.274246],"move_3d":[-0.13,4.84,-10.91],"move_x":[-0.2,0.0,0.0],"move_y":[0.0,6.45,0.0],"move_z":[0.0,0.0,-12.47]},{"name":"Body47","group":"group_20","group_name":"Chi tiết 21 (Body47)","color":"#b8bec6","vertex_byte_offset":808608,"vertex_byte_length":1848,"index_byte_offset":810456,"index_byte_length":3648,"vertex_count":154,"triangles":304,"bounds_min":[-41.59563,-11.650993,-11.924247],"bounds_max":[36.085373,8.727356,-11.624247],"center":[-2.7551289,-1.4618187,-11.774246],"move_3d":[-1.69,0.6,13.34],"move_x":[-2.7,0.0,0.0],"move_y":[0.0,0.8,0.0],"move_z":[0.0,0.0,15.25]},{"name":"Body48","group":"group_21","group_name":"Chi tiết 22 (Body48)","color":"#3f3f3f","vertex_byte_offset":814104,"vertex_byte_length":3936,"index_byte_offset":818040,"index_byte_length":7824,"vertex_count":328,"triangles":652,"bounds_min":[-26.612904,2.697694,0.0],"bounds_max":[-23.612904,5.689305,0.8],"center":[-25.112904,4.1934996,0.4],"move_3d":[-17.34,10.87,52.71],"move_x":[-27.74,0.0,0.0],"move_y":[0.0,14.49,0.0],"move_z":[0.0,0.0,60.25]},{"name":"Body49","group":"group_22","group_name":"Chi tiết 23 (Body49)","color":"#b8bec6","vertex_byte_offset":825864,"vertex_byte_length":3936,"index_byte_offset":829800,"index_byte_length":7824,"vertex_count":328,"triangles":652,"bounds_min":[24.278568,-9.938031,0.0],"bounds_max":[27.278568,-6.94642,0.8],"center":[25.778568,-8.442225,0.4],"move_3d":[18.29,-12.07,52.71],"move_x":[29.26,0.0,0.0],"move_y":[0.0,-16.09,0.0],"move_z":[0.0,0.0,60.25]},{"name":"Body50","group":"group_23","group_name":"Chi tiết 24 (Body50)","color":"#b8bec6","vertex_byte_offset":837624,"vertex_byte_length":3936,"index_byte_offset":841560,"index_byte_length":7824,"vertex_count":328,"triangles":652,"bounds_min":[-32.102905,-9.938031,-0.0],"bounds_max":[-29.102907,-6.94642,0.8],"center":[-30.602905,-8.442225,0.4],"move_3d":[-21.18,-12.07,52.71],"move_x":[-33.89,0.0,0.0],"move_y":[0.0,-16.09,0.0],"move_z":[0.0,0.0,60.25]},{"name":"Body51","group":"group_24","group_name":"Chi tiết 25 (Body51)","color":"#b8bec6","vertex_byte_offset":849384,"vertex_byte_length":3936,"index_byte_offset":853320,"index_byte_length":7824,"vertex_count":328,"triangles":652,"bounds_min":[28.54857,2.697694,0.0],"bounds_max":[31.54857,5.689305,0.8],"center":[30.04857,4.1934996,0.4],"move_3d":[21.28,10.87,52.71],"move_x":[34.04,0.0,0.0],"move_y":[0.0,14.49,0.0],"move_z":[0.0,0.0,60.25]}];
+    const container = document.getElementById('container');
+    const canvas = document.getElementById('canvas3d');
+    const loadingEl = document.getElementById('loadingEl');
+    const loadStatus = document.getElementById('loadStatus');
+    const readoutEl = document.getElementById('readoutEl');
+    const explodeSlider = document.getElementById('explodeSlider');
+    const explodeVal = document.getElementById('explodeVal');
+    const spreadScale = document.getElementById('spreadScale');
+    const btnReset = document.getElementById('btnReset');
+    const btnAutoSpin = document.getElementById('btnAutoSpin');
+    const btnMode3D = document.getElementById('btnMode3D');
+    const btnModeX = document.getElementById('btnModeX');
+    const btnModeY = document.getElementById('btnModeY');
+    const btnModeZ = document.getElementById('btnModeZ');
+    const pills = document.querySelectorAll('.part-pill');
+
+    const scene = new THREE.Scene();
+    const maxDim = Math.max(110.220474, 0.1);
+    const nearPlane = Math.max(0.1, maxDim * 0.005);
+    const farPlane = Math.max(5000, maxDim * 40);
+    const camera = new THREE.PerspectiveCamera(36, container.clientWidth / container.clientHeight, nearPlane, farPlane);
+    camera.position.set(maxDim * 1.4, -maxDim * 1.8, maxDim * 1.2);
+    camera.up.set(0, 0, 1);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: true, logarithmicDepthBuffer: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(-0.34505653, -1.7939415, -15.9);
+    controls.minDistance = maxDim * 0.1;
+    controls.maxDistance = maxDim * 10;
+    controls.autoRotate = true;
+    controls.autoRotateSpeed = 2.0;
+
+    // Hệ thống ánh sáng PBR Studio
+    scene.add(new THREE.AmbientLight(0xffffff, 0.95));
+    const dLight1 = new THREE.DirectionalLight(0xfff5ea, 1.15);
+    dLight1.position.set(maxDim, -maxDim, maxDim * 1.5);
+    scene.add(dLight1);
+
+    const dLight2 = new THREE.DirectionalLight(0xa5c4e8, 0.4);
+    dLight2.position.set(-maxDim, maxDim, maxDim * 0.8);
+    scene.add(dLight2);
+
+    const bLight = new THREE.DirectionalLight(0xffffff, 0.35);
+    bLight.position.set(0, 0, -maxDim);
+    scene.add(bLight);
+
+    const modelPivot = new THREE.Group();
+    modelPivot.position.set(-0.34505653, -1.7939415, -15.9);
+    scene.add(modelPivot);
+
+    const guidesGroup = new THREE.Group();
+    guidesGroup.position.set(0.34505653, 1.7939415, 15.9);
+    modelPivot.add(guidesGroup);
+
+    let explodeMode = '3D';
+    let distanceMultiplier = 1.0;
+    const partMeshes = [];
+    const guideLines = [];
+    const rootGroup = new THREE.Group();
+    rootGroup.position.set(0.34505653, 1.7939415, 15.9);
+    modelPivot.add(rootGroup);
+
+    let currentExplode = 0;
+    let targetExplode = 0;
+    let activeGroup = 'all';
+
+    try {
+      
+      loadStatus.textContent = 'Đang tải dữ liệu 3D (model.bin)...';
+      let buffer = null;
+      try {
+        const res = await fetch('./model.bin');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        buffer = await res.arrayBuffer();
+      } catch (fErr) {
+        throw new Error('Không thể tải file model.bin: ' + fErr.message);
+      }
+        
+
+      rawParts.forEach((part) => {
+        const geo = new THREE.BufferGeometry();
+        const positions = new Float32Array(buffer, part.vertex_byte_offset, part.vertex_byte_length / 4);
+        const indices = new Uint32Array(buffer, part.index_byte_offset, part.index_byte_length / 4);
+        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geo.setIndex(new THREE.BufferAttribute(indices, 1));
+        geo.computeVertexNormals();
+
+        const initialColor = ('wood' === 'original') ? part.color : '#c29b6e';
+        const mat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(initialColor),
+          roughness: 0.7,
+          metalness: 0.02,
+          polygonOffset: true,
+          polygonOffsetFactor: 1.0,
+          polygonOffsetUnits: 1.0
+        });
+
+        const wireMat = new THREE.MeshBasicMaterial({
+          color: new THREE.Color(0xf1f5f9),
+          polygonOffset: true,
+          polygonOffsetFactor: 1.0,
+          polygonOffsetUnits: 1.0,
+          side: THREE.DoubleSide
+        });
+
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.userData = {
+          name: part.name,
+          originalColor: part.color,
+          group: part.group,
+          group_name: part.group_name,
+          move_3d: part.move_3d,
+          move_x: part.move_x,
+          move_y: part.move_y,
+          move_z: part.move_z,
+          center: part.center,
+          standardMaterial: mat,
+          wireframeMaterial: wireMat
+        };
+
+        // Viền nét CAD sắc sảo đồng bộ theo Theme
+        const edgeGeo = new THREE.EdgesGeometry(geo, 28);
+        const edgeMat = new THREE.LineBasicMaterial({
+          color: new THREE.Color(0x1e293b),
+          transparent: true,
+          opacity: 0.85
+        });
+        const edgeLines = new THREE.LineSegments(edgeGeo, edgeMat);
+        mesh.add(edgeLines);
+
+        rootGroup.add(mesh);
+        partMeshes.push(mesh);
+
+        // Đường chỉ dẫn 3D Leader Guide Lines
+        const pStart = new THREE.Vector3(part.center[0], part.center[1], part.center[2]);
+        const lineGeo = new THREE.BufferGeometry().setFromPoints([pStart, pStart.clone()]);
+        const lineMat = new THREE.LineDashedMaterial({
+          color: 0x0284c7,
+          dashSize: maxDim * 0.02,
+          gapSize: maxDim * 0.015,
+          transparent: true,
+          opacity: 0
+        });
+        const line = new THREE.Line(lineGeo, lineMat);
+        line.computeLineDistances();
+        guidesGroup.add(line);
+        guideLines.push({ line, pStart });
+      });
+
+      loadingEl.style.opacity = '0';
+      setTimeout(() => { loadingEl.style.display = 'none'; }, 400);
+
+      
+    } catch (err) {
+      loadStatus.textContent = 'Lỗi nạp mô hình 3D: ' + err.message;
+      console.error(err);
+    }
+
+    function getMoveVector(userData) {
+      if (explodeMode === 'X') return userData.move_x;
+      if (explodeMode === 'Y') return userData.move_y;
+      if (explodeMode === 'Z') return userData.move_z;
+      return userData.move_3d;
+    }
+
+    function updateExplode(progress) {
+      partMeshes.forEach((mesh, index) => {
+        const move = getMoveVector(mesh.userData);
+        const tx = move[0] * progress * distanceMultiplier;
+        const ty = move[1] * progress * distanceMultiplier;
+        const tz = move[2] * progress * distanceMultiplier;
+        mesh.position.set(tx, ty, tz);
+
+        const g = guideLines[index];
+        if (g) {
+          const pEnd = new THREE.Vector3(g.pStart.x + tx, g.pStart.y + ty, g.pStart.z + tz);
+          g.line.geometry.setFromPoints([g.pStart, pEnd]);
+          g.line.computeLineDistances();
+          g.line.material.opacity = (showGuides && progress > 0.05) ? Math.min(0.65, (progress - 0.05) * 1.5) : 0;
+        }
+      });
+      explodeVal.textContent = Math.round(progress * 100) + '%';
+      readoutEl.textContent = progress === 0 ? 'Assembled · ' + rawParts.length + ' chi tiết' : 'Exploded ' + Math.round(progress * 100) + '% (' + explodeMode + ' · ' + distanceMultiplier + 'x)';
+    }
+
+    explodeSlider.addEventListener('input', (e) => {
+      targetExplode = parseInt(e.target.value, 10) / 100;
+    });
+
+    spreadScale.addEventListener('change', (e) => {
+      distanceMultiplier = parseFloat(e.target.value);
+      updateExplode(currentExplode);
+    });
+
+    function setExplodeMode(mode, activeBtn) {
+      explodeMode = mode;
+      [btnMode3D, btnModeX, btnModeY, btnModeZ].forEach(b => b.classList.remove('active'));
+      activeBtn.classList.add('active');
+      updateExplode(currentExplode);
+    }
+
+    btnMode3D.addEventListener('click', () => setExplodeMode('3D', btnMode3D));
+    btnModeX.addEventListener('click', () => setExplodeMode('X', btnModeX));
+    btnModeY.addEventListener('click', () => setExplodeMode('Y', btnModeY));
+    btnModeZ.addEventListener('click', () => setExplodeMode('Z', btnModeZ));
+
+    // Bộ điều khiển Preset Vật liệu PBR
+    const PRESETS = {
+      sw_gray: { color: '#b8bec6', roughness: 0.45, metalness: 0.15 },
+      wood: { color: '#c29b6e', roughness: 0.70, metalness: 0.02 },
+      chrome: { color: '#e2e8f0', roughness: 0.12, metalness: 0.90 },
+      custom: { color: '#94a3b8', roughness: 0.40, metalness: 0.15 },
+      original: { roughness: 0.45, metalness: 0.15 }
+    };
+
+    const cboMaterial = document.getElementById('cboMaterialPreset');
+    const pickerColor = document.getElementById('pickerCustomColor');
+
+    function applyMaterialPreset(presetKey, customHex) {
+      partMeshes.forEach((mesh) => {
+        const targetMat = mesh.userData.standardMaterial || mesh.material;
+        if (presetKey === 'original') {
+          targetMat.color.set(mesh.userData.originalColor || '#b8bec6');
+          targetMat.roughness = 0.45;
+          targetMat.metalness = 0.15;
+        } else if (presetKey === 'custom') {
+          const hex = customHex || (pickerColor ? pickerColor.value : '#94a3b8');
+          targetMat.color.set(hex);
+          targetMat.roughness = 0.40;
+          targetMat.metalness = 0.15;
+        } else {
+          const p = PRESETS[presetKey] || PRESETS.sw_gray;
+          targetMat.color.set(p.color);
+          targetMat.roughness = p.roughness;
+          targetMat.metalness = p.metalness;
+        }
+        targetMat.needsUpdate = true;
+      });
+    }
+
+    if (cboMaterial) {
+      cboMaterial.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val === 'custom') {
+          if (pickerColor) pickerColor.style.display = 'inline-block';
+          applyMaterialPreset('custom', pickerColor ? pickerColor.value : null);
+        } else {
+          if (pickerColor) pickerColor.style.display = 'none';
+          applyMaterialPreset(val, null);
+        }
+      });
+    }
+
+    if (pickerColor) {
+      pickerColor.addEventListener('input', (e) => {
+        if (cboMaterial && cboMaterial.value === 'custom') {
+          applyMaterialPreset('custom', e.target.value);
+        }
+      });
+    }
+
+    let showEdges = true;
+    let isWireframe = false;
+
+    function updateWireframeDisplay() {
+      partMeshes.forEach((mesh) => {
+        const isMatch = activeGroup === 'all' || mesh.userData.group === activeGroup;
+        if (isWireframe) {
+          // Chế độ khung dây CAD triệt tiêu nét khuất (Hidden-Line Removed Wireframe):
+          // Mặt khối tô màu cùng màu nền (MeshBasicMaterial) để che chắn toàn bộ các đường nét ẩn bên dưới mặt
+          mesh.material = mesh.userData.wireframeMaterial;
+          mesh.material.visible = isMatch;
+          mesh.material.transparent = false;
+          mesh.material.opacity = 1.0;
+          mesh.children.forEach((c) => {
+            if (c.isLineSegments) {
+              c.visible = isMatch;
+              c.material.opacity = isMatch ? 0.95 : 0.2;
+              c.material.color.set(0x1e293b);
+            }
+          });
+        } else {
+          // Chế độ khối đặc PBR có đổ bóng
+          mesh.material = mesh.userData.standardMaterial;
+          mesh.material.visible = true;
+          mesh.material.transparent = !isMatch;
+          mesh.material.opacity = isMatch ? 1.0 : 0.2;
+          mesh.children.forEach((c) => {
+            if (c.isLineSegments) {
+              c.visible = showEdges && isMatch;
+              c.material.opacity = isMatch ? 0.85 : 0.2;
+              c.material.color.set(0x1e293b);
+            }
+          });
+        }
+        mesh.material.needsUpdate = true;
+      });
+    }
+
+    const btnEdgesToggle = document.getElementById('btnEdgesToggle');
+    if (btnEdgesToggle) {
+      btnEdgesToggle.addEventListener('click', () => {
+        showEdges = !showEdges;
+        btnEdgesToggle.classList.toggle('active', showEdges);
+        updateWireframeDisplay();
+      });
+    }
+
+    let showGuides = true;
+    const btnGuidesToggle = document.getElementById('btnGuidesToggle');
+    if (btnGuidesToggle) {
+      btnGuidesToggle.addEventListener('click', () => {
+        showGuides = !showGuides;
+        btnGuidesToggle.classList.toggle('active', showGuides);
+        guidesGroup.visible = showGuides;
+        updateExplode(currentExplode);
+      });
+    }
+
+    const btnWireframeToggle = document.getElementById('btnWireframeToggle');
+    if (btnWireframeToggle) {
+      btnWireframeToggle.addEventListener('click', () => {
+        isWireframe = !isWireframe;
+        btnWireframeToggle.classList.toggle('active', isWireframe);
+        updateWireframeDisplay();
+      });
+    }
+
+    pills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        pills.forEach((p) => p.classList.remove('active'));
+        pill.classList.add('active');
+        activeGroup = pill.getAttribute('data-group');
+        updateWireframeDisplay();
+      });
+    });
+
+    btnReset.addEventListener('click', () => {
+      controls.reset();
+      camera.position.set(maxDim * 1.4, -maxDim * 1.8, maxDim * 1.2);
+      controls.target.set(-0.34505653, -1.7939415, -15.9);
+      modelPivot.rotation.set(0, 0, 0);
+      targetExplode = 0;
+      explodeSlider.value = 0;
+      activeGroup = 'all';
+      pills.forEach((p, i) => p.classList.toggle('active', i === 0));
+      showEdges = true;
+      if (btnEdgesToggle) btnEdgesToggle.classList.add('active');
+      showGuides = true;
+      if (btnGuidesToggle) btnGuidesToggle.classList.add('active');
+      guidesGroup.visible = true;
+      isWireframe = false;
+      if (btnWireframeToggle) btnWireframeToggle.classList.remove('active');
+      updateWireframeDisplay();
+      autoSpin = true;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 2.0;
+      btnAutoSpin.classList.add('active');
+    });
+
+    let autoSpin = true;
+    btnAutoSpin.addEventListener('click', () => {
+      autoSpin = !autoSpin;
+      controls.autoRotate = autoSpin;
+      controls.autoRotateSpeed = 2.0;
+      btnAutoSpin.classList.toggle('active', autoSpin);
+    });
+
+    const btnSnapThumb = document.getElementById('btnSnapThumb');
+    if (btnSnapThumb) {
+      btnSnapThumb.addEventListener('click', () => {
+        if (autoSpin) {
+          autoSpin = false;
+          controls.autoRotate = false;
+          btnAutoSpin.classList.remove('active');
+        }
+        controls.update();
+        renderer.render(scene, camera);
+        const dataUrl = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.download = 'thumb.png';
+        a.href = dataUrl;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+    }
+
+    const btnRotateYZ = document.getElementById('btnRotateYZ');
+    if (btnRotateYZ) {
+      btnRotateYZ.addEventListener('click', () => {
+        modelPivot.rotation.x = (modelPivot.rotation.x + Math.PI / 2) % (Math.PI * 2);
+      });
+    }
+
+    const btnRotateXZ = document.getElementById('btnRotateXZ');
+    if (btnRotateXZ) {
+      btnRotateXZ.addEventListener('click', () => {
+        modelPivot.rotation.y = (modelPivot.rotation.y + Math.PI / 2) % (Math.PI * 2);
+      });
+    }
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (Math.abs(targetExplode - currentExplode) > 0.001) {
+        currentExplode += (targetExplode - currentExplode) * 0.12;
+        updateExplode(currentExplode);
+      }
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
