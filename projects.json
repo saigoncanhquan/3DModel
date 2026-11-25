@@ -1,5 +1,14 @@
 [
     {
+        "name":  "Part5",
+        "title":  "Part5",
+        "path":  "./Part5/index.html",
+        "thumb":  "./Part5/thumb.png",
+        "fallback_thumb":  "./Part5/thumb.svg",
+        "part_count":  1,
+        "date":  "2026-11-25 07:59"
+    },
+    {
         "name":  "Cross_Locked_Stool_-_X_shape",
         "title":  "Cross Locked Stool - X shape",
         "path":  "./Cross_Locked_Stool_-_X_shape/index.html",
