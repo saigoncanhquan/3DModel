@@ -1,5 +1,14 @@
 [
     {
+        "name":  "pogosticks_asse",
+        "title":  "pogosticks asse",
+        "path":  "./pogosticks_asse/index.html",
+        "thumb":  "./pogosticks_asse/thumb.jpg",
+        "fallback_thumb":  "./pogosticks_asse/thumb.svg",
+        "part_count":  15,
+        "date":  "2026-11-26 08:37"
+    },
+    {
         "name":  "Part5",
         "title":  "Part5",
         "path":  "./Part5/index.html",
