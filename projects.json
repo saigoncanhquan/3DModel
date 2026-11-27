@@ -1,5 +1,14 @@
 [
     {
+        "name":  "pull-up-system",
+        "title":  "pull-up-system",
+        "path":  "./pull-up-system/index.html",
+        "thumb":  "./pull-up-system/thumb.svg",
+        "fallback_thumb":  "./pull-up-system/thumb.svg",
+        "part_count":  21,
+        "date":  "2026-11-27 09:03"
+    },
+    {
         "name":  "pogosticks_asse",
         "title":  "pogosticks asse",
         "path":  "./pogosticks_asse/index.html",
