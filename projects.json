@@ -1,5 +1,14 @@
 [
     {
+        "name":  "shoe-cabinets",
+        "title":  "shoe-cabinets",
+        "path":  "./shoe-cabinets/index.html",
+        "thumb":  "./shoe-cabinets/thumb.jpeg",
+        "fallback_thumb":  "./shoe-cabinets/thumb.svg",
+        "part_count":  19,
+        "date":  "2026-11-28 08:19"
+    },
+    {
         "name":  "pull-up-system",
         "title":  "pull-up-system",
         "path":  "./pull-up-system/index.html",
